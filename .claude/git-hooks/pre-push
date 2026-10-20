@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+agents='claude|anthropic|codex|openai|chatgpt|copilot|cursor|devin|aider|gemini'
+zero=0000000000000000000000000000000000000000
+
+fail() { printf 'pre-push: %s\n' "$1" >&2; exit 1; }
+
+while read -r _local_ref local_sha remote_ref remote_sha; do
+  [[ $remote_ref == refs/heads/main ]] && fail "direct push to main is refused, push a <type>/<slug> branch and open a PR"
+  [[ $local_sha == "$zero" ]] && continue
+  if [[ $remote_sha == "$zero" ]]; then
+    range=$(git rev-list "$local_sha" --not --remotes)
+  else
+    range=$(git rev-list "$remote_sha..$local_sha")
+  fi
+  for sha in $range; do
+    parents=$(git rev-list --parents -n 1 "$sha" | wc -w)
+    (( parents > 2 )) && continue
+    short=$(git rev-parse --short "$sha")
+    body=$(git log -1 --format=%b "$sha" | grep -v '^[[:space:]]*$' || true)
+    [[ -z $body ]] || fail "$short has a body or trailers; history is subject only (git commit --amend, or bash .claude/scripts/strip-ai.sh --apply --history)"
+    people=$(git log -1 --format='%an %ae %cn %ce' "$sha")
+    if printf '%s\n' "$people" | grep -qiE "$agents"; then
+      fail "$short is authored or committed by an agent identity ($people); commit as the git user of this machine"
+    fi
+  done
+done

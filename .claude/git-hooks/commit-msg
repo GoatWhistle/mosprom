@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+msg_file=$1
+here=$(dirname "$0")
+stop=$(<"$here/stopwords")
+files=$(<"$here/agent-files")
+types='feat|fix|perf|refactor|test|docs|style|build|ci|chore|revert'
+scopes='frontend|backend|api|ml|data|deck|video|social|readme|infra|deps'
+
+msg=$(sed -e '/^# ------------------------ >8 ------------------------$/,$d' -e '/^#/d' "$msg_file")
+subject=$(printf '%s\n' "$msg" | sed -n '/./{p;q;}')
+
+case $subject in
+  Merge\ *|fixup!\ *|squash!\ *|amend!\ *) exit 0 ;;
+esac
+
+fail() { printf 'commit-msg: %s\n' "$1" >&2; exit 1; }
+
+hit=$(printf '%s\n' "$msg" | grep -oiE "$stop" | head -1 || true)
+[[ -z $hit ]] || fail "agent mention in the message: \"$hit\""
+
+body=$(printf '%s\n' "$msg" | awk 'seen && NF { print } NF && !seen { seen = 1 }')
+[[ -z $body ]] || fail "subject only: no body, no trailers, no co-authors (found: \"$(printf '%s' "$body" | head -1)\")"
+
+ref=$(printf '%s\n' "$subject" | grep -oE '(^|[^[:alnum:]&/])#[0-9]+' | head -1 || true)
+[[ -z $ref ]] || fail "issue/PR reference \"${ref#?}\": issues are deleted before submission, describe the change instead"
+
+pattern="^(${types})(\((${scopes})\))?: (.+)$"
+[[ $subject =~ $pattern ]] \
+  || fail "subject is not \`type(scope): subject\`, type: ${types//|/, }; optional scope: ${scopes//|/, }: \"$subject\""
+
+desc=${BASH_REMATCH[4]}
+(( ${#subject} <= 72 )) || fail "subject is ${#subject} characters, limit 72"
+[[ $desc =~ ^[a-z0-9] ]] || fail "subject starts with a lowercase imperative verb: \"add\", \"fix\", \"remove\", not \"$desc\""
+[[ ! $desc =~ [.!]$ ]] || fail "no trailing period in the subject"
+if printf '%s' "$subject" | LC_ALL=C grep -q $'[\xD0\xD1]'; then
+  fail "subject must be in English"
+fi
+if printf '%s\n' "$subject" | grep -qE "$files"; then
+  fail "subject names agent files; they are scrubbed before submission, describe the change neutrally"
+fi

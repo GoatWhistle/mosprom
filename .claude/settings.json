@@ -1,0 +1,47 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "includeCoAuthoredBy": false,
+  "enabledPlugins": {
+    "hyperframes@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "superdesign@superdesign": true,
+    "impeccable@impeccable": false,
+    "ui-ux-pro-max@ui-ux-pro-max-skill": false,
+    "frontend-design@claude-plugins-official": false
+  },
+  "extraKnownMarketplaces": {
+    "superdesign": {
+      "source": {
+        "source": "github",
+        "repo": "superdesigndev/superdesign-skill"
+      }
+    }
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/scripts/context_budget.py\" --hook session-start",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/scripts/context_budget.py\" --hook stop",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
