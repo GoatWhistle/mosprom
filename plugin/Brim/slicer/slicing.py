@@ -1,12 +1,15 @@
 import io
 import os
 import threading
+import time
 
 from ..execution.errors import OperationError
 from ..protocol import constants
 from .project_archive import verify_project
 
 SLICE_TIMEOUT = 900.0
+ESTIMATE_RETRIES = 10
+ESTIMATE_PAUSE = 0.5
 
 
 class SlicingService(object):
@@ -75,15 +78,24 @@ class SlicingService(object):
         if result["state"] == error_state:
             raise OperationError(constants.ERR_SLICE_FAILED, "the slicer engine reported an error",
                                  {"slicer_errors": list(self._state.errors)})
-        return self._main.call(self._summary)
+        summary = self._main.call(self._summary)
+        for _ in range(ESTIMATE_RETRIES):
+            if summary.get("print_time_seconds") is not None:
+                break
+            time.sleep(ESTIMATE_PAUSE)
+            summary = self._main.call(self._summary)
+        return summary
 
     def _summary(self):
         info = self._h.application.getPrintInformation()
         if info is None:
             return {}
         duration = info.currentPrintTime
+        seconds = None
+        if duration is not None and duration.valid:
+            seconds = int(duration.days * 86400 + duration.hours * 3600 + duration.minutes * 60 + duration.seconds)
         return {
-            "print_time_seconds": int(duration.days * 86400 + duration.hours * 3600 + duration.minutes * 60),
+            "print_time_seconds": seconds,
             "material_weight_g": [round(float(item), 2) for item in info.materialWeights],
             "material_length_m": [round(float(item), 2) for item in info.materialLengths],
         }
