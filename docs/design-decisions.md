@@ -53,32 +53,28 @@
 | `Usage` возвращается с каждым ответом | Стоимость и задержка не попадают в замеры | Контракт порта | Не все провайдеры сообщают токены и цену, поэтому поля необязательны |
 | Похожесть векторов считает индекс в `repository` (матрица numpy, pgvector), а не `usecase`; `Vector` в порте — `Sequence[float]` | Перебор тысяч векторов циклом Python в `usecase` в разы медленнее и съедает ~8× памяти против `float32` | Соглашение; проверки нет | Перевод numpy ↔ list на границе порта стоит миллисекунды на пакет; если `usecase` сам считает по многим векторам, нужен ADR и тип матрицы N×D |
 
-## Почему модель Claude вызывается через Agent SDK в пустом окружении?
+## Почему Claude подключается через Agent SDK, а вызовы инструментов идут через JSON Schema?
 
-Адаптер `ClaudeAgentModel` в `backend/src/app/adapter/llm/claude_agent.py` реализует порт
-`LanguageModel` через `claude-agent-sdk`.
-
-| Правило | Какой сбой предотвращает | Чем закреплено | Остаточный предел |
-|---|---|---|---|
-| `tools=[]`, `setting_sources=[]`, `cwd` — временная пустая папка на каждый вызов | Агент читает `CLAUDE.md`, настройки и файлы репозитория или стенда, и ответ зависит от машины | `ClaudeAgentModel._options` | Глобальные переменные окружения CLI всё равно действуют |
-| Ответ берётся только из `ResultMessage.structured_output` по `output_format` с JSON Schema | Модель отвечает текстом, и use case парсит прозу | `ClaudeAgentModel.complete` | SDK проверяет схему, но не смысл полей |
-| Ошибки SDK, пустой или неструктурированный результат превращаются в `ModelFailure` | Исключение SDK проходит в контроллер как неизвестная 500 | `ClaudeAgentModel.complete` | Нет повторов: временный сбой сразу становится ошибкой |
-| `Tier` сопоставляется с алиасом модели (`haiku`, `sonnet`) в конструкторе | Имя модели жёстко зашито в use case | `DEFAULT_MODELS`, параметр `models` | Алиас указывает на версию, выбранную SDK; для воспроизводимых замеров передайте точный ID |
-
-## Почему модель Codex вызывается через `openai-codex` без инструментов?
-
-Адаптер `CodexAgentModel` в `backend/src/app/adapter/llm/codex_agent.py` реализует порт
-`LanguageModel` через Python SDK `openai-codex`. SDK запускает локальный `codex app-server` из
-пакета `openai-codex-cli-bin` и переиспользует сохранённую авторизацию Codex.
+`ChatModelRouter` в `backend/src/app/adapter/llm/routing.py` выбирает адаптер по схеме `base_url`
+подключения из плагина. `claude-agent` (или `claude-agent://…`) уходит в `ClaudeAgentChatAdapter`
+из `backend/src/app/adapter/llm/claude_agent.py`, остальные адреса — в OpenAI-совместимый адаптер.
+Claude Agent SDK запускает CLI Claude Code и работает по OAuth-токену подписки
+(`claude setup-token`), без платного API-ключа. Токен вводится в поле «Ключ доступа».
 
 | Правило | Какой сбой предотвращает | Чем закреплено | Остаточный предел |
 |---|---|---|---|
-| `--config` отключает `shell_tool`, `unified_exec`, `view_image`, веб-поиск и `AGENTS.md` (`project_doc_max_bytes=0`); `cwd` — временная пустая папка; `Sandbox.read_only`, `ApprovalMode.deny_all`, `ephemeral=True` | Агент выполняет команды, читает файлы стенда или инструкции проекта, сохраняет историю на диск | `ISOLATION_OVERRIDES`, `CodexAgentModel._run` | `app-server` молча принимает неизвестные ключи `features.*`: запуск потока не доказывает, что инструменты отключены. `~/.codex/config.toml` и глобальный `AGENTS.md` из `CODEX_HOME` продолжают действовать |
-| `base_instructions` заменяет системный промпт Codex на `StructuredRequest.system` | Инструкции агента-программиста влияют на ответ продукта | `CodexAgentModel._run` | Поведение без базовых инструкций Codex не проверено живым вызовом |
-| Ответ — `final_response` турна с `output_schema`, разобранный как JSON-объект | Use case парсит прозу | `CodexAgentModel.complete` | Схему проверяет модель, а не SDK: адаптер проверяет только, что пришёл объект |
-| `CodexError`, `RuntimeError` упавшего турна, статус не `completed`, пустой или не-JSON ответ превращаются в `ModelFailure` | Исключение SDK доходит до контроллера как неизвестная 500 | `CodexAgentModel.complete` | SDK бросает `RuntimeError` при `TurnStatus.failed`; нет повторов, `retry_on_overload` не используется |
-| `Tier.FAST` → `gpt-6-luna`, `Tier.SMART` → `gpt-6.1-sol` | Имя модели зашито в use case | `DEFAULT_MODELS`, параметр `models` | Выбор по описаниям каталога `models()` в `openai-codex` 0.162.1 на 2026-10-14, без замеров; `cost_usd` не заполняется — SDK не отдаёт стоимость |
-| Каждый вызов запускает свой `app-server` | Общее состояние процесса между запросами | `async with AsyncCodex(...)` в `_run` | Запуск процесса добавляет задержку к каждому запросу |
+| `tools=[]`, `setting_sources=[]`, `cwd` — временная пустая папка на каждый вызов | CLI выполняет свои инструменты, читает `CLAUDE.md`, настройки и файлы стенда | `_options`, `test_options_isolate_the_cli_and_pass_the_token` | Глобальные переменные окружения CLI всё равно действуют |
+| Токен идёт в `CLAUDE_CODE_OAUTH_TOKEN`, `ANTHROPIC_API_KEY` переопределяется пустой строкой | Ключ API из окружения процесса перехватывает авторизацию и тратит деньги | `_options` | Что CLI считает пустую строку отсутствием ключа, живым вызовом не проверено |
+| Цикл агента остаётся в `usecase/agent.py`: SDK получает всю историю одним сообщением-транскриптом (`<user>`, `<assistant>` с `<tool_call>`, `<tool_result>`), картинки — блоками `image` | SDK сам выполняет инструменты, и подтверждения, журнал вызовов и слайсер обходятся | `claude_transcript.py`, `test_transcript_keeps_images_and_tool_history` | Модель видит прошлые ходы как текст, а не как нативные `tool_use`; качество ниже нативного tool use не измерено |
+| При наличии инструментов ответ берётся из `structured_output` по схеме `{text, tool_calls[{name, arguments}]}`, `name` — `enum` имён инструментов; без инструментов — текст `result` | Use case парсит прозу; модель вызывает несуществующий инструмент | `output_schema`, `parse_output`, `test_malformed_structured_output` | Аргументы против схемы инструмента адаптер не проверяет — только что это объект |
+| `id` вызова генерирует адаптер (`call_<uuid4>`) | Схема ответа без `id` даёт совпадающие идентификаторы в журнале вызовов | `parse_output` | — |
+| Таймаут `LLM_TIMEOUT_SECONDS` через `asyncio.timeout`; ошибки SDK, `is_error`, пустой результат → `ModelTimeout` / `ModelFailure` без текста исключения | Исключение SDK доходит до контроллера как 500 или текст ошибки с токеном попадает в журнал | `test_failures_become_model_failure`, `test_timeout` | Повторов нет; каждый вызов запускает процесс CLI и добавляет задержку |
+| Без пакета `claude-agent-sdk` маршрут `claude-agent` отвечает `ModelFailure` с подсказкой `LLM=true` | Образ без группы `llm` не стартует | `build_claude_agent` в `main.py`, `test_unavailable_model_names_the_reason` | Импорт внутри функции — исключение из правила «импорты в начале файла» |
+
+Живой вызов 2026-10-23, модель `sonnet`, OAuth-токен подписки, локально (не в контейнере), 3 хода с
+8 инструментами из `tools.json`: ход с инструментами — 8,5 с, два параллельных `search_settings`;
+ход после результатов — 8,2 с, модель прочитала `<tool_result>` по `id`; текстовый ход без
+инструментов — 7,0 с. Цикл агента со слайсером через этот адаптер не прогонялся.
 
 ## Как decision-модели (Jev, Laya, OpenJev) остаются заменяемыми?
 
@@ -139,21 +135,14 @@ Decision-модели не пишут текст. Они получают сос
 
 ## Почему SDK LLM — отдельная группа зависимостей?
 
-`claude-agent-sdk` и `openai-codex` везут бинарники CLI и раздувают образ бэкенда. Они лежат в группе
+`claude-agent-sdk` везёт бинарник CLI Claude Code и раздувает образ бэкенда. Пакет лежит в группе
 `llm` в `backend/pyproject.toml`; локально `uv sync` ставит её по умолчанию (`default-groups`), образ —
-только при `LLM=true`.
+только при `LLM=true` (`LLM=true docker buildx bake`). Флаг выбирает стадию `deps-${LLM}` в
+`backend/Dockerfile`; значения, кроме `true` и `false`, ломают сборку.
 
-Замер 2026-10-14, `docker image ls --tree`, linux/amd64: без `LLM` образ занимает 155 МБ в
-распакованном виде и 49 МБ сжатым (скачивание, push), с `LLM=true` — 828 МБ и 323 МБ. Слой группы
-`llm` — 673 МБ: CLI Claude Code 255 МБ и `codex-cli-bin` 358 МБ после распаковки при колёсах 108 и
-135 МБ. `docker images` с containerd snapshotter показывает сумму распакованного и сжатого
-(204 МБ и 1,15 ГБ).
-
-| Правило | Какой сбой предотвращает | Чем закреплено | Остаточный предел |
-|---|---|---|---|
-| Адаптеры Claude и Codex импортируются внутри `build_language_model`, а не в начале `main.py` | Образ без группы `llm` падает с `ImportError` при любом `LANGUAGE_MODEL`, включая `none` | `test_missing_llm_group_fails_at_startup` | Исключение из правила «импорты в начале файла»: только для необязательной группы зависимостей |
-| LLM-модель строится в `create_app()`, до старта сервера | Сервер стартует и проходит healthcheck, а сценарий падает при первом вызове | `ConfigError` с именем пакета и командой исправления | — |
-| Флаг `LLM` выбирает стадию `deps-${LLM}` в `backend/Dockerfile` | Две копии Dockerfile расходятся | `docker-bake.hcl`, `build.args` в Compose | Значения, кроме `true` и `false`, ломают сборку: такой стадии нет |
+Замер 2026-10-14 для прежнего состава группы (Claude и Codex), `docker image ls --tree`, linux/amd64:
+без `LLM` образ занимал 155 МБ распакованным, CLI Claude Code — 255 МБ распакованным при колесе
+108 МБ. Образ с одной `claude-agent-sdk` 0.2.173 не замерялся.
 
 ## Как образ бэкенда кэшируется по слоям?
 
