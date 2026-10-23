@@ -1,9 +1,9 @@
 # Запуск и проверки
 
-Сейчас Compose запускает фронтенд и бэкенд. У бэкенда один метод — `GET /api/v1/health`; сценарии,
-база данных и миграции будут добавлены при реализации проекта.
+Compose запускает PostgreSQL 16, одноразовую миграцию dbmate и бэкенд. Отдельного веб-фронтенда нет;
+встроенный чат STE Slicer пишется отдельно и в этом репозитории не реализован.
 
-**Читайте, если** вы запускаете шаблон · **Связано:** [архитектура](architecture.md) · [зависимости](dependencies.md)
+**Читайте, если** вы запускаете бэкенд · **Связано:** [архитектура](architecture.md) · [API](api.md)
 
 ## Как запустить через Docker?
 
@@ -15,65 +15,42 @@ docker buildx bake
 docker compose up
 ```
 
-Интерфейс: http://localhost:8080, API: http://localhost:8000, Swagger: http://localhost:8000/docs.
-Образы собирает только `docker-bake.hcl`; Compose берёт готовые образы
-`<COMPOSE_PROJECT_NAME>-backend:<TAG>` и `<COMPOSE_PROJECT_NAME>-frontend:<TAG>` и не скачивает их
-из реестра. Без сборки `docker compose up` остановится с ошибкой об отсутствующем образе.
-Переменные контейнеров приходят из `.env` через `env_file`; без `.env` действуют значения по
-умолчанию. Первичная сборка требует сети для загрузки зависимостей и образов.
-
-Образ бэкенда по умолчанию собирается без SDK Claude и Codex. Чтобы включить `LANGUAGE_MODEL`,
-соберите образ с флагом `LLM`:
-
-```bash
-LLM=true docker buildx bake
-docker compose up
-```
-
-Переменные сборки (`LLM`, `TAG`, `SITE_URL`, `COMPOSE_PROJECT_NAME`) bake берёт из окружения, а не
-из `.env`.
+API: http://localhost:8000, Swagger: http://localhost:8000/docs. Образ бэкенда собирает только
+`docker-bake.hcl`; Compose не скачивает его из реестра, поэтому без сборки `docker compose up`
+остановится с ошибкой. Порядок старта: `db` → `migrate` (разово) → `backend`. Данные лежат в
+томе `db-data` и переживают `docker compose down`; `down -v` их удаляет. Порт PostgreSQL наружу не
+публикуется.
 
 ## Как разрабатывать без Docker?
 
-Нужны Node.js 22.18+ или поддерживаемая более новая версия и npm.
-
-```bash
-cd frontend
-npm ci
-npm run dev
-```
-
-Адрес покажет Vite при запуске. Бэкенд без Docker, из корня:
+Нужны Python 3.12+, uv и PostgreSQL с применёнными миграциями:
 
 ```bash
 cd backend
-uv sync                      # группы dev и llm; без SDK LLM: uv sync --no-group llm
-uv run uvicorn app.main:create_app --factory --reload
+uv sync
+DATABASE_URL=postgresql://brim:brim@localhost:5432/brim uv run uvicorn app.main:create_app --factory --reload
 ```
 
 ## Какие переменные читает бэкенд?
 
-Все необязательны: без них работает офлайн-реализация.
-
 | Переменная | По умолчанию | Что задаёт |
 |---|---|---|
-| `DECISION_MODEL` | `lexical` | `lexical` — офлайн-замена; `system_one` — HTTP-модель по контракту `/v1/systemone` |
-| `DECISION_MODEL_URL` | `https://api.typesafe.ai` | Адрес модели для `system_one`, например локальный `laya-serve` |
-| `DECISION_MODEL_API_KEY` | пусто | Ключ для `system_one`; без него заголовок `Authorization` не отправляется |
-| `DECISION_MODEL_TIMEOUT_S` | `10` | Таймаут запроса к модели, секунды |
-| `LANGUAGE_MODEL` | `none` | `none`, `claude` или `codex` |
-| `BACKEND_PORT` | `8000` | Порт бэкенда на хосте в Compose |
-| `LLM` | `false` | Сборка: `true` ставит в образ SDK Claude и Codex |
-| `TAG` | `latest` | Тег образов Compose и bake |
+| `DATABASE_URL` | в Compose собирается из `POSTGRES_*` | DSN PostgreSQL; без него бэкенд не стартует |
+| `DB_POOL_MAX_SIZE` | `10` | Размер пула соединений |
+| `LLM_TIMEOUT_SECONDS` | `120` | Таймаут запроса к LLM |
+| `CORRECTION_LIMIT` | `3` | Подряд неудачных исправлений одной операции до просьбы о помощи |
+| `AGENT_MAX_STEPS` | `60` | Предел шагов агента в запуске |
+| `TOOL_TIMEOUT_SECONDS`, `SLICE_TIMEOUT_SECONDS`, `SAVE_TIMEOUT_SECONDS` | `120`, `900`, `300` | Ожидание инструмента, слайсинга и сохранения файлов |
+| `BACKEND_PORT`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | `8000`, `brim`, `brim`, `brim` | Параметры Compose |
 
-Неизвестное значение останавливает запуск с ошибкой, где названа переменная и допустимые значения.
+URL, модель и ключ LLM переменными не задаются: их передаёт плагин методом `PUT /instances/llm`.
+Неверное число останавливает запуск с ошибкой, где названа переменная.
 
-## Как проверить фронтенд и презентацию?
+## Как проверить презентацию?
 
 Из корня, каждую команду отдельно:
 
 ```bash
-(cd frontend && npm run verify)
 (cd presentation && npm ci && npm run build)
 ```
 
@@ -91,24 +68,20 @@ uv run pytest tests/unit
 uv run pytest tests/integration
 ```
 
-`tests/unit` работает без базы и сети; `tests/integration` требует локальную инфраструктуру
-(PostgreSQL, запущенный стенд). `uv run pytest` запускает обе группы. Число процессов pytest-xdist
-зависит от размера набора: маленький идёт в один процесс.
-
-Тесты адаптера Claude подменяют вызов SDK и не ходят в сеть. Реальный вызов требует
-`ANTHROPIC_API_KEY` или вход в Claude Code и расходует оплату.
+`tests/unit` работает без базы и сети. `tests/integration` сам поднимает PostgreSQL 16 в Docker и
+применяет миграции образом dbmate; без запущенного Docker тесты падают с понятным сообщением. LLM
+в e2e-тестах скриптован, плагин изображает WebSocket-клиент: это проверка протокола, а не
+интеграции с настоящим STE Slicer.
 
 ## Что делать, если не запускается?
 
 | Симптом | Что проверить |
 |---|---|
-| Порт 8080 занят | Задайте свободный `FRONTEND_PORT` в `.env` |
 | Порт 8000 занят | Задайте свободный `BACKEND_PORT` в `.env` |
-| Ошибка состояния API | `docker compose ps backend` и `docker compose logs backend`; затем `API_UPSTREAM` |
-| `ConfigError` при старте бэкенда | Значение переменной из сообщения; допустимые перечислены там же |
-| `LANGUAGE_MODEL=claude needs package` | Образ собран без SDK: пересоберите с `LLM=true` |
+| `ConfigError` при старте | Значение переменной из сообщения |
+| Бэкенд `unhealthy`, `Permission denied` в логах | У файлов в `backend/src` нет права чтения для всех (`chmod -R go+rX backend/src`), затем пересоберите образ |
 | `No such image` при `docker compose up` | Образы не собраны: `docker buildx bake` с теми же `COMPOSE_PROJECT_NAME` и `TAG` |
-| Зависимости не скачиваются | Доступ к реестрам npm и Docker во время сборки |
+| 409 `llm_not_configured` или запуск `failed` | Плагин не передал ключ: `PUT /api/v1/instances/llm` |
 
 ---
 

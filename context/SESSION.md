@@ -26,36 +26,54 @@ Updated: 2026-10-23, MSK
 - 2026-10-23: «на видео забей, удали вообще»
 - 2026-10-23: «только транскрибация пусть летит»
 
+- 2026-10-23: «а теперь давай подумаем как это можно реализовать»
+- 2026-10-23: Windows test host question answered «Пока только macOS/Linux».
+
+- 2026-10-23: «стой»
+- 2026-10-23: «удали все скиллы, которые тебя щас путают. ты сликшом галлюционируешь»
+
+- 2026-10-23: «мы пока в read-only режиме, потом пропишем это в план и реализуем.»
+- 2026-10-23: «все по чистой архе пишем, сделай аадаптер подключения к LLM по OpenAI-совместимый API.»
+- 2026-10-23: «геометрию агент должен получать числами, а «просмотр» сцены нужен как структурированное состояние. Рендер картинкой идёт только как дополнение.»
+- 2026-10-23: «ну мы это все всегда будем хранить в БД очевидно»; «нет, постгрес»; «компоуз очевидно.»
+- 2026-10-23: «Плагин должен интегрировать в интерфейс программы окно встроеного чат-бота.»
+- 2026-10-23: «все удаляй нахуй папочку фронтенда братишка, мы без него» — authorizes frontend removal and its dependent configuration cleanup; product implementation remains pending.
+
+- 2026-10-23: «сгенерь и пропиши в .env.example» — explicitly requests a generated connection token in the tracked example file.
+
 ## Current state
 
-- Task: publish the organized brief and originals; case discussion is next.
-- Branch: `main`, based on `3d0e45257c8b3bd00d8d2903b7891e499f205cdb`; consolidated publication excludes video.
-- User explicitly requires direct main push, overriding the local hook restriction for this publication.
-- Documentation checks and commit hook passed. Uploads were stopped before remote main changed; local unpublished commits consolidated.
-- Read PDF pp. 1–12, supplied transcript, full website task and seven DOCX tasks; inspected seven JPGs.
-- Originals copied from task/ to brief/sources/ unchanged; task/ retained. Source hashes and model manifest recorded.
-- brief/: verbatim task, technical appendix, model tasks, criteria, submission, event and source reconciliation.
-- AGENTS header, glossary, docs index and context updated. work/plan.md records pending discussion, not an approved implementation plan.
-- No product code, installation, activation, LLM calls, messages to organizers performed.
+- Task: discussing plugin loading and runtime. User chose a VM: «поднимать все буду на виртуалке». Preserve concurrent backend/plugin implementation. Target runtime has not been tested.
+- Branch: main; HEAD 28cc4017b0782fb56430fabc3238ad59620943e6. No commit or push in this turn. Prior uncommitted skill removals/instruction edits preserved.
+- Approved design, not implemented: embedded STE Slicer chat; Clean Architecture; OpenAI-compatible LLM adapter; PostgreSQL in Compose for persistent conversations and results.
+- Agent interviews the user with a question pool and follows up on missing/ambiguous answers. Model knowledge, slicer facts and user answers only for now; no reference database or web search.
+- Code supplies initial facts, structured scene updates and numerical geometry. Agent chooses print settings, transformations and tool calls. Image renders are supplementary.
+- Attachments stay in the conversation until the agent imports them. Every successful slice automatically saves matching G-code and 3MF. Improvements need a new user request; the agent may repair execution errors within the agreed requirements.
+- Auto applies edits autonomously; Ask before edits requires approval before applying a related group of edits. Enforcement belongs to code. Both modes interview the user.
+- Approved: agent in backend Compose service, PostgreSQL separately in Compose; plugin executes slicer tools and provides embedded chat. Backend address configurable, default localhost. Implementation plan delivered in chat; code remains a template.
+- Prior work removed five project skills: hack-kickoff, codebase-design, domain-modeling, docs-writing, writing-for-agents. Their aliases/dependent invocation edits remain uncommitted. No global skills changed.
+- PDF embedded-chat wording and website browser-SPA wording conflict. User chose embedded chat; official sources remain unchanged. WebView support is unverified.
 
 ## How to continue
 
-1. Discuss P0, positioning, mechanisms, measurements and scope with the user, then plan implementation.
-2. Read brief/requirements.md and TECHNICAL.md: Python 3.5-compatible STE Slicer plugin, browser SPA, real MCP operations.
-3. Determine Windows test stand, personal checkpoint slots and extra submission fields in the participant account.
-4. Keep previous brand decisions; animation feedback is still pending. See docs/visual-system.md and work/naming.md.
+1. Continue design discussion; do not implement the agent, database or plugin until authorized.
+2. Implement the agreed plan only when requested; verify Qt integration against the supplied STE Slicer. Read brief/requirements.md and TECHNICAL.md without silently restoring a browser frontend.
+3. User chose a VM for the slicer stand; installation and runtime validation remain pending. Check checkpoint slots and submission fields when needed.
+4. Preserve Brim name and molten-plastic brand in docs/visual-system.md and docs/brand/.
 
 ## Verification and limitations
 
-- Context budget, git diff --check, changed product-doc links, brief/context links, original SHA-256 equality and source coverage checks passed.
+- Checks passed: frontend absent, Compose config valid/backend only, bake print/backend only, git diff --check, context budgets, changed docs links (excluding root README).
+- Presentation build passed after npm ci --ignore-scripts fixed missing qrcode. speech:check still reports the ten known stale sections; root README link check still fails on pre-existing missing docs/images/hero.png. No container startup or image build run.
+- Previous intake: PDF pp. 1–12, transcript, website task and seven DOCX tasks read; seven JPGs viewed. Original hashes, ZIP CRC and STL sizes checked; no slicing or physical validation.
+- Video files deleted at user request, transcript retained. Website key excluded from repository.
+- Historical/template docs and reusable web skills may mention the removed frontend; they are not the current product architecture.
 
-- PDF inspected visually; no text layer. TASK.md manually transcribed with page markers.
-- Transcript not rechecked word for word against audio. DOCX text extracted from XML, pagination/layout not verified.
-- ZIP CRC and seven binary STL sizes passed; no slicing, geometric or physical validation performed.
-- Initial web tool could not open organizer site; curl returned HTTP 200. First model download timed out; resumed download passed CRC.
-- Website key excluded from repository; only the case HTML fragment retained. No API availability claim.
-- User requested deleting video and retaining its transcript: both MP4 copies deleted, LFS tracking removed.
-- Setup activated project hooks; Git identity preserved. Direct main push authorized for this task.
-- Earlier session reported frontend verify green; not rerun for documentation-only intake.
-- Earlier deck check reported ten stale speech-sync errors; not rerun or repaired here.
-- Motion pitfalls retained: full-screen View Transition ring snapshots lag; percentage tile heights need absolute positioning.
+## 2026-10-23 backend implementation (agent plan)
+
+- User: «так плагин я отдельно буду писать» — plugin work stopped; user writes it. `plugin/Brim/` holds an unfinished, unverified draft (protocol, ledger, geometry, slicer modules written from STE Slicer sources, no UI/extension/tests); do not treat it as done.
+- Backend done in working tree, not committed: PostgreSQL repositories, dbmate migration, OpenAI-compatible adapter, agent loop, HTTP and WebSocket API, Compose db/migrate/backend. Contract: `work/protocol-contract.md`; tool schema source `backend/src/app/domain/tools.json` (frame only `scene`).
+- Checks run: ruff, mypy strict, 77 pytest tests (11 repository + 7 e2e on real PostgreSQL via docker, scripted LLM, fake plugin over WebSocket); Compose up with data kept after down/up. Not run: real LLM, real slicer, Windows.
+- Artifact chunk `sha256` is the digest of the whole artifact (same on every chunk).
+- `.env.example` had an uncommitted token-like BRIM_CONNECTION_TOKEN value; blanked and removed.
+- Next: commit, update docs/ (api, architecture, running) and ADR for PostgreSQL, hand the contract to the plugin author.
