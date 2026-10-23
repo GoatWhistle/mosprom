@@ -49,7 +49,7 @@ body {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 18px;
 }
 
 .mark {
@@ -74,10 +74,10 @@ body {
 }
 
 .wordmark {
-  font-size: 72px;
-  font-weight: 650;
-  line-height: 1;
-  letter-spacing: -0.04em;
+  display: block;
+  height: 45px;
+  width: auto;
+  color: var(--text-primary);
 }
 
 .promise {
@@ -195,9 +195,9 @@ body {
 <div class="banner" data-asset="banner">
   <div class="lockup">
     <span class="mark" data-mark></span>
-    <span class="wordmark">{{PRODUCT}}</span>
+    <svg class="wordmark" role="img" aria-label="Brim" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 237 90"><g fill="none" stroke="currentColor" stroke-width="13" stroke-linejoin="round"><path d="M6.5 0V90M81.5 30V90M81.5 63C81.5 45 90.5 36.5 104 36.5H117M131.5 30V90M156.5 90V56C156.5 44 164 36.5 175 36.5C186 36.5 193.5 44 193.5 56V90M193.5 56C193.5 44 201 36.5 212 36.5C223 36.5 230.5 44 230.5 56V90"/><path d="M26.5 36.5H36.5A20 20 0 0 1 56.5 56.5V63.5A20 20 0 0 1 36.5 83.5H26.5A20 20 0 0 1 6.5 63.5V56.5A20 20 0 0 1 26.5 36.5Z"/></g><path fill="currentColor" d="M125 0H138V13H125Z"/></svg>
   </div>
-  <p class="promise">{{Обещание одной фразой}}, <em>{{вторая половина тезиса}}</em></p>
+  <p class="promise">Параметры печати по модели, фото и запросу, <em>от первого слоя до готового G-кода</em></p>
 </div>
 
 <span class="mark" data-asset="mark" data-mark style="width: 32px; height: 32px"></span>

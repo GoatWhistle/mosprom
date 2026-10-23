@@ -1,13 +1,13 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/readme/banner.dark.png">
-    <img src="docs/readme/banner.light.png" alt="{{PRODUCT}}: {{обещание одной фразой}}" width="880" height="200">
+    <img src="docs/readme/banner.light.png" alt="Brim: параметры печати по модели, фото и запросу, от первого слоя до готового G-кода" width="880" height="200">
   </picture>
 </p>
 
 <p align="center">
-  {{Кто пользователь и что у него меняется, одной строкой. Не повторяет обещание с баннера: называет
-  человека, его задачу и результат его словами.}}
+  Оператор 3D-принтеров загружает модель, фото и пишет задачу словами, а получает настройки печати с
+  объяснением каждой и готовый G-код, без ручной возни со слайсером.
 </p>
 
 <p align="center">
@@ -75,7 +75,7 @@
 ## Как это работает
 
 ```mermaid
-%%{init: {"theme":"base","themeVariables":{"primaryColor":"#ffffff","primaryTextColor":"#1a1a1e","primaryBorderColor":"#3d5bd9","secondaryColor":"#ececee","tertiaryColor":"#f6f6f7","lineColor":"#686872","textColor":"#1a1a1e","noteBkgColor":"#ececee","noteTextColor":"#54545c","actorBkg":"#ffffff","actorBorder":"#3d5bd9","fontFamily":"Inter Variable"}}}%%
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#ffffff","primaryTextColor":"#12130f","primaryBorderColor":"#ff8a3d","secondaryColor":"#ecebe7","tertiaryColor":"#f6f5f2","lineColor":"#615c56","textColor":"#12130f","noteBkgColor":"#ecebe7","noteTextColor":"#4d4944","actorBkg":"#ffffff","actorBorder":"#ff8a3d","fontFamily":"Onest Variable"}}}%%
 flowchart LR
     A["{{Вход}}<br/>{{что приходит}}"] --> B["{{Механизм 1}}"]
     B --> C["{{Механизм 2}}"]
