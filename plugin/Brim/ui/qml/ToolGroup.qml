@@ -9,7 +9,10 @@ Item {
     signal toggled(bool value)
 
     width: parent ? parent.width : 300
-    height: header.height + (expanded ? list.height : 0)
+    height: header.height + reveal
+    clip: true
+    property real reveal: expanded ? list.height : 0
+    Behavior on reveal { NumberAnimation { duration: 200; easing.type: Easing.OutQuint } }
 
     Rectangle {
         id: header
@@ -34,9 +37,11 @@ Item {
                 font.pixelSize: 12
             }
             Text {
-                text: root.expanded ? "˄" : "˅"
+                text: "˅"
                 color: root.c.muted
                 font.pixelSize: 12
+                rotation: root.expanded ? 180 : 0
+                Behavior on rotation { NumberAnimation { duration: 160 } }
             }
         }
         MouseArea {
@@ -50,7 +55,7 @@ Item {
 
     Column {
         id: list
-        visible: root.expanded
+        visible: root.reveal > 0
         anchors.top: header.bottom
         width: parent.width
         Repeater {

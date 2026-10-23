@@ -138,6 +138,8 @@ def agent_status(snapshot, strings, llm_configured):
         tool = running_tool(snapshot["entries"])
         if tool:
             return "busy", strings.get("tool_active_%s" % tool) or strings["state_executing_tool"]
+        if snapshot.get("phase") == "thinking":
+            return "busy", strings["activity_thinking"]
         return "busy", strings["state_agent_working"]
     if snapshot["question"] is not None:
         return "attention", strings["state_awaiting_user"]

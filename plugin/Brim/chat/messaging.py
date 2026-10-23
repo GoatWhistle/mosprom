@@ -1,4 +1,5 @@
 from ..agent.transcript import call_arguments
+from .activity import activity_key
 from .entries_view import question_of
 from .files import copy_into
 
@@ -87,6 +88,7 @@ class ChatMessaging(object):
         if kind == "thinking":
             state.phase = "thinking"
             state.progress = None
+            state.step += 1
         elif kind == "confirm":
             state.confirmation = dict(payload, explanation=self._explanation(turn, payload))
         elif kind == "confirmed":
@@ -96,6 +98,7 @@ class ChatMessaging(object):
         elif kind == "error":
             state.add_error(payload.get("message", ""))
         state.messages = turn.conversation.messages()
+        state.mark_activity(activity_key(state))
         self._changed()
 
     def _explanation(self, turn, payload):
@@ -118,6 +121,7 @@ class ChatMessaging(object):
     def on_progress(self, stage, fraction):
         if self._turn is not None:
             self.state.progress = {"stage": stage, "fraction": fraction}
+            self.state.mark_activity(activity_key(self.state))
             self._changed()
 
     def confirm(self, decision, comment=None):
@@ -127,6 +131,7 @@ class ChatMessaging(object):
         self.state.confirmation = None
         if (comment or "").strip():
             self.state.clear_draft()
+        self.state.mark_activity(activity_key(self.state))
         self._changed()
 
     def stop(self):
@@ -142,6 +147,7 @@ class ChatMessaging(object):
             self._after_turn.append(proceed)
         self.state.stopping = True
         self.state.confirmation = None
+        self.state.mark_activity(activity_key(self.state))
         if turn.cancel():
             self._finish_turn()
         else:

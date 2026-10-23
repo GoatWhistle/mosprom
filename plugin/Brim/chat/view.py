@@ -1,5 +1,6 @@
 from ..agent.hub import LOCAL_SERVER
 from ..ui.strings import strings_for
+from .activity import activity_view
 from .entries_view import agent_status, build_entries, group_entries, question_of, with_transient
 
 
@@ -40,6 +41,7 @@ def chat_view(state, settings, mcp_port, notice):
         "workspace_blocked": state.workspace_blocked,
         "save_state": state.save_state,
         "workspace_status": dict(state.workspace_status),
+        "phase": state.phase,
     }
     kind, text = agent_status(snapshot, strings, settings.llm_configured())
     llm = settings.llm()
@@ -47,6 +49,7 @@ def chat_view(state, settings, mcp_port, notice):
     snapshot["entries"] = group_entries(with_transient(entries, state.errors, state.confirmation))
     snapshot.update({
         "run_active": state.running,
+        "activity": activity_view(state, strings),
         "status_kind": kind,
         "status_text": text,
         "save_text": strings["save_%s" % save] if save else "",

@@ -103,6 +103,7 @@ Item {
                     visible: !!root.view.run_active
                     glyph: "stop"
                     palette_: root.c
+                    enabledButton: !root.view.stopping
                     onClicked: root.stop()
                 }
             }

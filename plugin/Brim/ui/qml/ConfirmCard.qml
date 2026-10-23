@@ -14,6 +14,31 @@ Rectangle {
     color: c.panel
     border.width: active ? 2 : 1
     border.color: active ? c.accent : c.line
+    transformOrigin: Item.Top
+
+    function announce() {
+        enter.start()
+        if (active)
+            ring.start()
+    }
+    NumberAnimation { id: enter; target: root; property: "scale"; from: 0.95; to: 1; duration: 200; easing.type: Easing.OutQuint }
+
+    Rectangle {
+        id: glow
+        anchors.fill: parent
+        anchors.margins: -4
+        radius: root.radius + 4
+        color: "transparent"
+        border.width: 2
+        border.color: root.c.accent
+        opacity: 0
+        SequentialAnimation {
+            id: ring
+            loops: 2
+            NumberAnimation { target: glow; property: "opacity"; to: 0.8; duration: 160 }
+            NumberAnimation { target: glow; property: "opacity"; to: 0; duration: 160 }
+        }
+    }
 
     function label(item) {
         return root.t["op_" + item.kind] || item.kind
