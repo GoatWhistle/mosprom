@@ -19,4 +19,3 @@ def chat_view(state, settings, mcp_port, notice):
         "mcp_port": mcp_port() if callable(mcp_port) else mcp_port,
     })
     return snapshot
-
