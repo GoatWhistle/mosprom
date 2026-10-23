@@ -24,3 +24,11 @@
 - Исправление: `cacheBuffer: 1000000`, ограниченная прокрутка вниз (таймер, до 20 повторов). Стенд: 21 создание, 0 уничтожений, точный contentHeight 3314, низ ленты на последней записи, новое сообщение тоже прокручивается.
 - `ToolRow.qml:32` — это `anchors.verticalCenter: parent.verticalCenter` при уничтожении делегата; защищено проверкой parent. На стенде предупреждения исчезли.
 - Windows с исправлением: окно открылось внизу истории, CPU 0%, 272 МБ, предупреждений QML нет.
+
+## Зависание при «Применить», 2026-10-23
+
+- py-spy: главный поток в `_call_on_qt_thread_wrapper` (Threading.py:32) ← `slicing.py:127 _write_project` ← `main_thread.py:31`. CPU 0%, окно не обновляется. Следующий вызов `analyze_geometry` завершился `outcome_unknown` по таймауту.
+- Декомпиляция `steslicer/Utils/Threading.pyc` из `python35.zip`: проверки главного потока нет. Обёрнуты `ThreeMFWorkspaceWriter.write`, `GCodeWriter._createSnapshot`, `ThreeMFWorkspaceReader.read`.
+- Отдельно: `[Errno 22]` при импорте — плагин брал ASCII-копию `????????.stl` из `filename`.
+- Диагностическая сборка на Windows, настоящий писатель STE: `save_workspace` из рабочего потока ok 1,12 с, с Qt-потока ok 0,06 с, 3MF 65 КБ. Диагностика удалена, установлена чистая сборка.
+- Запись G-code на стенде не прогонялась: нужен слайсинг через агента.
