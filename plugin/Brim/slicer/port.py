@@ -1,5 +1,4 @@
 import threading
-import uuid
 
 from ..execution.errors import OperationError
 from ..protocol import constants
@@ -19,7 +18,6 @@ class SlicerPort(object):
         self._slicing = slicing
         self._renderer = renderer
         self._main = main
-        self._epoch = str(uuid.uuid4())
         self._version = 1
         self._lock = threading.Lock()
         self._listeners = []
@@ -78,9 +76,6 @@ class SlicerPort(object):
         for listener in self._listeners:
             listener()
 
-    def scene_epoch(self):
-        return self._epoch
-
     def snapshot(self):
         return self._main.call(lambda: (self.scene_version(), self._snapshot_state()))
 
@@ -130,21 +125,23 @@ class SlicerPort(object):
     def clear_workspace(self):
         return self._scene_ops.clear()
 
-    def apply_operation(self, op, expected_version=None, check=None):
+    def apply_operation(self, op, check=None):
         self._ensure_unlocked()
         handler = self._handlers.get(op["kind"])
         if handler is None:
             raise OperationError(constants.ERR_INVALID_ARGUMENTS, "unknown operation kind %s" % op["kind"])
+
         def guard():
             if check is not None:
                 check()
-            if expected_version is not None and self.scene_version() != expected_version:
-                raise OperationError(constants.ERR_STALE_SCENE, "scene changed before execution")
 
         try:
             return handler(op, guard=guard)
         finally:
             self._digest.invalidate()
+
+    def setting_facts(self, key, extruder=None):
+        return self._main.call(self._digest.facts, key, extruder)
 
     def search_settings(self, query):
         return self._catalog.search_settings(query)

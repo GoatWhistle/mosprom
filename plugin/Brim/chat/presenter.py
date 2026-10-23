@@ -1,41 +1,36 @@
-from ..protocol.backend_http import BackendHttpError
+from ..agent.conversation import Conversation
 from ..ui.strings import strings_for
-from .state import ChatState
-from .view import chat_view
-from .files import ChatFiles
-from .history import ChatHistory, conversation_row
-from .preferences import ChatPreferences
 from .autosave import WorkspaceAutosave
-from .switching import ProjectSwitching
+from .files import ChatFiles
 from .messaging import ChatMessaging
-from .project_sync import ProjectSync
+from .preferences import ChatPreferences
+from .state import ChatState
+from .switching import ProjectSwitching
+from .view import chat_view
+
 
 class ChatPresenter(object):
-    def __init__(self, http, settings, runner, on_change, bridge=None, mcp_port=None, cache_dir=None,
-                 workspace=None, post=None, autosave_delay=3.0):
-        self._http = http
+    def __init__(self, settings, workspace, loop, llm, hub, runner, on_change, post=None, mcp_port=None,
+                 open_path=None, autosave_delay=3.0):
         self._settings = settings
+        self._workspace = workspace
+        self._store = workspace.store
         self._runner = runner
         self._on_change = on_change
-        self._bridge = bridge
+        self._post = post or (lambda function: function())
         self._mcp_port = mcp_port
-        self._cache_dir = cache_dir
+        self._open_path = open_path
         self.state = ChatState()
+        self._conversation = None
         self._started = False
-        self._preferences = ChatPreferences(settings, http, runner, self._submit, self._changed, lambda: self._bridge)
-        self._files = ChatFiles(self.state, http, self._submit, self._notice, self._strings)
-        self._history = ChatHistory(self.state, http, self._submit)
-        self._messaging = ChatMessaging(self.state, http, settings, self._submit, self._notice, self._strings,
-                                        lambda: self._bridge)
-        self._workspace = workspace
-        self._sync = ProjectSync(workspace, http) if workspace is not None else None
-        self._switching = ProjectSwitching(self.state, workspace, self._sync, http, self._submit, self._notice,
-                                           self._strings, self._history, self._messaging.stop_then)
-        self._autosave = WorkspaceAutosave(self.state, workspace, self._sync, self._submit, self._notice, self._strings,
-                                           post or (lambda function: function()), autosave_delay)
-
-    def attach_bridge(self, bridge):
-        self._bridge = bridge
+        self._preferences = ChatPreferences(settings, runner, self._changed, llm, hub, self._servers_changed)
+        self._files = ChatFiles(self.state, self._notice)
+        self._messaging = ChatMessaging(self.state, settings, loop, lambda: self._conversation, self._submit,
+                                        self._post, self._notice, self._strings, self._changed)
+        self._switching = ProjectSwitching(self.state, workspace, self._submit, self._notice, self._strings,
+                                           self._select, self._messaging.stop_then)
+        self._autosave = WorkspaceAutosave(self.state, workspace, self._submit, self._notice, self._strings,
+                                           self._post, autosave_delay)
 
     def view(self):
         return chat_view(self.state, self._settings, self._mcp_port, self._preferences.notice)
@@ -47,11 +42,11 @@ class ChatPresenter(object):
         self.state.notice = text
         self._changed()
 
+    def _strings(self):
+        return strings_for(self._settings.language())
+
     def _fail(self, error):
-        if isinstance(error, BackendHttpError):
-            self._notice(str(error))
-        else:
-            self._notice("%s: %s" % (type(error).__name__, error))
+        self._notice("%s: %s" % (type(error).__name__, error))
 
     def _submit(self, work, done=None, busy=False, on_error=None):
         if busy:
@@ -67,32 +62,52 @@ class ChatPresenter(object):
                 done(value)
             self._changed()
 
-        self._runner.submit(self._with_auth(work), finished)
+        self._runner.submit(work, finished)
 
-    def _with_auth(self, work):
-        return self._preferences.authorized(work)
+    def _servers_changed(self, status):
+        self.state.servers = status
+        self._changed()
+
+    def _persist(self, conversation_id):
+        def persist(messages):
+            row = self._store.save_messages(conversation_id, messages)
+            self._post(lambda: self._row_saved(row))
+
+        return persist
+
+    def _row_saved(self, row):
+        self.state.upsert_row(row)
+        self._changed()
+
+    def _select(self, conversation_id):
+        chat = self._store.load(conversation_id)
+        self._conversation = Conversation(conversation_id, chat["messages"], self._persist(conversation_id),
+                                          self._store.files_dir(conversation_id))
+        self.state.select_conversation(conversation_id, chat.get("mode"), chat["messages"])
+        self.state.upsert_row(self._store.row(chat))
+
+    def output_dir(self):
+        conversation = self._conversation
+        return self._store.output_dir(conversation.id) if conversation is not None else None
 
     def start(self):
         if self._started:
             return
         self._started = True
-        self._push_llm()
-        self._restore_workspace()
-        self.refresh_conversations(select_latest=True)
+        self.state.conversations = self._store.chats()
+        self.state.workspace_status = self._store.statuses()
+        active = self._store.active()
+        if active is None and self.state.conversations:
+            active = self.state.conversations[0]["id"]
+        if active is not None:
+            self._restore(active)
+        self._preferences.refresh_servers()
 
-    def _restore_workspace(self):
-        if self._workspace is None:
+    def _restore(self, active):
+        self._select(active)
+        if self._store.status(active) == "none":
             return
-        store = self._workspace.store
-        self.state.workspace_status = store.statuses()
-        active = store.active()
-        if active is None or store.status(active) == "none":
-            return
-        self.state.select_conversation(active, None)
         self.state.switching = "opening"
-
-        def work():
-            return self._workspace.restore_active()
 
         def done(_):
             self.state.switching = None
@@ -105,34 +120,32 @@ class ChatPresenter(object):
             self._notice("%s (%s)" % (self._strings()["switch_open_blocked"], error))
 
         self._workspace.lock(True)
-        self._submit(work, done, on_error=failed)
-
-    def _push_llm(self):
-        self._preferences.push_llm()
-
-    def refresh_conversations(self, select_latest=False):
-        self._history.refresh(select_latest)
+        self._submit(self._workspace.restore_active, done, on_error=failed)
 
     def new_conversation(self, from_scene=False):
-        mode = self.state.mode
-        if self._switching.enabled():
-            self._switching.request(create_mode=mode, adopt=from_scene)
-            return
-
-        def work():
-            return self._http.create_conversation_with(mode)
-
-        def done(created):
-            self.state.select_conversation(created["id"], created.get("mode"))
-            self.state.conversations.insert(0, conversation_row(created))
-
-        self._submit(work, done, busy=True)
+        self._switching.request(create_mode=self.state.mode, adopt=from_scene)
 
     def open_conversation(self, conversation_id):
-        if self._switching.enabled() and conversation_id != self.state.conversation_id:
+        if conversation_id != self.state.conversation_id:
             self._switching.request(target_id=conversation_id)
-            return
-        self._history.open(conversation_id)
+
+    def _ensure_conversation(self, then):
+        mode = self.state.mode
+
+        def work():
+            row = self._store.create(mode)
+            self._store.set_active(row["id"])
+            self._workspace.save(row["id"])
+            return row
+
+        def done(row):
+            kept = (self.state.draft, list(self.state.attachments))
+            self._select(row["id"])
+            self.state.draft, self.state.attachments = kept
+            self.state.workspace_status = self._store.statuses()
+            then()
+
+        self._submit(work, done, busy=True)
 
     def cancel_switch(self):
         self._switching.cancel_prompt()
@@ -152,11 +165,11 @@ class ChatPresenter(object):
     def on_scene_changed(self):
         self._autosave.changed()
 
+    def on_progress(self, stage, fraction):
+        self._messaging.on_progress(stage, fraction)
+
     def flush_workspace(self):
         self._autosave.flush()
-
-    def reload_history(self):
-        self._history.reload()
 
     def attach(self, path):
         self._files.attach(path)
@@ -169,69 +182,41 @@ class ChatPresenter(object):
     def set_mode(self, mode):
         if mode not in ("auto", "ask"):
             return
-        previous = self.state.mode
         self.state.mode = mode
-        self._changed()
         conversation_id = self.state.conversation_id
-        if conversation_id is None:
-            return
-
-        def work():
-            return self._http.set_mode(conversation_id, mode)
-
-        def finished(value, error):
-            if error is not None:
-                self.state.mode = previous
-                self._fail(error)
-            self._changed()
-
-        self._runner.submit(self._with_auth(work), finished)
+        if conversation_id is not None:
+            self._row_saved(self._store.set_mode(conversation_id, mode))
+        self._changed()
 
     def send(self, text):
-        self._messaging.send(text)
+        self._messaging.send(text, self._ensure_conversation)
 
-    def confirm(self, decision, text=None):
-        self._messaging.confirm(decision, text)
+    def confirm(self, decision, comment=None):
+        self._messaging.confirm(decision, comment)
 
     def stop(self):
         self._messaging.stop()
 
-    def save_artifact(self, kind, destination):
-        self._files.save(kind, destination)
+    def open_folder(self):
+        folder = self.output_dir()
+        if folder is not None and self._open_path is not None:
+            self._open_path(folder)
 
-    def apply_settings(self, backend_url, llm_url, llm_model, llm_key, language, theme):
-        return self._preferences.apply(backend_url, llm_url, llm_model, llm_key, language, theme)
+    def open_path(self, path):
+        if path and self._open_path is not None:
+            self._open_path(path)
 
-    def check_backend(self):
+    def apply_settings(self, llm_url, llm_model, llm_key, language, theme):
+        return self._preferences.apply(llm_url, llm_model, llm_key, language, theme)
+
+    def add_server(self, name, url, header):
+        return self._preferences.add_server(name, url, header)
+
+    def toggle_server(self, name, enabled):
+        self._preferences.toggle_server(name, enabled)
+
+    def remove_server(self, name):
+        self._preferences.remove_server(name)
+
+    def check_connection(self):
         self._preferences.check()
-
-    def on_chat_event(self, frame):
-        self._history.record(frame)
-        if self.state.apply_chat_event(frame):
-            self._changed()
-            if frame.get("event") == "run_state" and (frame.get("payload") or {}).get("state") == "completed":
-                self.reload_history()
-
-    def on_progress(self, frame):
-        self.state.apply_progress(frame)
-        self._changed()
-
-    def on_tool_result(self, frame, tool):
-        self.state.apply_tool_result(frame, tool)
-        self._changed()
-
-    def on_status(self, status):
-        previous = self.state.connection
-        if status == "connected":
-            self.state.connection = "connected"
-        elif status == "disconnected" or status.startswith("error"):
-            self.state.connection = "disconnected"
-        else:
-            return
-        self._changed()
-        if status == "connected" and previous != "connected" and self._started:
-            self._push_llm()
-            self.reload_history()
-
-    def _strings(self):
-        return strings_for(self._settings.language())

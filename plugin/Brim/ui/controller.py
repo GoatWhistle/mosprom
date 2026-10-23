@@ -1,7 +1,7 @@
 import json
 
 from PyQt5.QtCore import QObject, QUrl, pyqtProperty, pyqtSignal, pyqtSlot
-from PyQt5.QtGui import QGuiApplication
+from PyQt5.QtGui import QDesktopServices, QGuiApplication
 
 from .runner import ThreadRunner
 
@@ -46,6 +46,9 @@ class ChatController(QObject):
     @property
     def presenter(self):
         return self._presenter
+
+    def open_path(self, path):
+        QDesktopServices.openUrl(QUrl.fromLocalFile(path))
 
     def start(self):
         self._presenter.start()
@@ -110,17 +113,33 @@ class ChatController(QObject):
     def stop(self):
         self._presenter.stop()
 
-    @pyqtSlot(str, str)
-    def saveArtifact(self, kind, url):
-        self._presenter.save_artifact(kind, local_path(url))
+    @pyqtSlot()
+    def openFolder(self):
+        self._presenter.open_folder()
 
-    @pyqtSlot(str, str, str, str, str, str, result=bool)
-    def applySettings(self, backend, llm_url, model, key, language, theme):
-        return self._presenter.apply_settings(backend, llm_url, model, key, language, theme)
+    @pyqtSlot(str)
+    def openPath(self, path):
+        self._presenter.open_path(path)
+
+    @pyqtSlot(str, str, str, str, str, result=bool)
+    def applySettings(self, llm_url, model, key, language, theme):
+        return self._presenter.apply_settings(llm_url, model, key, language, theme)
+
+    @pyqtSlot(str, str, str, result=bool)
+    def addServer(self, name, url, header):
+        return self._presenter.add_server(name, url, header)
+
+    @pyqtSlot(str, bool)
+    def toggleServer(self, name, enabled):
+        self._presenter.toggle_server(name, enabled)
+
+    @pyqtSlot(str)
+    def removeServer(self, name):
+        self._presenter.remove_server(name)
 
     @pyqtSlot()
-    def checkBackend(self):
-        self._presenter.check_backend()
+    def checkConnection(self):
+        self._presenter.check_connection()
 
     @pyqtSlot()
     def dismissNotice(self):

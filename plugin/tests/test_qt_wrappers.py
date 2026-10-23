@@ -3,7 +3,7 @@ import tempfile
 import threading
 import unittest
 
-from Brim.execution.attachments import AttachmentCache, disposition_name, safe_name
+from Brim.chat.files import copy_into, describe, safe_name
 from Brim.slicer.qt_wrappers import direct_qt_calls, unwrapped
 
 
@@ -66,23 +66,20 @@ class QtWrapperTests(unittest.TestCase):
 
 
 class AttachmentNameTests(unittest.TestCase):
-    def test_encoded_name_wins_over_ascii_fallback(self):
-        header = "attachment; filename=\"________.stl\"; filename*=UTF-8''%D0%A8%D0%B5%D1%81%D1%82%D0%B5%D1%80%D0%BD%D1%8F.stl"
-        self.assertEqual(disposition_name(header), "Шестерня.stl")
-
-    def test_plain_name_is_used_without_encoded_one(self):
-        self.assertEqual(disposition_name('attachment; filename="part.stl"'), "part.stl")
-
     def test_windows_unsafe_characters_are_replaced(self):
         self.assertEqual(safe_name('..\\dir/a?b*c:"d|<e>.stl'), "a_b_c__d__e_.stl")
 
-    def test_cyrillic_attachment_is_cached_under_its_name(self):
-        class Http(object):
-            def download_attachment(self, attachment_id):
-                return b"solid", {"Content-Disposition": "attachment; filename=\"________.stl\"; filename*=UTF-8''%D0%A8%D0%B5%D1%81%D1%82%D0%B5%D1%80%D0%BD%D1%8F.stl"}
-
+    def test_cyrillic_attachment_is_copied_under_its_name(self):
         with tempfile.TemporaryDirectory() as directory:
-            path = AttachmentCache(Http(), directory).fetch("att-1")
-            self.assertEqual(os.path.basename(path), "Шестерня.stl")
-            with open(path, "rb") as handle:
+            source = os.path.join(directory, "Шестерня.stl")
+            with open(source, "wb") as handle:
+                handle.write(b"solid")
+            copied = copy_into([describe(source)], os.path.join(directory, "chat"))
+            self.assertTrue(os.path.basename(copied[0]["path"]).endswith("-Шестерня.stl"))
+            self.assertEqual(copied[0]["kind"], "model")
+            with open(copied[0]["path"], "rb") as handle:
                 self.assertEqual(handle.read(), b"solid")
+
+    def test_images_are_described_with_mime_type(self):
+        self.assertEqual(describe("/tmp/photo.JPG")["mime_type"], "image/jpeg")
+        self.assertEqual(describe("/tmp/photo.JPG")["kind"], "image")

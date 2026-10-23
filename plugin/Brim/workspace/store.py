@@ -1,38 +1,129 @@
-import hashlib
+import datetime
 import json
 import os
+import threading
 import time
+import uuid
 
 INDEX_NAME = "index.json"
+CHAT_NAME = "chat.json"
+SCENE_NAME = "scene.3mf"
+TITLE_LIMIT = 60
+
+
+def _now():
+    return datetime.datetime.now().isoformat()
+
+
+def _title(messages):
+    for message in messages:
+        if message.get("role") == "user" and not message.get("brim_hidden"):
+            text = " ".join(str(message.get("content") or "").split())
+            if not text:
+                names = [item.get("name", "") for item in message.get("brim_attachments") or []]
+                text = ", ".join(name for name in names if name)
+            if text:
+                return text if len(text) <= TITLE_LIMIT else text[:TITLE_LIMIT - 1] + "…"
+    return ""
+
+
+def _write_json(path, data):
+    temporary = path + ".part"
+    with open(temporary, "w", encoding="utf-8") as handle:
+        json.dump(data, handle, ensure_ascii=False, sort_keys=True)
+    os.replace(temporary, path)
+
+
+def _read_json(path):
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            data = json.load(handle)
+    except (OSError, ValueError):
+        return None
+    return data if isinstance(data, dict) else None
 
 
 class WorkspaceStore(object):
     def __init__(self, directory):
         self._directory = directory
+        self._lock = threading.RLock()
         os.makedirs(directory, exist_ok=True)
 
     def _index_path(self):
         return os.path.join(self._directory, INDEX_NAME)
 
     def _read(self):
-        try:
-            with open(self._index_path(), "r", encoding="utf-8") as handle:
-                data = json.load(handle)
-            if isinstance(data, dict) and isinstance(data.get("items"), dict):
-                return data
-        except (OSError, ValueError):
-            pass
+        data = _read_json(self._index_path())
+        if data is not None and isinstance(data.get("items"), dict):
+            return data
         return {"active": None, "items": {}}
 
-    def _write(self, data):
-        target = self._index_path()
-        temporary = target + ".part"
-        with open(temporary, "w", encoding="utf-8") as handle:
-            json.dump(data, handle, sort_keys=True)
-        os.replace(temporary, target)
+    def directory(self, conversation_id):
+        return os.path.join(self._directory, conversation_id)
+
+    def files_dir(self, conversation_id):
+        return os.path.join(self.directory(conversation_id), "files")
+
+    def output_dir(self, conversation_id):
+        path = os.path.join(self.directory(conversation_id), "output")
+        os.makedirs(path, exist_ok=True)
+        return path
+
+    def _chat_path(self, conversation_id):
+        return os.path.join(self.directory(conversation_id), CHAT_NAME)
+
+    def create(self, mode):
+        conversation_id = uuid.uuid4().hex
+        now = _now()
+        chat = {"id": conversation_id, "title": "", "mode": mode, "created_at": now, "updated_at": now, "messages": []}
+        with self._lock:
+            os.makedirs(self.directory(conversation_id), exist_ok=True)
+            _write_json(self._chat_path(conversation_id), chat)
+        return self.row(chat)
+
+    def row(self, chat):
+        return {"id": chat["id"], "title": chat.get("title") or "", "mode": chat.get("mode") or "ask",
+                "updated_at": chat.get("updated_at") or ""}
+
+    def chats(self):
+        rows = []
+        with self._lock:
+            for name in os.listdir(self._directory):
+                chat = _read_json(os.path.join(self._directory, name, CHAT_NAME))
+                if chat is not None and chat.get("id") == name:
+                    rows.append(self.row(chat))
+        rows.sort(key=lambda item: item["updated_at"], reverse=True)
+        return rows
+
+    def load(self, conversation_id):
+        with self._lock:
+            chat = _read_json(self._chat_path(conversation_id))
+        if chat is None:
+            raise KeyError(conversation_id)
+        chat.setdefault("messages", [])
+        return chat
+
+    def _update(self, conversation_id, change):
+        with self._lock:
+            chat = self.load(conversation_id)
+            change(chat)
+            chat["updated_at"] = _now()
+            _write_json(self._chat_path(conversation_id), chat)
+            return chat
+
+    def save_messages(self, conversation_id, messages):
+        def change(chat):
+            chat["messages"] = messages
+            if not chat.get("title"):
+                chat["title"] = _title(messages)
+
+        return self.row(self._update(conversation_id, change))
+
+    def set_mode(self, conversation_id, mode):
+        return self.row(self._update(conversation_id, lambda chat: chat.__setitem__("mode", mode)))
 
     def path_for(self, conversation_id):
-        return os.path.join(self._directory, "%s.3mf" % conversation_id)
+        return os.path.join(self.directory(conversation_id), SCENE_NAME)
 
     def temp_path(self, conversation_id):
         return self.path_for(conversation_id) + ".part"
@@ -45,32 +136,25 @@ class WorkspaceStore(object):
             return "none"
         return item["state"]
 
-    def digest(self, conversation_id):
-        if self.status(conversation_id) != "saved":
-            return None
-        sha = hashlib.sha256()
-        with open(self.path_for(conversation_id), "rb") as handle:
-            for block in iter(lambda: handle.read(1 << 20), b""):
-                sha.update(block)
-        return sha.hexdigest()
-
     def statuses(self):
-        return {key: self.status(key) for key in self._read()["items"]}
+        return dict((key, self.status(key)) for key in self._read()["items"])
 
     def commit(self, conversation_id):
-        data = self._read()
-        os.replace(self.temp_path(conversation_id), self.path_for(conversation_id))
-        data["items"][conversation_id] = {"state": "saved", "saved_at": int(time.time())}
-        self._write(data)
+        with self._lock:
+            data = self._read()
+            os.replace(self.temp_path(conversation_id), self.path_for(conversation_id))
+            data["items"][conversation_id] = {"state": "saved", "saved_at": int(time.time())}
+            _write_json(self._index_path(), data)
 
     def mark_empty(self, conversation_id):
-        data = self._read()
-        try:
-            os.remove(self.path_for(conversation_id))
-        except OSError:
-            pass
-        data["items"][conversation_id] = {"state": "empty", "saved_at": int(time.time())}
-        self._write(data)
+        with self._lock:
+            data = self._read()
+            try:
+                os.remove(self.path_for(conversation_id))
+            except OSError:
+                pass
+            data["items"][conversation_id] = {"state": "empty", "saved_at": int(time.time())}
+            _write_json(self._index_path(), data)
 
     def discard_temp(self, conversation_id):
         try:
@@ -79,9 +163,13 @@ class WorkspaceStore(object):
             pass
 
     def active(self):
-        return self._read()["active"]
+        active = self._read()["active"]
+        if active is not None and not os.path.isfile(self._chat_path(active)):
+            return None
+        return active
 
     def set_active(self, conversation_id):
-        data = self._read()
-        data["active"] = conversation_id
-        self._write(data)
+        with self._lock:
+            data = self._read()
+            data["active"] = conversation_id
+            _write_json(self._index_path(), data)

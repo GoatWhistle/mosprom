@@ -5,14 +5,15 @@ Rectangle {
     property var entry: ({})
     property var t: ({})
     property var c: ({})
-    property string statusKey: entry.status === "ok" ? "tool_ok" : (entry.status === "failed" ? "tool_failed" : "tool_running")
-    property bool running: entry.status !== "ok" && entry.status !== "failed"
+    property bool failed: entry.status === "failed" || entry.status === "rejected"
+    property string statusKey: "tool_" + entry.status
+    property bool running: entry.status === "running"
 
     width: parent ? parent.width : 300
     height: column.height + 12
     radius: 10
-    color: entry.status === "failed" ? Qt.rgba(1, 0.45, 0.4, 0.08) : "transparent"
-    border.width: entry.status === "failed" ? 1 : 0
+    color: failed ? Qt.rgba(1, 0.45, 0.4, 0.08) : "transparent"
+    border.width: failed ? 1 : 0
     border.color: c.danger
 
     Column {
@@ -30,7 +31,7 @@ Rectangle {
                 height: 7
                 radius: 4
                 anchors.verticalCenter: parent ? parent.verticalCenter : undefined
-                color: root.entry.status === "failed" ? root.c.danger : (root.entry.status === "ok" ? root.c.ok : root.c.accent)
+                color: root.failed ? root.c.danger : (root.entry.status === "ok" ? root.c.ok : (root.running ? root.c.accent : root.c.muted))
                 SequentialAnimation on opacity {
                     running: root.running
                     loops: Animation.Infinite
@@ -39,8 +40,10 @@ Rectangle {
                 }
             }
             Text {
-                text: (root.t["tool_" + root.entry.tool] || root.entry.tool) + " · " + (root.t[root.statusKey] || "")
-                color: root.entry.status === "failed" ? root.c.danger : root.c.muted
+                text: (root.entry.server && root.entry.server !== "brim" ? root.entry.server + " · " : "")
+                      + (root.entry.server === "brim" ? (root.t["tool_" + root.entry.tool] || root.entry.tool) : root.entry.tool)
+                      + " · " + (root.t[root.statusKey] || root.entry.status)
+                color: root.failed ? root.c.danger : root.c.muted
                 font.pixelSize: 12
             }
         }
@@ -49,16 +52,8 @@ Rectangle {
             width: parent.width - 15
             visible: !!root.entry.detail
             text: root.entry.detail || ""
-            textColor: root.c.muted
+            textColor: root.failed ? root.c.danger : root.c.muted
             font.pixelSize: 11
-        }
-        SelectableText {
-            x: 15
-            width: parent.width - 15
-            visible: !!root.entry.error
-            text: root.entry.error || ""
-            textColor: root.c.danger
-            font.pixelSize: 12
         }
     }
 }

@@ -1,4 +1,5 @@
 SKIPPED_CATEGORIES = ("machine_settings", "command_line_settings")
+FACT_PROPERTIES = ("value", "minimum_value", "maximum_value", "minimum_value_warning", "maximum_value_warning")
 MAX_TEXT = 120
 MAX_OPTIONS = 24
 
@@ -48,6 +49,17 @@ class SettingsDigest(object):
             self._cache = self._build()
         return self._cache
 
+    def facts(self, key, extruder=None):
+        stack = self._h.global_stack()
+        if stack is None or not key:
+            return None
+        if extruder is not None:
+            stack = stack.extruders.get(str(extruder), stack)
+        definition = stack.getSettingDefinition(key) if hasattr(stack, "getSettingDefinition") else None
+        facts = dict((name, _plain(_property(stack, key, name))) for name in FACT_PROPERTIES)
+        facts["unit"] = str(getattr(definition, "unit", "") or "")
+        return facts
+
     def _build(self):
         stack = self._h.global_stack()
         if stack is None:
@@ -79,6 +91,10 @@ class SettingsDigest(object):
         high = _property(stack, key, "maximum_value")
         if low is not None or high is not None:
             details.append("%s..%s" % ("" if low is None else _text(low), "" if high is None else _text(high)))
+        low = _property(stack, key, "minimum_value_warning")
+        high = _property(stack, key, "maximum_value_warning")
+        if low is not None or high is not None:
+            details.append("recommended %s..%s" % ("" if low is None else _text(low), "" if high is None else _text(high)))
         options = getattr(definition, "options", None)
         if options:
             names = [str(item) for item in options.keys()]

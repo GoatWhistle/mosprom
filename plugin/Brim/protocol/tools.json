@@ -1,5 +1,4 @@
 {
-  "contract_version": "2",
   "tools": [
     {
       "name": "apply_changes",
@@ -36,7 +35,7 @@
                     "delete",
                     "save_profile"
                   ],
-                  "description": "Operation kind. Required fields by kind: select_mode(mode); select_profile(profile_id); select_material(material_id, extruder); set_global_setting(key, value); set_extruder_setting(key, value, extruder); reset_overrides(keys); import_model(attachment_id); open_3mf(attachment_id, import_as); transform(object_id, frame, and at least one of position_mm, rotation_deg, scale; rotation_center when rotation_deg is set); duplicate(object_id, count); arrange(object_ids optional); delete(object_ids); save_profile(name)."
+                  "description": "Operation kind. Required fields by kind: select_mode(mode); select_profile(profile_id); select_material(material_id, extruder); set_global_setting(key, value); set_extruder_setting(key, value, extruder); reset_overrides(keys); import_model(path); open_3mf(path, import_as); transform(object_id, frame, and at least one of position_mm, rotation_deg, scale; rotation_center when rotation_deg is set); duplicate(object_id, count); arrange(object_ids optional); delete(object_ids); save_profile(name)."
                 },
                 "mode": {
                   "type": "string",
@@ -68,8 +67,9 @@
                     "type": "string"
                   }
                 },
-                "attachment_id": {
-                  "type": "string"
+                "path": {
+                  "type": "string",
+                  "description": "Local path of an attached model file from the context attachments list."
                 },
                 "import_as": {
                   "type": "string",
@@ -141,9 +141,13 @@
           },
           "explanation": {
             "type": "string",
-            "description": "Short reason for the batch, shown to the user in ask mode."
+            "description": "Short reason for the batch, shown to the user on the confirmation card."
           }
         }
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false
       }
     },
     {
@@ -159,14 +163,22 @@
             "type": "string"
           }
         }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
       }
     },
     {
       "name": "inspect_profile",
-      "description": "Selected profile, available quality types, custom profiles and user overrides. Current values of all enabled settings are in the scene context.",
+      "description": "Selected profile, available quality types, custom profiles and user overrides. Current values of all enabled settings are in the context.",
       "input_schema": {
         "type": "object",
         "properties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
       }
     },
     {
@@ -179,6 +191,22 @@
             "type": "string"
           }
         }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
+      }
+    },
+    {
+      "name": "inspect_scene",
+      "description": "Current scene state after changes: printer, mode, profile, materials, overrides, objects with positions and sizes, slice state and errors.",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
       }
     },
     {
@@ -207,6 +235,10 @@
             "description": "Build direction in scene coordinates."
           }
         }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
       }
     },
     {
@@ -231,43 +263,22 @@
             ]
           }
         }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
       }
     },
     {
       "name": "slice",
-      "description": "Slice the current scene and save G-code and 3MF automatically.",
+      "description": "Slice the current scene and save G-code and 3MF into the chat folder.",
       "input_schema": {
         "type": "object",
         "properties": {}
-      }
-    },
-    {
-      "name": "ask_user",
-      "description": "Ask the user questions (free-text answers) and wait. With an empty questions list and a requirements_summary, declare that requirements are sufficient and unlock changes and slicing.",
-      "input_schema": {
-        "type": "object",
-        "required": [
-          "questions"
-        ],
-        "properties": {
-          "questions": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": [
-                "text"
-              ],
-              "properties": {
-                "text": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "requirements_summary": {
-            "type": "string"
-          }
-        }
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false
       }
     }
   ]

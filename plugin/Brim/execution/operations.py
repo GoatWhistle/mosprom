@@ -61,8 +61,8 @@ def _check_reset(op):
 
 
 def _check_import(op):
-    if not (_text(op.get("attachment_id")) or _text(op.get("path"))):
-        return ["attachment_id required"]
+    if not _text(op.get("path")):
+        return ["path required"]
     return []
 
 

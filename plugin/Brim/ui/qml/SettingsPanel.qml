@@ -7,10 +7,19 @@ Rectangle {
     property string language: view.language
     property string theme: view.theme
     signal closed()
-    signal applied(string backend, string llmUrl, string model, string key, string language, string theme)
+    signal applied(string llmUrl, string model, string key, string language, string theme)
     signal checkRequested()
 
     color: c.bg
+
+    function serverState(server) {
+        var text = root.view.t["server_state_" + server.state] || server.state
+        if (server.state === "ok")
+            text += " · " + server.tools + " " + root.view.t.tools_count
+        if (server.state === "error" && server.error)
+            text += ": " + server.error
+        return text
+    }
 
     MouseArea {
         anchors.fill: parent
@@ -24,7 +33,7 @@ Rectangle {
 
         Column {
             id: column
-            width: Math.min(parent.width, 520)
+            width: Math.min(parent.width, 560)
             spacing: 14
 
             Text {
@@ -33,12 +42,11 @@ Rectangle {
                 font.pixelSize: 20
                 font.bold: true
             }
-            FieldInput {
-                id: backend
-                width: parent.width
-                c: root.c
-                label: root.view.t.backend_url
-                initial: root.view.settings.backend_url
+            Text {
+                text: root.view.t.llm_section
+                color: root.c.text
+                font.pixelSize: 14
+                font.bold: true
             }
             FieldInput {
                 id: llmUrl
@@ -62,6 +70,12 @@ Rectangle {
                 secret: true
                 label: root.view.t.llm_key
                 hint: root.view.settings.llm_key_saved ? root.view.t.llm_key_saved : ""
+            }
+            Text {
+                text: root.view.t.interface_section
+                color: root.c.text
+                font.pixelSize: 14
+                font.bold: true
             }
             Row {
                 spacing: 8
@@ -106,12 +120,6 @@ Rectangle {
                 }
             }
             Text {
-                visible: root.view.mcp_port !== null && root.view.mcp_port !== undefined
-                text: root.view.t.port_note + " " + root.view.mcp_port
-                color: root.c.muted
-                font.pixelSize: 12
-            }
-            Text {
                 width: parent.width
                 visible: !!root.view.settings_notice
                 wrapMode: Text.Wrap
@@ -125,7 +133,7 @@ Rectangle {
                     text: root.view.t.save
                     primary: true
                     palette_: root.c
-                    onClicked: root.applied(backend.value, llmUrl.value, model.value, key.value, root.language, root.theme)
+                    onClicked: root.applied(llmUrl.value, model.value, key.value, root.language, root.theme)
                 }
                 BrimButton {
                     text: root.view.t.check
@@ -137,6 +145,117 @@ Rectangle {
                     palette_: root.c
                     onClicked: root.closed()
                 }
+            }
+            Rectangle {
+                width: parent.width
+                height: 1
+                color: root.c.line
+            }
+            Text {
+                text: root.view.t.servers
+                color: root.c.text
+                font.pixelSize: 14
+                font.bold: true
+            }
+            Text {
+                width: parent.width
+                wrapMode: Text.Wrap
+                text: root.view.t.servers_hint
+                color: root.c.muted
+                font.pixelSize: 12
+            }
+            Repeater {
+                model: root.view.servers || []
+                delegate: Rectangle {
+                    width: column.width
+                    height: serverColumn.height + 20
+                    radius: 10
+                    color: root.c.panel
+                    border.width: 1
+                    border.color: root.c.line
+                    Column {
+                        id: serverColumn
+                        x: 12
+                        y: 10
+                        width: parent.width - 24
+                        spacing: 6
+                        Text {
+                            width: parent.width
+                            elide: Text.ElideRight
+                            text: modelData.name + (modelData.pinned ? " · " + root.view.t.server_builtin : "")
+                            color: root.c.text
+                            font.pixelSize: 13
+                            font.bold: true
+                        }
+                        Text {
+                            width: parent.width
+                            visible: modelData.url !== ""
+                            elide: Text.ElideMiddle
+                            text: modelData.url
+                            color: root.c.muted
+                            font.pixelSize: 11
+                        }
+                        Text {
+                            width: parent.width
+                            wrapMode: Text.Wrap
+                            text: root.serverState(modelData)
+                            color: modelData.state === "error" ? root.c.danger : (modelData.state === "ok" ? root.c.ok : root.c.muted)
+                            font.pixelSize: 11
+                        }
+                        Flow {
+                            width: parent.width
+                            spacing: 8
+                            visible: !modelData.pinned
+                            BrimButton {
+                                text: modelData.enabled ? root.view.t.server_disable : root.view.t.server_enable
+                                palette_: root.c
+                                onClicked: brim.toggleServer(modelData.name, !modelData.enabled)
+                            }
+                            BrimButton {
+                                text: root.view.t.remove_server
+                                danger: true
+                                palette_: root.c
+                                onClicked: brim.removeServer(modelData.name)
+                            }
+                        }
+                    }
+                }
+            }
+            FieldInput {
+                id: serverName
+                width: parent.width
+                c: root.c
+                label: root.view.t.server_name
+            }
+            FieldInput {
+                id: serverUrl
+                width: parent.width
+                c: root.c
+                label: root.view.t.server_url
+                hint: "http://127.0.0.1:3001/mcp"
+            }
+            FieldInput {
+                id: serverHeader
+                width: parent.width
+                c: root.c
+                label: root.view.t.server_header
+            }
+            BrimButton {
+                text: root.view.t.add_server
+                palette_: root.c
+                onClicked: {
+                    if (brim.addServer(serverName.value, serverUrl.value, serverHeader.value)) {
+                        serverName.reset()
+                        serverUrl.reset()
+                        serverHeader.reset()
+                    }
+                }
+            }
+            Text {
+                visible: root.view.mcp_port !== null && root.view.mcp_port !== undefined
+                text: root.view.t.port_note + " " + root.view.mcp_port
+                color: root.c.muted
+                font.pixelSize: 12
             }
         }
     }

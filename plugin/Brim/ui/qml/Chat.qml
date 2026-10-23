@@ -69,14 +69,6 @@ Window {
         }
     }
 
-    FileDialog {
-        id: saveDialog
-        property string kind: "gcode"
-        title: kind === "gcode" ? view.t.save_gcode : view.t.save_3mf
-        selectExisting: false
-        onAccepted: brim.saveArtifact(kind, fileUrl.toString())
-    }
-
     ProjectList {
         id: sidebar
         width: window.narrow ? 0 : 248
@@ -262,39 +254,14 @@ Window {
 
         Component {
             id: questionCard
-            Rectangle {
-                property var entry: ({"questions": []})
-                width: parent ? parent.width : 300
-                height: questionColumn.height + 28
-                radius: 14
-                color: c.panel
-                border.width: 2
-                border.color: c.accent
-                Column {
-                    id: questionColumn
-                    x: 16
-                    y: 14
-                    width: parent.width - 32
-                    spacing: 6
-                    Text {
-                        text: view.t.question
-                        color: c.accentText
-                        font.bold: true
-                        font.pixelSize: 13
-                    }
-                    Repeater {
-                        model: entry.questions
-                        delegate: SelectableText {
-                            width: questionColumn.width
-                            text: (index + 1) + ". " + modelData
-                            textColor: c.text
-                        }
-                    }
-                    Text {
-                        text: view.t.answer_hint
-                        color: c.muted
-                        font.pixelSize: 12
-                    }
+            QuestionCard {
+                t: view.t
+                c: window.c
+                active: !!view.question && view.question.call_id === entry.call_id && !view.busy
+                onPicked: {
+                    var line = (entry.questions.length > 1 ? (index + 1) + ". " : "") + option
+                    composer.text = composer.text === "" ? line : composer.text + "\n" + line
+                    composer.focusInput()
                 }
             }
         }
@@ -304,7 +271,7 @@ Window {
             ConfirmCard {
                 t: view.t
                 c: window.c
-                active: !!view.pending && view.pending.type === "confirmation" && view.pending.batch_id === entry.batch_id && !view.busy
+                active: !!view.confirmation && view.confirmation.call_id === entry.call_id && !view.busy
                 onDecide: brim.confirm(decision, composer.text)
             }
         }
@@ -339,13 +306,9 @@ Window {
                 property var entry: ({})
                 width: parent ? parent.width : 300
                 result: entry.result || ({})
-                stale: view.result_stale
                 t: view.t
                 c: window.c
-                onSave: {
-                    saveDialog.kind = kind
-                    saveDialog.open()
-                }
+                onOpen: brim.openPath(path)
             }
         }
 
@@ -409,6 +372,33 @@ Window {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: brim.dismissNotice()
+                }
+            }
+            Column {
+                width: parent.width
+                spacing: 6
+                visible: view.switch_prompt
+                Text {
+                    width: parent.width
+                    wrapMode: Text.Wrap
+                    text: view.t.switch_busy_title + ". " + view.t.switch_busy_body
+                    color: c.text
+                    font.pixelSize: 12
+                }
+                Flow {
+                    width: parent.width
+                    spacing: 8
+                    BrimButton {
+                        text: view.t.switch_wait
+                        palette_: c
+                        onClicked: brim.cancelSwitch()
+                    }
+                    BrimButton {
+                        text: view.t.switch_stop
+                        danger: true
+                        palette_: c
+                        onClicked: brim.stopAndSwitch()
+                    }
                 }
             }
             Flow {
@@ -495,9 +485,9 @@ Window {
         c: window.c
         onClosed: window.settingsOpen = false
         onApplied: {
-            if (brim.applySettings(backend, llmUrl, model, key, language, theme))
+            if (brim.applySettings(llmUrl, model, key, language, theme))
                 window.settingsOpen = false
         }
-        onCheckRequested: brim.checkBackend()
+        onCheckRequested: brim.checkConnection()
     }
 }

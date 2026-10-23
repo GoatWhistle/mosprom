@@ -1,3 +1,4 @@
+import base64
 import json
 
 from . import constants
@@ -72,12 +73,13 @@ class McpDispatcher(object):
         if not isinstance(arguments, dict):
             return _error(request_id, INVALID_PARAMS, "arguments must be an object")
         try:
-            outcome = self._call_handler(name, arguments, request_id, params.get("_meta") or {})
+            outcome = self._call_handler(name, arguments)
         except Exception as error:
             return _error(request_id, INTERNAL_ERROR, "tool failure: %s" % error)
         payload = {"ok": outcome["ok"], "result": outcome.get("result", {}), "error": outcome.get("error"),
-                   "applied": outcome.get("applied", []), "scene_version": outcome.get("scene_version")}
-        return self._ok(request_id, {
-            "content": [{"type": "text", "text": json.dumps(payload, ensure_ascii=False)}],
-            "isError": not outcome["ok"],
-        })
+                   "applied": outcome.get("applied", [])}
+        content = [{"type": "text", "text": json.dumps(payload, ensure_ascii=False)}]
+        for image in outcome.get("images") or []:
+            content.append({"type": "image", "mimeType": image["mime_type"],
+                            "data": base64.b64encode(image["data"]).decode("ascii")})
+        return self._ok(request_id, {"content": content, "isError": not outcome["ok"]})

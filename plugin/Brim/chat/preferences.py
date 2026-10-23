@@ -1,59 +1,76 @@
-from ..protocol.backend_http import BackendHttpError
 from ..ui.strings import strings_for
 
 
 class ChatPreferences(object):
-    def __init__(self, settings, http, runner, submit, changed, bridge):
+    def __init__(self, settings, runner, changed, llm, hub, servers_changed):
         self._settings = settings
-        self._http = http
         self._runner = runner
-        self._submit = submit
         self._changed = changed
-        self._bridge = bridge
+        self._llm = llm
+        self._hub = hub
+        self._servers_changed = servers_changed
         self.notice = None
 
-    def authorized(self, work):
-        def run():
-            try:
-                self._settings.ensure_registered(self._http)
-                return work()
-            except BackendHttpError as error:
-                if error.status != 401:
-                    raise
-                self._settings.forget_registration()
-                self._settings.ensure_registered(self._http)
-                if self._settings.llm_configured():
-                    llm = self._settings.llm()
-                    self._http.put_llm(llm["base_url"], llm["model"], llm["api_key"])
-                return work()
-        return run
+    def _strings(self):
+        return strings_for(self._settings.language())
 
-    def push_llm(self):
-        if self._settings.llm_configured():
-            llm = self._settings.llm()
-            self._submit(lambda: self._http.put_llm(llm["base_url"], llm["model"], llm["api_key"]))
+    def _report(self, text):
+        self.notice = text
+        self._changed()
 
-    def apply(self, backend_url, llm_url, llm_model, llm_key, language, theme):
+    def apply(self, llm_url, llm_model, llm_key, language, theme):
         try:
-            changed_backend = (backend_url or "").strip().rstrip("/") != self._settings.backend_url()
-            self._settings.set_backend_url(backend_url)
+            self._settings.set_llm(llm_url, llm_model, llm_key)
         except ValueError as error:
-            self.notice = str(error)
-            self._changed()
+            self._report(str(error))
             return False
-        self._settings.set_llm(llm_url, llm_model, llm_key)
         self._settings.set_language(language)
         self._settings.set_theme(theme)
-        self.notice = None
-        self.push_llm()
-        bridge = self._bridge()
-        if changed_backend and bridge is not None:
-            bridge.reconnect()
-        self._changed()
+        self._report(None)
         return True
 
+    def add_server(self, name, url, header):
+        try:
+            self._settings.add_mcp_server(name, url, header)
+        except ValueError as error:
+            self._report(str(error))
+            return False
+        self._report(None)
+        self.refresh_servers()
+        return True
+
+    def toggle_server(self, name, enabled):
+        self._settings.set_mcp_server_enabled(name, enabled)
+        self.refresh_servers()
+
+    def remove_server(self, name):
+        self._settings.remove_mcp_server(name)
+        self.refresh_servers()
+
+    def refresh_servers(self):
+        def finished(warnings, error):
+            if error is not None:
+                self.notice = str(error)
+            self._servers_changed(self._hub.status())
+
+        self._runner.submit(self._hub.refresh, finished)
+
     def check(self):
+        strings = self._strings()
+
+        def work():
+            models = self._llm.models()
+            warnings = self._hub.refresh()
+            return models, warnings
+
         def finished(value, error):
-            self.notice = str(error) if error is not None else strings_for(self._settings.language())["check_ok"]
-            self._changed()
-        self._runner.submit(self._http.health, finished)
+            if error is not None:
+                self.notice = "%s: %s" % (strings["check_failed"], error)
+            else:
+                models, warnings = value
+                lines = [strings["check_ok"] + (" (%d)" % len(models) if models else "")]
+                lines.extend("MCP %s: %s" % item for item in warnings)
+                self.notice = "\n".join(lines)
+            self._servers_changed(self._hub.status())
+
+        self._runner.submit(work, finished)
