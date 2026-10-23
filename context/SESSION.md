@@ -52,6 +52,7 @@ Updated: 2026-10-23, MSK
 - 2026-10-23: plan `misty-honking-crescent.md` (agent in plugin as OpenAI client + MCP host; backend
   only a Claude proxy) referenced for implementation.
 - 2026-10-23: «продолжи без тестов, можешь их больше не писать».
+- 2026-10-24: «задеплой 0.3.0 на виртуалку и прогони сценарий».
 
 ## Current state
 
@@ -60,14 +61,18 @@ Updated: 2026-10-23, MSK
   `chats/<id>/`; bridge/ledger/backend HTTP removed. Backend = stateless `POST /v1/chat/completions`
   over Claude Agent SDK; DB, migrations, WS, runs removed; Compose has only `backend`.
 - Docs: ADR 0002, design-decisions, api, architecture, running, plugin/README, work/protocol-contract v3.
-- Stand: Windows VM `user@192.168.1.190`, STE Slicer 7.10.12, old 0.2.0 plugin installed; cfg UTF-8
-  without BOM; start slicer via Register-ScheduledTask. New plugin 0.3.0 not deployed. Claude token
-  from `~/.claude-azamat`. Backend previously at 192.168.1.137:8000 (`COMPOSE_PROJECT_NAME=brim`).
+- Stand 2026-10-24: plugin 0.3.0 in VM `user@192.168.1.190` (%APPDATA%\steslicer\7.10\plugins),
+  cfg `llm_base_url=http://192.168.1.137:8000/v1`, `sonnet`, OAuth token from `~/.claude-azamat`;
+  0.2.0 backup in VM %TEMP%\Brim-0.2.0-backup. Backend `brim-backend:latest` (LLM=true) on docker host
+  192.168.1.137 with scratchpad override `compose.stand.yml` (port 0.0.0.0:8000); old db/migrate removed.
+  Slicer start: `schtasks /run /tn BrimSlicer`; UI driven via interactive scheduled tasks
+  (screenshots, clicks, SendKeys). Stand chat id `stand0300scenario000000000000001`.
 
 ## Verification and next actions
 
-- Plugin unit tests 155 pass on Python 3.14; Python 3.5 Docker run was
-  interrupted and not repeated. Backend: ruff, mypy, 49 unit pass; endpoint smoke with stub model OK.
-- Not verified: QML of new cards, real slicer run, live Claude through `/v1`, external MCP server.
-- Next: deploy 0.3.0 to VM, set LLM URL `http://192.168.1.137:8000/v1`, run full chat scenario;
-  merge branch on request. User asked to stop writing tests.
+- Stand run from chat window passed: ask mode cards (accept, reject with comment), auto mode, import,
+  transform, slice, result card, open folder; 50 min / 3.6 g gear. Fixed on stand: composition
+  init crash, stale_result from version counter, Claude trying native tools.
+- Plugin unit tests 155 pass on Python 3.14; Python 3.5 Docker run not repeated. Backend checks pass.
+- Not verified on stand: question card, file-dialog attachment, external MCP, render_scene, chat
+  switching, organizers' LLM. Merge branch on request. User asked to stop writing tests.
