@@ -1,6 +1,5 @@
 # syntax=docker/dockerfile:1.7
 ARG PYTHON_IMAGE=python:3.12.15-slim@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1
-ARG LLM=false
 ARG UV_IMAGE=ghcr.io/astral-sh/uv:0.11.33@sha256:77280f2f771df71f90786c314fe1bbc1e023feac652969bbf139c280babf2eb7
 
 FROM ${UV_IMAGE} AS uv
@@ -21,16 +20,7 @@ RUN --mount=from=uv,source=/uv,target=/usr/local/bin/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     uv sync --locked --no-install-project --no-default-groups
 
-FROM base AS deps-false
-
-FROM base AS deps-true
-RUN --mount=from=uv,source=/uv,target=/usr/local/bin/uv \
-    --mount=type=cache,id=uv,target=/root/.cache/uv \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    uv sync --locked --no-install-project --no-default-groups --group llm
-
-FROM deps-${LLM}
+FROM base
 ENV PYTHONPATH=/srv/src
 COPY src ./src
 USER app

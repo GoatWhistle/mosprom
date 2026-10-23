@@ -1,83 +1,86 @@
 import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
 
+import httpx
 from fastapi import FastAPI
 
-from app.adapter.decision.lexical import LexicalDecisionModel
-from app.adapter.decision.system_one import SystemOneModel
+from app.adapter.llm.openai_compatible import OpenAICompatibleChatAdapter
 from app.adapter.log.stdlib import StdlibLogger
+from app.adapter.runtime.connections import InMemoryLlmConnectionStore
+from app.adapter.runtime.gateway import InstanceGateway
+from app.adapter.runtime.scheduler import AsyncioRunScheduler
+from app.adapter.runtime.signals import AsyncCallSignals
+from app.adapter.runtime.system import SystemClock, UuidGenerator
 from app.controller.errors import ErrorHandlers
 from app.controller.router import api_router_v1
-from app.settings import ConfigError, DecisionProvider, LanguageProvider, Settings, load_settings
-from app.usecase.interface import DecisionModel, LanguageModel, Logger
+from app.controller.services import Services
+from app.repository.postgres.pool import PostgresUnitOfWorkFactory, open_pool
+from app.settings import Settings, load_settings
+from app.usecase.agent import AgentLoop
+from app.usecase.agent_tools import ToolHandler
+from app.usecase.artifacts import ArtifactService
+from app.usecase.conversations import ConversationService
+from app.usecase.events import EventPublisher
+from app.usecase.instances import InstanceService
+from app.usecase.plugin_session import PluginSession
+from app.usecase.run_store import RunStore
+from app.usecase.runs import RunService
+from app.usecase.tool_executor import ToolExecutor
 
 
-@dataclass(frozen=True, slots=True)
-class Providers:
-    decision: DecisionModel
-    language: LanguageModel | None
-    logger: Logger
-
-    async def aclose(self) -> None:
-        await self.decision.aclose()
-
-
-def build_decision_model(settings: Settings) -> DecisionModel:
-    match settings.decision_provider:
-        case DecisionProvider.LEXICAL:
-            return LexicalDecisionModel()
-        case DecisionProvider.SYSTEM_ONE:
-            return SystemOneModel(
-                base_url=settings.decision_url,
-                api_key=settings.decision_api_key,
-                timeout_s=settings.decision_timeout_s,
-            )
-
-
-def build_language_model(settings: Settings) -> LanguageModel | None:
-    match settings.language_provider:
-        case LanguageProvider.NONE:
-            return None
-        case LanguageProvider.CLAUDE:
-            try:
-                from app.adapter.llm.claude_agent import ClaudeAgentModel
-            except ModuleNotFoundError as exc:
-                raise _missing_llm_group(settings, exc) from exc
-            return ClaudeAgentModel()
-        case LanguageProvider.CODEX:
-            try:
-                from app.adapter.llm.codex_agent import CodexAgentModel
-            except ModuleNotFoundError as exc:
-                raise _missing_llm_group(settings, exc) from exc
-            return CodexAgentModel()
-
-
-def _missing_llm_group(settings: Settings, exc: ModuleNotFoundError) -> ConfigError:
-    return ConfigError(
-        f"LANGUAGE_MODEL={settings.language_provider.value} needs package {exc.name!r}; "
-        "install the llm dependency group (uv sync --group llm) or build the image with LLM=true"
-    )
-
-
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None, transport: httpx.AsyncBaseTransport | None = None
+) -> FastAPI:
     config = settings or load_settings(os.environ)
-    language = build_language_model(config)
     logger = StdlibLogger("app")
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        providers = Providers(
-            decision=build_decision_model(config), language=language, logger=logger
+        pool = await open_pool(config.database_url, config.pool_max_size)
+        client = httpx.AsyncClient(timeout=config.llm_timeout_s, transport=transport)
+        chat_model = OpenAICompatibleChatAdapter(client)
+        uow_factory = PostgresUnitOfWorkFactory(pool)
+        clock, ids = SystemClock(), UuidGenerator()
+        gateway, signals = InstanceGateway(), AsyncCallSignals()
+        connections = InMemoryLlmConnectionStore()
+        events = EventPublisher(uow_factory, gateway, clock, ids)
+        store = RunStore(uow_factory, clock, ids, events)
+        executor = ToolExecutor(uow_factory, gateway, signals, clock, ids)
+        handler = ToolHandler(uow_factory, store, executor, events, clock, ids, config.agent)
+        agent = AgentLoop(
+            uow_factory,
+            store,
+            chat_model,
+            connections,
+            handler,
+            executor,
+            events,
+            signals,
+            clock,
+            config.agent,
+            logger,
         )
-        app.state.providers = providers
+        scheduler = AsyncioRunScheduler(agent.run)
+        runs = RunService(uow_factory, scheduler, gateway, clock, ids)
+        instances = InstanceService(uow_factory, connections, signals, clock, ids)
+        app.state.services = Services(
+            instances=instances,
+            conversations=ConversationService(uow_factory, clock, ids, config.agent),
+            runs=runs,
+            artifacts=ArtifactService(uow_factory, signals, clock, ids, config.agent),
+            session=PluginSession(instances, runs, uow_factory, clock, ids),
+            registry=gateway,
+        )
+        await runs.resume_all()
         try:
             yield
         finally:
-            await providers.aclose()
+            await scheduler.aclose()
+            await chat_model.aclose()
+            await pool.close()
 
-    app = FastAPI(title="app", lifespan=lifespan)
+    app = FastAPI(title="brim", lifespan=lifespan)
     ErrorHandlers(logger).register(app)
     app.include_router(api_router_v1)
     return app

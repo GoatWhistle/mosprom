@@ -1,0 +1,27 @@
+CONTRACT_VERSION = "1"
+
+HELLO = "hello"
+STATE_SNAPSHOT = "state_snapshot"
+CHAT_MESSAGE = "chat_message"
+TOOL_RESULT = "tool_result"
+PROGRESS = "progress"
+MCP_RESPONSE = "mcp_response"
+PENDING_CALLS = "pending_calls"
+
+HELLO_ACK = "hello_ack"
+TOOL_CALL = "tool_call"
+CHAT_EVENT = "chat_event"
+MCP_REQUEST = "mcp_request"
+CANCEL_RUN = "cancel_run"
+PROTOCOL_ERROR = "error"
+
+STALE_SCENE = "stale_scene"
+OUTCOME_UNKNOWN = "outcome_unknown"
+
+EVENT_ASSISTANT_MESSAGE = "assistant_message"
+EVENT_QUESTION = "question"
+EVENT_CONFIRMATION = "confirmation_request"
+EVENT_TOOL_STARTED = "tool_started"
+EVENT_TOOL_FINISHED = "tool_finished"
+EVENT_RUN_STATE = "run_state"
+EVENT_ERROR = "error"
