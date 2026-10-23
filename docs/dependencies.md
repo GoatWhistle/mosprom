@@ -15,7 +15,7 @@
 |---|---|---|---|
 | Python | 3.12 | PSF-2.0 | Бэкенд |
 | Node.js | >=20.11 | MIT | Инструменты презентации |
-| PostgreSQL | 16 | PostgreSQL | Хранилище |
+| Python STE Slicer | 3.5, PyQt5 | PSF-2.0, GPL-3.0 | Плагин: только стандартная библиотека |
 | {{Компонент}} | {{версия}} | {{лицензия}} | {{роль}} |
 
 ## Какие библиотеки у бэкенда?
@@ -27,11 +27,9 @@
 | FastAPI | 0.143.1 | MIT | HTTP API и OpenAPI |
 | Pydantic | 2.14.1 | MIT | Схемы запросов и ответов |
 | uvicorn | 0.54.0 | BSD-3-Clause | ASGI-сервер |
-| psycopg / aiosqlite | {{версия}} | LGPL-3.0 / MIT | Драйвер выбранной базы, SQL без ORM |
-| dbmate | 2.36.0 | MIT | SQL-миграции, одноразовый сервис Compose |
-| claude-agent-sdk | 0.2.166 | MIT; встроенный CLI Claude Code — по условиям Anthropic | Группа `llm`, в образе при `LLM=true`. Вызов Claude для порта `LanguageModel` |
+| claude-agent-sdk | 0.2.173 | MIT; встроенный CLI Claude Code — по условиям Anthropic | Группа `llm`, в образе при `LLM=true`. Ответы `/v1/chat/completions` через Claude по подписке |
 | openai-codex | 0.162.1 | Apache-2.0, вместе со встроенным `openai-codex-cli-bin` | Группа `llm`, в образе при `LLM=true`. Вызов моделей Codex для порта `LanguageModel` |
-| httpx | 0.28.1 | BSD-3-Clause | Асинхронный HTTP-клиент порта `DecisionModel` (`/v1/systemone`) |
+| httpx | 0.28.1 | BSD-3-Clause | Клиент `TestClient` в тестах FastAPI |
 | {{Библиотека}} | {{версия}} | {{лицензия}} | {{зачем, одной фразой}} |
 
 ## Какие модели и данные используются?

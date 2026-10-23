@@ -32,7 +32,7 @@
 <p align="center">
   <!-- readme:stack -->
   <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-2.dark.png"><img src="docs/readme/badge-stack-2.light.png" alt="API: {{FastAPI}}" width="122" height="28"></picture>
-  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-3.dark.png"><img src="docs/readme/badge-stack-3.light.png" alt="хранилище: {{PostgreSQL 16}}" width="212" height="28"></picture>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-3.dark.png"><img src="docs/readme/badge-stack-3.light.png" alt="хранилище: файлы чатов в плагине" width="212" height="28"></picture>
   <br>
   <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-4.dark.png"><img src="docs/readme/badge-stack-4.light.png" alt="модель: {{название, локально}}" width="225" height="28"></picture>
   <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-5.dark.png"><img src="docs/readme/badge-stack-5.light.png" alt="запуск: Docker Compose" width="181" height="28"></picture>
@@ -157,15 +157,21 @@ flowchart LR
 ## Запуск
 
 ```bash
-cp .env.example .env
-docker buildx bake
-docker compose up
+python3 plugin/build.py
 ```
 
-Compose запускает только бэкенд; Swagger — http://localhost:8000/docs.
-Интерфейс планируется как встроенный чат STE Slicer; плагин ещё не реализован.
-У бэкенда пока один метод — `GET /api/v1/health`; сценарии, база и засев данных появятся при реализации
-проекта. Сборка образов требует сети.
+Архив `plugin/dist/Brim-<версия>.zip` распакуйте в `%APPDATA%\steslicer\7.x\plugins` и перезапустите
+STE Slicer. В «Brim» → «Настройки» укажите URL OpenAI-совместимого API, модель и ключ. Агент работает
+внутри плагина, базы данных нет.
+
+Для Claude по подписке поднимите прокси и укажите в плагине URL `http://<адрес>:8000/v1`, модель
+`sonnet` и OAuth-токен из `claude setup-token`:
+
+```bash
+cp .env.example .env
+LLM=true docker buildx bake
+docker compose up
+```
 
 <details>
 <summary><b>Разработка, проверки, переменные</b></summary>
@@ -175,8 +181,9 @@ Compose запускает только бэкенд; Swagger — http://localho
 cd backend && uv sync && uv run uvicorn app.main:create_app --factory --reload
 ```
 
-Проверки бэкенда: `cd backend && uv run ruff check . && uv run mypy . && uv run pytest tests/unit`. Переменные окружения,
-демо-учётки, тесты и деплой — в [запуске и проверках](docs/running.md).
+Проверки бэкенда: `cd backend && uv run ruff check . && uv run mypy . && uv run pytest tests/unit`.
+Проверки плагина: `cd plugin && PYTHONPATH=. python3 -B -m unittest discover -s tests -t .`.
+Переменные окружения и тесты — в [запуске и проверках](docs/running.md).
 
 </details>
 

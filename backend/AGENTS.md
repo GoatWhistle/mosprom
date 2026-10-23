@@ -9,12 +9,20 @@ code style, language, file limits and the requirement to use real logic and stor
 | --- | --- |
 | Any backend implementation or refactor | [ARCHITECTURE.md](ARCHITECTURE.md): layers, imports, ports and composition |
 | Changing routes, schemas, errors or authentication | [API.md](API.md): HTTP contracts and permission handling |
-| Changing persistence, repositories, migrations, transactions or seed data | [DATABASE.md](DATABASE.md): storage choice, SQL repositories, Unit of Work |
 | Adding or changing tests, or reporting validation | [TESTING.md](TESTING.md): test scope and checks |
 
-Read every matching document when a task spans several areas. These four files are internal working
+Read every matching document when a task spans several areas. These three files are internal working
 instructions removed at submission. Product documentation lives in `docs/` and describes the
 implemented system; product files must not link to these internal instructions.
+
+## Brim backend today
+
+The backend is an optional stateless proxy for Claude by subscription: `controller/openai/router.py`
+serves `POST /v1/chat/completions` and `GET /v1/models` in the OpenAI format, `usecase/completion.py`
+maps OpenAI messages to `domain/chat.py`, and `adapter/llm/claude_agent.py` calls Claude Agent SDK
+with the request's Bearer token. The `/v1` router is mounted next to `api_router_v1` because OpenAI
+clients append `/chat/completions` to their base URL. There is no database, WebSocket or agent loop
+here; the agent runs in `plugin/Brim/agent/`. Never log the Bearer token.
 
 ## Architecture contract
 
@@ -39,8 +47,9 @@ Unless the task or an explicit project decision chooses otherwise: Python 3.12+,
 Pydantic only for HTTP schemas in `controller/`, standard `dataclasses` everywhere else, uv, Ruff
 with line length 100, mypy strict and pytest.
 
-Persistence has fixed rules, detailed in [DATABASE.md](DATABASE.md): ask the user whether storage is
-in-memory only or a database (SQLite or PostgreSQL 16) before the first repository; no ORM, only
+Brim has no persistence since ADR 0002 (2026-10-23): chat history and files live in the plugin and
+DATABASE.md was removed. If storage returns, ask the user whether it is in-memory only or a
+database (SQLite or PostgreSQL 16) before the first repository; no ORM, only
 SQL through the driver; SQL migrations applied by dbmate in a one-shot Compose service; dataclass DTOs
 at repository ports; Unit of Work for transactions.
 

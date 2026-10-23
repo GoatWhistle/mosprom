@@ -5,6 +5,9 @@ and use cases own their interfaces; outer modules implement transport and extern
 
 ## Layout
 
+Brim currently uses only `domain`, `usecase`, `adapter` and `controller`; `repository/` and
+`migrations/` were removed with the database (ADR 0002). The tree below is the template layout.
+
 Paths below are relative to `backend/`. The scaffold uses `app` as its default package name. Use it
 consistently in the future manifest, imports, startup command and tests; rename it together if the
 project chooses another name. Create subject modules as the real scenario requires them.
@@ -14,7 +17,6 @@ backend/
   AGENTS.md
   ARCHITECTURE.md
   API.md
-  DATABASE.md
   TESTING.md
   src/app/
     domain/
@@ -86,7 +88,7 @@ their owning module; an interface is needed where a use case depends on an exter
   values or use case results.
 - Keep connections, driver rows, HTTP requests/responses and provider objects outside port
   signatures. Commands, results and DTOs are dataclasses without framework validation behavior.
-  Repository DTOs live in `usecase/dto.py` (see [DATABASE.md](DATABASE.md)).
+  Repository DTOs live in `usecase/dto.py`.
 - Supply repositories, transaction scopes, providers and clocks through constructors. Construction
   does not select implementations or perform I/O.
 - The use case owns the consistency boundary. It opens a Unit of Work per operation and commits
