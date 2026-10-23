@@ -209,8 +209,8 @@ class ChatPresenter(object):
         if path and self._open_path is not None:
             self._open_path(path)
 
-    def export(self, root, render_pages, request_capture):
-        self._exporter.export(root, render_pages, request_capture)
+    def export(self, root, request_capture):
+        self._exporter.export(root, request_capture)
 
     def capture_done(self, pages, error):
         self._exporter.capture_done(pages, error)

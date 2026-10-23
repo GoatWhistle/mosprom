@@ -12,7 +12,7 @@ class ChatExporter(object):
         self._open_path = open_path
         self._prepared = None
 
-    def export(self, root, render_pages, request_capture):
+    def export(self, root, request_capture):
         state = self.state
         strings = self._strings()
         if state.conversation_id is None or not state.messages:
@@ -30,11 +30,6 @@ class ChatExporter(object):
             return prepare_export(root, self._store.load(conversation_id), strings, model)
 
         def done(prepared):
-            try:
-                prepared["text_pages"] = render_pages(prepared.pop("markdown"), prepared["path"])
-            except Exception as error:
-                self._failed(error)
-                return
             self._prepared = prepared
             request_capture(prepared["path"])
 
@@ -50,7 +45,7 @@ class ChatExporter(object):
         if prepared is None:
             return
         strings = self._strings()
-        text = strings["export_done"] % (pages, prepared["text_pages"], prepared["path"])
+        text = strings["export_done"] % (pages, prepared["path"])
         if not prepared["copied"]:
             text += ". " + strings["export_no_slice"]
         if error:

@@ -67,7 +67,6 @@ def prepare_export(root, chat, strings, model):
     _clear_pages(target)
     copied = _copy_results(latest_slice_files(chat.get("messages") or []), target)
     exported_at = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    markdown = render_markdown(chat, strings, model, exported_at)
     with open(os.path.join(target, MARKDOWN_NAME), "w", encoding="utf-8") as handle:
-        handle.write(markdown)
-    return {"path": target, "markdown": markdown, "copied": copied}
+        handle.write(render_markdown(chat, strings, model, exported_at))
+    return {"path": target, "copied": copied}

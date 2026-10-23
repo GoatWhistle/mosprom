@@ -3,7 +3,6 @@ import json
 from PyQt5.QtCore import QObject, QUrl, pyqtProperty, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QDesktopServices, QGuiApplication
 
-from .export_pages import render_pages
 from .runner import ThreadRunner
 
 
@@ -64,7 +63,7 @@ class ChatController(QObject):
 
     @pyqtSlot(str)
     def exportChat(self, folder):
-        self._presenter.export(local_path(folder), render_pages, self.captureRequested.emit)
+        self._presenter.export(local_path(folder), self.captureRequested.emit)
 
     @pyqtSlot(int, str)
     def captureDone(self, pages, error):
