@@ -54,15 +54,15 @@ Updated: 2026-10-23, MSK
 
 - 2026-10-23: «@work/chat-improvement-plan.md в другой ветке чатик сделай красивый» — branch feat/chat-redesign: QML redesign plus plugin workspaces (3MF per chat, switching with lock/rollback, autosave, per-chat drafts, truthful status, grouped actions, result in timeline). 151 plugin tests pass; QML previewed dark/light/RU/EN. Backend: project link/version/active chat in PostgreSQL, client_message_id idempotency, result project_version. 155 plugin + 89 backend tests pass. Nothing run in real STE Slicer (no Wine here).
 
-- Branch feat/backend-agent; HEAD c28e0a8, pushed with 4e09fcc. Current task is documentation only: saved work/chat-improvement-plan.md for chat UI and one workspace per conversation. No implementation of that plan yet.
-- Implemented backend + embedded PyQt5/QML plugin, PostgreSQL in Compose, contract v2. Agent chooses print settings; deterministic code executes. Prior verification: work/implementation-verification.md; protocol: work/protocol-contract.md.
-- Proposed chat changes: compact UI, truthful statuses, preserved drafts, readable confirmations/results, project autosave and scene switching when changing chats. Plan separates agreed project behavior from proposed defaults.
-- Local Compose brim was left running: backend/db healthy, migrations exited 0, localhost:8000 health 200. Port bound to loopback. LLM settings come from plugin, not .env LLM_*.
-- Actual local STE Slicer runs under ~/.wine-ste. Installed plugin was found to have contract 1 and 27 files different from current source; backend expects 2. Replacement instructions supplied, installation not replaced by us. Current ZIP was rebuilt and all 57 files matched source. Real slicing/3MF reopen remain unverified.
-- Build pitfall: bake defaults produced app-backend:latest; Compose selected brim-backend:latest. Fresh image retagged and container recreated. Match image tags on future builds.
+- Current branch main; implementation merge HEAD 4b310c7. Integrated feat/backend-agent, feat/chat-redesign, feat/slicer-plugin and origin/main. Preserved current chat/protocol v2 and added the older plugin branch's import completion filtering, estimate retry/seconds fixes and optional Uranium tests.
+- 2026-10-23: «остановись вообще полностью и все что можно останови» — all Brim Compose services stopped; data preserved. No services restarted during merge.
+- 2026-10-23: «теперь все смерджи в мейн» — authorizes merging all branches and pushing main.
+- Current backend image rebuilt with the Compose image tag before stop. Previous project PUT 404 came from a stale image without that route; rebuilt endpoint remains unverified live.
+- Actual local STE Slicer was found under ~/.wine-ste. Installed plugin previously had protocol 1 versus backend 2; current installed version has not been rechecked. Do not assume repository or ZIP updates reinstall the plugin.
+- Build pitfall: bake defaults to app-backend:latest; Compose uses brim-backend:latest. Supply the Compose image tag explicitly on future builds.
 
 ## Verification and next actions
 
-- Prior backend checks: Ruff, mypy, 83 tests passed. Plugin: 123 tests on Python 3.14; Python 3.5: 122 passed, one skipped. Real backend/PostgreSQL scenario passed with fake slicer/scripted LLM. No paid calls.
-- Next: discuss/implement work/chat-improvement-plan.md when requested; this turn only writes the Markdown plan. Windows/Qt5 scene operations still need real verification.
+- Merge checks: plugin 155 passed, 2 optional Uranium tests skipped (checkout unavailable); backend Ruff and mypy passed, 59 unit tests passed. No services or paid LLM calls started. Storage integration tests not rerun while Compose is stopped.
+- Push main and verify remote SHA. Real STE Slicer slicing, project reopen and the newly built backend route still require a separate authorized runtime check.
 - Preserve official embedded-chat vs browser-SPA source conflict. Existing template documentation and prior speech/README checks have known stale content; do not expand this task into their cleanup.
