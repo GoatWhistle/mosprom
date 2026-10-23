@@ -16,7 +16,7 @@ Agent and embedded plugin implemented; automated verification recorded in work/i
 | Evaluation | Verified from source | Seven criteria, no weights; jury compares against private 3MF references | [Requirements](../brief/requirements.md) |
 | Delivery | Verified from source | ZIP with plugin and per-model 3MF/G-code/chat screenshots | [Submission](../brief/PLATFORM.md) |
 | Brand | Approved; implemented in existing files | Brim, molten-plastic accent; brand assets retained after frontend removal | [Visual system](../docs/visual-system.md) |
-| Scope | Approved by user; removal implemented | Embedded STE Slicer chat; frontend removed. Agent and plugin implemented; PostgreSQL in Compose tested; STE Slicer runtime unverified | [Session](SESSION.md) |
+| Scope | Approved by user; implemented on branch | Embedded STE Slicer chat; agent runs in plugin as OpenAI client + MCP host, no DB; backend only proxies Claude. STE Slicer runtime of 0.3.0 unverified | [ADR 0002](../docs/adr/0002-plugin-agent-openai-mcp-host.md) |
 
 ## Pointers
 

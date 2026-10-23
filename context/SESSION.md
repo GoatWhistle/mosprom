@@ -49,25 +49,25 @@ Updated: 2026-10-23, MSK
 
 - 2026-10-23: «нужно чтобы каждый новый чат был подвязан к одному рабочему пространству (файлу) чтоли, как то так брат ; нужно чтобы я мог менять чаты и как бы из за этого менялись файлы . понял задачу?»
 - 2026-10-23: «план именно задачи для исправления чатика сделай братан».
+- 2026-10-23: plan `misty-honking-crescent.md` (agent in plugin as OpenAI client + MCP host; backend
+  only a Claude proxy) referenced for implementation.
+- 2026-10-23: «продолжи без тестов, можешь их больше не писать».
 
 ## Current state
 
-- Claude adapter merged into local main (fast-forward to 37c0e7f, «смерджи в main»); main not pushed.
-  Earlier fix/feature branches are committed to main; full entries and user quotes in
-  [session log](../work/session-log.md).
-- Stand: backend Compose on this host (192.168.1.137:8000), image `brim-backend:latest` built with
-  `LLM=true`; Windows override copied to session scratchpad `compose.windows.yml`. Bake defaults to
-  app-backend:latest; use `COMPOSE_PROJECT_NAME=brim`.
-- Windows VM `user@192.168.1.190`: STE Slicer 7.10.12, Brim plugin in %APPDATA%\steslicer\7.10\plugins;
-  cfg UTF-8 without BOM. LLM: `claude-agent` / `sonnet` / OAuth token from `~/.claude-azamat`;
-  timeweb/qwen cfg backed up to `steslicer.cfg.bak-before-claude`. Start slicer via
-  Register-ScheduledTask (Interactive, user). Plugin WS and PUT /instances/llm 200 verified.
+- Branch `refactor/plugin-agent-mcp-host` (from main 2348e36): ADR 0002 implemented. Agent loop in
+  `plugin/Brim/agent/` (OpenAI client, MCP hub/client, ask_user, confirmation policy); chats in
+  `chats/<id>/`; bridge/ledger/backend HTTP removed. Backend = stateless `POST /v1/chat/completions`
+  over Claude Agent SDK; DB, migrations, WS, runs removed; Compose has only `backend`.
+- Docs: ADR 0002, design-decisions, api, architecture, running, plugin/README, work/protocol-contract v3.
+- Stand: Windows VM `user@192.168.1.190`, STE Slicer 7.10.12, old 0.2.0 plugin installed; cfg UTF-8
+  without BOM; start slicer via Register-ScheduledTask. New plugin 0.3.0 not deployed. Claude token
+  from `~/.claude-azamat`. Backend previously at 192.168.1.137:8000 (`COMPOSE_PROJECT_NAME=brim`).
 
 ## Verification and next actions
 
-- Claude adapter: ruff, 85 backend unit pass; mypy errors only pre-existing
-  `tests/integration/e2e/harness.py`. Live smoke 3 turns ~8 s each (local) and one call from container OK.
-- Next: full chat scenario through Claude in the real slicer; push main on request.
-- Open: 409 run_active fix proposed,
-  not implemented; G-code export on stand unverified; uvicorn access log prints WS instance token.
-- Preserve official embedded-chat vs browser-SPA conflict; avoid unrelated template cleanup.
+- Plugin unit tests 155 pass on Python 3.14; Python 3.5 Docker run was
+  interrupted and not repeated. Backend: ruff, mypy, 49 unit pass; endpoint smoke with stub model OK.
+- Not verified: QML of new cards, real slicer run, live Claude through `/v1`, external MCP server.
+- Next: deploy 0.3.0 to VM, set LLM URL `http://192.168.1.137:8000/v1`, run full chat scenario;
+  merge branch on request. User asked to stop writing tests.
