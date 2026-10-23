@@ -16,6 +16,7 @@ that owns each one. Scrubbed at submission.
 | `audits/` | audit workflows | Dated findings and check results |
 | `research/` | `research` | Investigation notes |
 | `template-development.md` | template maintenance | History of work on this template; discard when starting a hackathon |
+| `session-log.md` | session compaction | Detailed session state entries moved out of `context/SESSION.md` |
 | `submission/` | `submission` | Platform confirmations and screenshots with timestamps |
 
 A file here keeps its full working detail; its one-line conclusion goes to
