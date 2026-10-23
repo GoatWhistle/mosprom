@@ -45,3 +45,5 @@ models/
 *.pt
 *.gguf
 var/
+
+/task/

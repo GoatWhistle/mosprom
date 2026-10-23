@@ -1,0 +1,295 @@
+<h2>1. Проблема</h2>
+<p>В современных слайсерах больше 100 параметров печати: температуры, скорости, высота слоя, заполнение, поддержки, ретракт, охлаждение, адгезия. Подбирать режимы умеет опытный инженер, а новичку это сделать трудно. Без интеллектуального помощника на ручную настройку уходят часы, а на пробные печати — материал.</p>
+<p><strong>Второстепенные проблемы:</strong></p>
+<ol>
+<li>Слайсер сложно освоить новичку.</li>
+<li>Пробные печати тратят материал и время.</li>
+<li>Нет единой точки входа: модель → настройка → G-code.</li>
+<li>При смене материала или задачи всё приходится настраивать заново.</li>
+</ol>
+<h2>2. Задача</h2>
+<p>Разработать <strong>плагин для <a href="https://github.com/stereotech/STE-Slicer">STE Slicer</a></strong> (слайсер Stereotech, глубокий форк Cura 3.6, LGPLv3). Плагин добавляет в слайсер окно чатбота. Пользователь описывает задачу текстом и прикладывает изображения или 3D-модели, а LLM через MCP-инструменты:</p>
+<ul>
+<li>выбирает режим печати (<strong>3D или 5D</strong>), профиль, материал и настройки;</li>
+<li>загружает, ориентирует и расставляет модели;</li>
+<li>запускает слайсинг и объясняет пользователю, какие решения приняла.</li>
+</ul>
+<p><strong>Пример:</strong> пользователь пишет «Кронштейн под нагрузку, PETG, без поддержек» и прикладывает STL. На выходе он получает настроенный проект, G-code и объяснение выбранных параметров.</p>
+<hr />
+<h2>3. Технические требования</h2>
+<h3>3.1. Стек</h3>
+<ul>
+<li><strong>Python + PyQt5</strong>, версии те же, что в выданном дистрибутиве STE Slicer (Python 3.5-совместимый код).</li>
+<li>Плагин в формате STE Slicer (Cura 3.6): <code>plugin.json</code> с <code>&quot;api&quot;: 5</code>, см. раздел 4.</li>
+<li>Интерфейс чатбота — <strong>SPA на HTML + CSS + JS</strong>, без серверного рендеринга.</li>
+</ul>
+<h3>3.2. Окно чатбота</h3>
+<ul>
+<li>Плагин поднимает локальный HTTP-сервер (при необходимости — WebSocket) и открывает SPA в системном браузере на <code>http://localhost:&lt;port&gt;</code>. Связь JS ↔ Python идёт через этот сервер: <code>fetch</code> для запросов, WebSocket или polling для потоковых событий (ответ модели, прогресс слайсинга).</li>
+<li>Обязательные функции:
+<ul>
+<li>история диалога и ввод текста;</li>
+<li>прикрепление <strong>изображений</strong> (JPG/PNG) и <strong>3D-моделей</strong> (STL/OBJ/3MF);</li>
+<li>отображение вызовов инструментов и их результатов (пользователю видно, что меняет агент);</li>
+<li>статус и прогресс слайсинга, итог (время печати, расход материала).</li>
+</ul>
+</li>
+</ul>
+<h3>3.3. Подключение к LLM</h3>
+<ul>
+<li>URL и ключ доступа выдают организаторы.</li>
+<li>Поддерживается <strong>только OpenAI-совместимый API</strong>: Chat Completions с tool calling, изображения передаются как <code>image_url</code> (base64).</li>
+<li>Ключ нельзя хардкодить в исходниках: он вводится в настройках плагина и хранится в настройках приложения.</li>
+</ul>
+<h3>3.4. MCP-инструменты</h3>
+<p>Плагин реализует MCP-сервер (JSON-RPC: <code>tools/list</code>, <code>tools/call</code>) поверх API слайсера. Эти же инструменты агент передаёт в LLM как <code>tools</code>. Названия и схемы аргументов команда выбирает сама. Минимальный набор:</p>
+<table>
+<thead>
+<tr>
+<th>Группа</th>
+<th>Инструменты</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Настройки и профили</strong></td>
+<td>прочитать/изменить настройку (глобальную и экструдера); список профилей качества и материалов; выбор, создание и сохранение профиля; <strong>переключение режима печати 3D ↔ 5D</strong></td>
+</tr>
+<tr>
+<td><strong>Модели</strong></td>
+<td>загрузить файл в сцену; список объектов; перемещение, поворот, масштаб; авто-расстановка; удаление; габариты модели</td>
+</tr>
+<tr>
+<td><strong>Слайсинг</strong></td>
+<td>запустить слайсинг; статус и прогресс; результат (время, материал); экспорт G-code; сохранение проекта 3MF</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Официальный Python MCP SDK требует Python 3.10+ и внутри слайсера не запустится. Протокол (JSON-RPC 2.0 поверх HTTP/stdio) придётся реализовать самостоятельно в объёме, который нужен для <code>initialize</code>, <code>tools/list</code> и <code>tools/call</code>.</p>
+</blockquote>
+<h3>3.5. Схема работы</h3>
+<pre><code>SPA (HTML/CSS/JS)
+   │  HTTP/WebSocket на localhost
+Python-плагин: агент (цикл диалога с LLM)
+   │                              │
+   │ tool calls                   │ OpenAI-совместимый API
+MCP-сервер плагина               LLM (URL + ключ организаторов)
+   │
+API STE Slicer: настройки, профили, сцена, слайсинг
+</code></pre>
+<hr />
+<h2>4. Как разработать плагин для STE Slicer (Cura 3.6)</h2>
+<h3>4.1. Где лежат плагины</h3>
+<ul>
+<li>Встроенные плагины находятся в папке <code>plugins</code> дистрибутива. Они пригодятся как примеры: <code>SupportEraser</code>, <code>PostProcessingPlugin</code>, <code>MachineSettingsAction</code>, <code>3MFWriter</code>, <code>CuraEngineBackend</code>, <code>CylindricalBackend</code> (5D).</li>
+<li>Свой плагин положите в папку <code>plugins</code> внутри папки конфигурации пользователя (в STE Slicer это <code>%APPDATA%\steslicer\7.x\plugins</code>). Открыть папку конфигурации можно через меню <strong>Справка → Показать папку конфигурации</strong>.</li>
+<li>После изменения кода слайсер нужно перезапустить.</li>
+</ul>
+<h3>4.2. Структура</h3>
+<pre><code>AIAssistant/
+├── plugin.json
+├── __init__.py
+├── AIAssistant.py      # Extension: пункт меню, локальный сервер, открытие браузера
+├── agent/              # цикл общения с LLM, MCP-сервер, инструменты
+└── web/                # SPA: index.html, app.js, style.css
+</code></pre>
+<p><code>plugin.json</code>:</p>
+<pre><code class="language-json">{
+    &quot;name&quot;: &quot;AI Assistant&quot;,
+    &quot;author&quot;: &quot;Team&quot;,
+    &quot;version&quot;: &quot;1.0.0&quot;,
+    &quot;description&quot;: &quot;LLM chat assistant for STE Slicer&quot;,
+    &quot;api&quot;: 5,
+    &quot;i18n-catalog&quot;: &quot;steslicer&quot;
+}
+</code></pre>
+<p><code>__init__.py</code>:</p>
+<pre><code class="language-python">from . import AIAssistant
+
+def getMetaData():
+    return {}
+
+def register(app):
+    return {&quot;extension&quot;: AIAssistant.AIAssistant()}
+</code></pre>
+<p><code>AIAssistant.py</code> (минимальный каркас):</p>
+<pre><code class="language-python">import json
+import os
+import threading
+import webbrowser
+from http.server import HTTPServer, SimpleHTTPRequestHandler
+from socketserver import ThreadingMixIn
+
+from UM.Extension import Extension
+
+WEB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), &quot;web&quot;)
+
+
+class ChatServer(ThreadingMixIn, HTTPServer):
+    daemon_threads = True
+
+
+class Handler(SimpleHTTPRequestHandler):
+    def translate_path(self, path):              # раздаём web/ вместо текущей папки
+        path = super().translate_path(path)
+        return os.path.join(WEB_DIR, os.path.relpath(path, os.getcwd()))
+
+    def do_POST(self):                           # JS -&gt; Python
+        if self.path != &quot;/api/message&quot;:
+            self.send_error(404)
+            return
+        length = int(self.headers.get(&quot;Content-Length&quot;, 0))
+        data = json.loads(self.rfile.read(length).decode(&quot;utf-8&quot;))
+        body = json.dumps({&quot;reply&quot;: &quot;echo: &quot; + data.get(&quot;text&quot;, &quot;&quot;)}).encode(&quot;utf-8&quot;)
+        self.send_response(200)
+        self.send_header(&quot;Content-Type&quot;, &quot;application/json; charset=utf-8&quot;)
+        self.send_header(&quot;Content-Length&quot;, str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+
+class AIAssistant(Extension):
+    def __init__(self):
+        super().__init__()
+        self.setMenuName(&quot;AI Assistant&quot;)
+        self.addMenuItem(&quot;Open chat&quot;, self.showChat)
+        self._server = None
+
+    def showChat(self):
+        if self._server is None:
+            self._server = ChatServer((&quot;127.0.0.1&quot;, 0), Handler)   # порт выбирает ОС
+            threading.Thread(target=self._server.serve_forever, daemon=True).start()
+        webbrowser.open(&quot;http://127.0.0.1:%d/&quot; % self._server.server_port)
+</code></pre>
+<p>В <code>app.js</code> отправляйте сообщения через <code>fetch(&quot;/api/message&quot;, {method: &quot;POST&quot;, body: JSON.stringify({text})})</code>. Для потоковых событий (ответ модели по частям, прогресс слайсинга) добавьте WebSocket (<code>PyQt5.QtWebSockets.QWebSocketServer</code>) или polling.</p>
+<blockquote>
+<p>Код в этом сервере выполняется не в главном Qt-потоке. Сцену, настройки и слайсинг трогайте только через <code>app.callLater(...)</code>, иначе слайсер может упасть.</p>
+</blockquote>
+<h3>4.3. Ключевые API (по аналогии с Cura 3.6)</h3>
+<table>
+<thead>
+<tr>
+<th>Что</th>
+<th>Как</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Приложение</td>
+<td><code>from steslicer.SteSlicerApplication import SteSlicerApplication</code>; <code>app = SteSlicerApplication.getInstance()</code></td>
+</tr>
+<tr>
+<td>Глобальные настройки</td>
+<td><code>stack = app.getGlobalContainerStack()</code>; <code>stack.getProperty(&quot;layer_height&quot;, &quot;value&quot;)</code>; <code>stack.userChanges.setProperty(&quot;layer_height&quot;, &quot;value&quot;, 0.2)</code></td>
+</tr>
+<tr>
+<td>Настройки экструдера</td>
+<td><code>ExtruderManager.getInstance().getActiveExtruderStack()</code> (<code>steslicer/Settings</code>)</td>
+</tr>
+<tr>
+<td>Профили и материалы</td>
+<td><code>app.getMachineManager()</code>: <code>setQualityGroupByQualityType(...)</code>, <code>setMaterialById(...)</code>, <code>activeQualityType</code>, <code>activeMaterialId</code></td>
+</tr>
+<tr>
+<td>Загрузка модели</td>
+<td><code>app.readLocalFile(QUrl.fromLocalFile(path))</code></td>
+</tr>
+<tr>
+<td>Сцена</td>
+<td><code>app.getController().getScene().getRoot()</code>; обход через <code>UM.Scene.Iterator.DepthFirstIterator</code>; изменения через <code>UM.Operations</code> (<code>TranslateOperation</code>, <code>RotateOperation</code>, <code>ScaleOperation</code>)</td>
+</tr>
+<tr>
+<td>Расстановка</td>
+<td><code>app.arrangeAll()</code></td>
+</tr>
+<tr>
+<td>Слайсинг</td>
+<td><code>app.getBackend()</code> (бэкенды 3D/5D: <code>CuraEngineBackend</code>, <code>CylindricalBackend</code>, см. <code>steslicer/MultiBackend.py</code>); сигналы <code>backendStateChange</code>, <code>processingProgress</code></td>
+</tr>
+<tr>
+<td>Результат</td>
+<td><code>app.getPrintInformation()</code>: время печати и расход материала</td>
+</tr>
+<tr>
+<td>Сохранение</td>
+<td>плагины-писатели <code>3MFWriter</code> и <code>GCodeWriter</code> (<code>PluginRegistry.getInstance().getPluginObject(...)</code>)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Режим печати 3D/5D переключается настройками и профилями машины Stereotech. Ищите соответствующие ключи в определениях принтера в <code>resources/definitions</code> дистрибутива.</li>
+<li>Используем <strong>ТОЛЬКО</strong> режимы <code>3D</code> (<code>classic</code>), <code>5D Spiral</code> (<code>cylindrical</code>) и <code>5D</code> (<code>cylindrical_full</code>)
+<strong>В качестве основного профиля для тестов используем Stereotech Hybrid 530 V5.2.4</strong></li>
+<li>Сцену и настройки можно менять <strong>только из главного потока Qt</strong>. Если вызов инструмента пришёл из потока сервера или сети, передайте его в главный поток через <code>app.callLater(func, *args)</code>.</li>
+<li>Логи пишутся в <code>stderr.log</code> и <code>*.log</code> в папке конфигурации. Для отладки используйте <code>from UM.Logger import Logger; Logger.log(&quot;d&quot;, &quot;...&quot;)</code>.</li>
+</ul>
+<hr />
+<h2>5. Что предоставляют организаторы</h2>
+<ol>
+<li><strong>Доступ к LLM</strong>: URL и ключ (OpenAI-совместимый API).</li>
+<li><strong>Дистрибутив STE Slicer</strong> с инструкцией по активации, на нём проверяется плагин.</li>
+<li><strong>Набор 3D-моделей</strong> с описанием задачи печати для каждой.</li>
+<li><strong>Ссылки</strong> на скачивание дистрибутива, инструкцию по активации и форму загрузки результатов будут опубликованы отдельно.</li>
+</ol>
+<p>Эталонные 3MF-проекты по каждой модели хранятся у жюри и <strong>участникам не выдаются</strong>.</p>
+<h2>6. Проверка</h2>
+<p>По каждой выданной модели команда через чатбот получает готовый проект и G-code. Жюри сравнивает 3MF-проекты команды с эталонными: режим 3D/5D, профиль и материал, ключевые настройки, ориентацию и расположение модели. Также проверяется, что G-code корректен, и оценивается переписка в чатботе.</p>
+<h2>7. Что сдать</h2>
+<p>Один архив через форму организаторов:</p>
+<pre><code>&lt;team_name&gt;.zip
+├── plugin/              # исходный код плагина + README (установка, настройка URL/ключа)
+└── results/
+    └── &lt;model_name&gt;/
+        ├── project.3mf  # проект, полученный через чатбот
+        ├── result.gcode # G-code — результат слайсинга
+        └── chat_*.png   # скриншоты переписки в чатботе
+</code></pre>
+<hr />
+<h2>8. Критерии оценки</h2>
+<table>
+<thead>
+<tr>
+<th>№</th>
+<th>Критерий</th>
+<th>Что смотрим в этом кейсе</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5.4.1</td>
+<td><strong>Прототип</strong>: соответствует ли фактическая функциональность решения заявленной участниками?</td>
+<td>Плагин ставится в выданный дистрибутив, чат работает, заявленные инструменты действительно меняют настройки и сцену и запускают слайсинг</td>
+</tr>
+<tr>
+<td>5.4.2</td>
+<td><strong>Решение основной проблемы</strong>: покрывает ли продукт основную проблему кейса?</td>
+<td>Насколько близки результаты по тестовым моделям к эталонным 3MF; корректны ли G-code и выбор режима 3D/5D</td>
+</tr>
+<tr>
+<td>5.4.3</td>
+<td><strong>Разработка и внедрение</strong>: оправдывает ли эффект от применения затраты на разработку и внедрение?</td>
+<td>Простота установки и настройки, сопровождаемость кода, скорость получения результата по сравнению с ручной настройкой</td>
+</tr>
+<tr>
+<td>5.4.4</td>
+<td><strong>Новаторские идеи</strong>: собственные фичи, напрямую связанные с задачей, или новый подход (не использовался ранее, новая технология, не копия существующих решений)</td>
+<td>Например: анализ геометрии и фото, рекомендации по ориентации, сравнение вариантов профилей, учёт специфики 5D</td>
+</tr>
+<tr>
+<td>5.4.5</td>
+<td><strong>UI/UX</strong>: проработанность пользовательского интерфейса</td>
+<td>Удобство чата, прикрепления файлов, видимость действий агента, объяснение решений, обработка ошибок</td>
+</tr>
+<tr>
+<td>5.4.6</td>
+<td><strong>Второстепенные проблемы</strong>: решает ли продукт второстепенные проблемы из кейса или замеченные участниками?</td>
+<td>Проблемы 1–4 из раздела 1 и найденные командой</td>
+</tr>
+<tr>
+<td>5.4.7</td>
+<td><strong>Аналитика</strong>: насколько полно проведён анализ целевой и потенциальной аудитории, проблем пользовательского опыта, других сервисов и аналогичных продуктов</td>
+<td>Описание аудитории, обзор аналогов (ИИ-функции в других слайсерах), обоснование решений</td>
+</tr>
+</tbody>
+</table>

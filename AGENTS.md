@@ -1,7 +1,10 @@
-# {{PRODUCT}} — {{one-line positioning}}
+# Brim — assistant for configuring FDM 3D/5D printing in STE Slicer
 
-{{HACKATHON}}, track {{TRACK}}. Deadline: {{date, time, timezone}}.
-{{User, product action and observable benefit. Fill during hackathon kickoff.}}
+Otkroy Mosprom hackathon, additive manufacturing track. Submission: October 25, 10:00 MSK
+(PDF p. 10; year 2026 inferred from event context). Product positioning and P0 await user discussion.
+Official target: a STE Slicer plugin with a browser SPA, Python 3.5-compatible code and PyQt5;
+read `brief/requirements.md` and `brief/TECHNICAL.md` before planning implementation.
+Existing Compose services are template infrastructure; plugin packaging remains undecided.
 
 ## Start a session
 

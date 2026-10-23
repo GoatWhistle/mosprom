@@ -12,6 +12,8 @@ cite «ТЗ, раздел X, с. N».
 | Need | File |
 |---|---|
 | The task statement verbatim, with pages | [TASK.md](TASK.md) |
+| Per-model task texts from the organizer archive | [MODELS.md](MODELS.md) |
+| Full technical task from the linked organizer website | [TECHNICAL.md](TECHNICAL.md) |
 | Organizer answers verbatim, with source and date | [QA.md](QA.md) |
 | What the submission platform requires, limits, deadlines | [PLATFORM.md](PLATFORM.md) |
 | Requirements, jury criteria and weights, timeline, bonuses | [requirements.md](requirements.md) |
