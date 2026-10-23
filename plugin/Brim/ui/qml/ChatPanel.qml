@@ -56,6 +56,39 @@ Item {
     }
 
     property var announced: ({})
+    property string syncedConversation: "\u0000"
+
+    onViewChanged: syncEntries()
+    Component.onCompleted: syncEntries()
+
+    function syncEntries() {
+        var list = view.entries || []
+        var switched = view.conversation_id !== syncedConversation
+        if (switched) {
+            syncedConversation = view.conversation_id
+            entryModel.clear()
+        }
+        var keep = 0
+        while (keep < list.length && keep < entryModel.count && entryModel.get(keep).key === list[keep].key)
+            keep++
+        for (var i = 0; i < keep; i++) {
+            var payload = JSON.stringify(list[i])
+            if (entryModel.get(i).payload !== payload) {
+                entryModel.setProperty(i, "kind", list[i].kind)
+                entryModel.setProperty(i, "payload", payload)
+            }
+        }
+        if (entryModel.count > keep)
+            entryModel.remove(keep, entryModel.count - keep)
+        for (var j = keep; j < list.length; j++)
+            entryModel.append({ key: list[j].key, kind: list[j].kind, payload: JSON.stringify(list[j]) })
+        if (switched)
+            timeline.jumpToEnd()
+    }
+
+    ListModel {
+        id: entryModel
+    }
 
     function once(key) {
         if (announced[key])
@@ -189,7 +222,7 @@ Item {
             }
         }
 
-        ListView {
+        Flickable {
             id: timeline
             anchors.top: header.bottom
             anchors.topMargin: 12
@@ -199,91 +232,95 @@ Item {
             anchors.leftMargin: 20
             anchors.rightMargin: 20
             clip: true
-            spacing: 12
-            cacheBuffer: 1000000
-            model: view.entries
+            flickableDirection: Flickable.VerticalFlick
+            contentWidth: width
+            contentHeight: rows.height
+            property alias count: rowRepeater.count
             property bool followEnd: true
             property bool unread: false
+            property bool pinning: false
+            property int seenCount: 0
+            function positionViewAtEnd() {
+                pinning = true
+                contentY = originY + Math.max(0, contentHeight - height)
+                pinning = false
+            }
+            function positionViewAtBeginning() {
+                pinning = true
+                contentY = originY
+                pinning = false
+            }
             function jumpToEnd() {
-                positionViewAtEnd()
                 followEnd = true
                 unread = false
+                positionViewAtEnd()
             }
-            function followToEnd() {
-                if (!followEnd)
+            onContentYChanged: {
+                if (pinning)
                     return
-                settle.left = 20
-                settle.lastY = -1
-                settle.restart()
-            }
-            Timer {
-                id: settle
-                interval: 16
-                repeat: true
-                property int left: 0
-                property real lastY: -1
-                onTriggered: {
-                    timeline.positionViewAtEnd()
-                    left -= 1
-                    if (timeline.contentY === lastY || left <= 0)
-                        stop()
-                    lastY = timeline.contentY
-                }
-            }
-            onMovementStarted: settle.stop()
-            onMovementEnded: {
                 followEnd = atYEnd
                 if (atYEnd)
                     unread = false
             }
-            onCountChanged: {
+            onContentHeightChanged: {
                 if (followEnd)
-                    followToEnd()
-                else
-                    unread = true
+                    positionViewAtEnd()
             }
-            onModelChanged: followToEnd()
-            onHeightChanged: followToEnd()
+            onHeightChanged: {
+                if (followEnd)
+                    positionViewAtEnd()
+            }
+            onCountChanged: {
+                if (!followEnd && count > seenCount)
+                    unread = true
+                seenCount = count
+            }
 
-            delegate: Loader {
-                id: slot
-                width: ListView.view.width
-                property var entry: modelData
-                transform: Translate { id: rise }
-                Component.onCompleted: {
-                    if (!panel.isFresh(modelData.key))
-                        return
-                    opacity = 0
-                    rise.y = 6
-                    appear.start()
-                }
-                ParallelAnimation {
-                    id: appear
-                    NumberAnimation { target: slot; property: "opacity"; to: 1; duration: theme.durBase; easing.type: theme.easeOut }
-                    NumberAnimation { target: rise; property: "y"; to: 0; duration: theme.durBase; easing.type: theme.easeOut }
-                }
-                onHeightChanged: {
-                    if (index === timeline.count - 1)
-                        timeline.followToEnd()
-                }
-                onLoaded: item.entry = Qt.binding(function() { return slot.entry })
-                sourceComponent: {
-                    switch (modelData.kind) {
-                    case "user":
-                    case "assistant":
-                        return bubble
-                    case "question":
-                        return questionCard
-                    case "confirmation":
-                        return confirmCard
-                    case "tool":
-                        return toolRow
-                    case "tool_group":
-                        return toolGroup
-                    case "result":
-                        return resultCard
-                    default:
-                        return errorRow
+            Column {
+                id: rows
+                width: timeline.width
+                spacing: 12
+
+                Repeater {
+                    id: rowRepeater
+                    model: entryModel
+                    delegate: Loader {
+                        id: slot
+                        width: timeline.width
+                        property var entry: JSON.parse(payload)
+                        transform: Translate { id: rise }
+                        Component.onCompleted: {
+                            if (!panel.isFresh(key))
+                                return
+                            opacity = 0
+                            rise.y = 6
+                            appear.start()
+                        }
+                        ParallelAnimation {
+                            id: appear
+                            NumberAnimation { target: slot; property: "opacity"; to: 1; duration: theme.durBase; easing.type: theme.easeOut }
+                            NumberAnimation { target: rise; property: "y"; to: 0; duration: theme.durBase; easing.type: theme.easeOut }
+                        }
+                        onLoaded: item.entry = Qt.binding(function() { return slot.entry })
+                        sourceComponent: {
+                            switch (kind) {
+                            case "user":
+                            case "assistant":
+                                return bubble
+                            case "question":
+                                return questionCard
+                            case "confirmation":
+                                return confirmCard
+                            case "tool":
+                                return toolRow
+                            case "tool_group":
+                                return toolGroup
+                            case "result":
+                                return resultCard
+                            default:
+                                return errorRow
+                            }
+                        }
                     }
                 }
             }
