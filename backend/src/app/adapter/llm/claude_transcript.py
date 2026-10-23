@@ -8,10 +8,12 @@ from app.domain.jsonvalue import JsonObject
 
 TOOL_PROTOCOL = (
     "The conversation so far is given as a transcript of <user>, <assistant> and <tool_result> "
-    "blocks. Write the next assistant turn. To call tools, list them in tool_calls with their "
-    "arguments as a JSON object matching the tool's parameters schema; their results will arrive "
-    "in a later turn. Leave tool_calls empty to reply to the user with text only. "
-    "Available tools:"
+    "blocks. Write the next assistant turn. You have no native tools in this session: never try "
+    "to invoke a tool directly, it will fail. The tools listed below are executed by the client "
+    "after your answer. To call them, put them into the tool_calls field of your structured "
+    "answer with their arguments as a JSON object matching the tool's parameters schema; their "
+    "results will arrive in a later turn as <tool_result> blocks. Leave tool_calls empty only to "
+    "reply to the user with text. Available tools:"
 )
 
 
