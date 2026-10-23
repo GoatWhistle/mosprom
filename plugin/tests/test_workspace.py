@@ -6,6 +6,7 @@ from unittest import mock
 
 from Brim.chat.entries_view import agent_status, group_entries
 from Brim.chat.presenter import ChatPresenter
+from Brim.chat.view import chat_view
 from Brim.execution.errors import OperationError
 from Brim.protocol.backend_http import BackendHttpError
 from Brim.settings import MemoryStore, PluginSettings
@@ -354,6 +355,55 @@ class AutosaveTests(unittest.TestCase):
         presenter.flush_workspace()
         self.assertEqual(presenter.state.save_state, "saved")
         self.assertEqual(store.status("c2"), "saved")
+
+
+class ProjectSyncTests(unittest.TestCase):
+    def test_saves_are_recorded_in_backend_and_switching_activates_target(self):
+        presenter, backend, port, store = two_projects()
+        port.scene = ["lid"]
+        presenter.open_conversation("c1")
+        saved = [item for item in backend.projects if item[0] == "c2"]
+        self.assertEqual(saved[-1][1], "saved")
+        self.assertEqual(saved[-1][2], store.digest("c2"))
+        self.assertFalse(saved[-1][3])
+        self.assertEqual(backend.activated[-1], "c1")
+
+    def test_autosave_reports_version_and_marks_result_stale(self):
+        presenter, backend, port, _ = two_projects()
+        state = presenter.state
+        state.result = {"run_id": "r", "project_version": 1, "summary": {}}
+        port.scene = ["lid"]
+        presenter._autosave.save_now()
+        self.assertEqual(state.project_version, len(backend.projects))
+        view = chat_view(state, presenter._settings, None, None)
+        self.assertEqual(view["result_stale"], state.project_version > 1)
+        state.result["project_version"] = state.project_version
+        self.assertFalse(chat_view(state, presenter._settings, None, None)["result_stale"])
+
+    def test_backend_failure_does_not_lose_local_save(self):
+        presenter, backend, port, store = two_projects()
+        backend.put_project = lambda *args, **kwargs: (_ for _ in ()).throw(BackendHttpError("down"))
+        port.scene = ["lid"]
+        presenter._autosave.save_now()
+        self.assertEqual(store.status("c2"), "saved")
+        self.assertEqual(presenter.state.notice, T["project_link_failed"])
+
+
+class ClientIdTests(unittest.TestCase):
+    def test_retry_keeps_id_and_edit_changes_it(self):
+        presenter, backend, _, _ = two_projects()
+        presenter.set_draft("hello")
+        backend.fail_with = BackendHttpError("down")
+        presenter.send("hello")
+        first = presenter.state.client_message_id
+        presenter.send("hello")
+        self.assertEqual(presenter.state.client_message_id, first)
+        presenter.set_draft("hello again")
+        self.assertIsNone(presenter.state.client_message_id)
+        backend.fail_with = None
+        presenter.send("hello again")
+        self.assertEqual(len(backend.client_ids), 1)
+        self.assertIsNone(presenter.state.client_message_id)
 
 
 class ViewTests(unittest.TestCase):

@@ -28,8 +28,10 @@
 | `GET /health` | Живость процесса |
 | `POST /instances/register`, `PUT /instances/llm` | Регистрация, настройки LLM |
 | `POST /conversations`, `GET /conversations`, `GET /conversations/{id}` | Диалоги, страницы по ключу |
-| `POST /conversations/{id}/messages` | Сообщение; запускает или продолжает запуск агента (202) |
+| `POST /conversations/{id}/messages` | Сообщение; запускает или продолжает запуск агента (202). С `client_message_id` повтор того же запроса возвращает уже принятое сообщение |
 | `PUT /conversations/{id}/mode` | Режим `auto` или `ask` |
+| `PUT /conversations/{id}/project` | Запись о сохранённом проекте чата: `state` (`saved` или `empty`), `sha256` файла 3MF, `active`. Версия проекта растёт только при смене содержимого |
+| `PUT /conversations/{id}/active` | Отметка, какой чат сейчас открыт в слайсере |
 | `POST /attachments`, `GET /attachments/{id}` | Вложения JPG, PNG, STL, OBJ, 3MF; только сохраняются в диалоге |
 | `GET /runs/{id}`, `POST /runs/{id}/stop` | Состояние запуска, остановка |
 | `POST /runs/{id}/confirmation` | Решение по пакету изменений: `accept`, `reject`, `clarify` |

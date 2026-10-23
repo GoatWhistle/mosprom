@@ -25,6 +25,7 @@ def snapshot_of(state):
         "can_retry_switch": state.switch_retry is not None,
         "workspace_blocked": state.workspace_blocked,
         "save_state": state.save_state,
+        "project_version": state.project_version,
         "workspace_status": dict(state.workspace_status),
     }
 
@@ -36,7 +37,11 @@ def chat_view(state, settings, mcp_port, notice):
     kind, text = agent_status(snapshot, strings, settings.llm_configured())
     save = snapshot["save_state"]
     snapshot["entries"] = group_entries(with_result(snapshot["entries"], snapshot["result"]))
+    result = snapshot["result"]
+    stale = bool(result) and result.get("project_version") is not None \
+        and snapshot["project_version"] > result["project_version"]
     snapshot.update({
+        "result_stale": stale,
         "status_kind": kind,
         "status_text": text,
         "save_text": strings["save_%s" % save] if save else "",

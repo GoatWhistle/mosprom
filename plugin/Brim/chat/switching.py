@@ -3,9 +3,10 @@ from .history import conversation_row
 
 
 class ProjectSwitching(object):
-    def __init__(self, state, workspace, http, submit, notice, strings, history, stop_run):
+    def __init__(self, state, workspace, sync, http, submit, notice, strings, history, stop_run):
         self._state = state
         self._workspace = workspace
+        self._sync = sync
         self._http = http
         self._submit = submit
         self._notice = notice
@@ -63,7 +64,7 @@ class ProjectSwitching(object):
 
         def work():
             if current is not None:
-                self._workspace.save(current)
+                self._sync.save(current, False)
 
         def done(_):
             self._open(request, current)
@@ -86,10 +87,11 @@ class ProjectSwitching(object):
                 created = self._http.create_conversation_with(request["create"] or mode)
                 target = created["id"]
             if request["adopt"]:
-                self._workspace.save(target)
+                self._sync.save(target, True)
                 self._workspace.store.set_active(target)
             else:
                 self._open_or_restore(current, target)
+                self._sync.activate(target)
             return target, created
 
         def done(result):
@@ -128,6 +130,8 @@ class ProjectSwitching(object):
         state.save_state = "saved"
         state.switching = None
         self._workspace.lock(False)
+        if self._sync.link_failed:
+            state.notice = self._strings()["project_link_failed"]
         self._changed()
 
     def _abort(self, request, text, error):

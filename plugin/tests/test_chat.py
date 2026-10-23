@@ -44,9 +44,21 @@ class FakeBackend(object):
         conversation = [item for item in self.conversations if item["id"] == conversation_id][0]
         return {"conversation": conversation, "messages": list(self.messages[conversation_id])}
 
-    def send_message(self, conversation_id, text, attachment_ids, mode):
+    def put_project(self, conversation_id, state, sha256, active=True):
+        self.projects = getattr(self, "projects", [])
+        self.projects.append((conversation_id, state, sha256, active))
+        return {"project": {"state": state, "version": len(self.projects)}}
+
+    def activate_conversation(self, conversation_id):
+        self.activated = getattr(self, "activated", [])
+        self.activated.append(conversation_id)
+        return {}
+
+    def send_message(self, conversation_id, text, attachment_ids, mode, client_message_id=None):
         if self.fail_with:
             raise self.fail_with
+        self.client_ids = getattr(self, "client_ids", [])
+        self.client_ids.append(client_message_id)
         self.sent.append((conversation_id, text, list(attachment_ids), mode))
         number = len(self.sent)
         self.messages[conversation_id].append({"id": "m%d" % number, "run_id": "run-%d" % number, "role": "user",

@@ -2,9 +2,10 @@ from ..workspace.autosave import Debouncer
 
 
 class WorkspaceAutosave(object):
-    def __init__(self, state, workspace, submit, notice, strings, post, delay):
+    def __init__(self, state, workspace, sync, submit, notice, strings, post, delay):
         self._state = state
         self._workspace = workspace
+        self._sync = sync
         self._submit = submit
         self._notice = notice
         self._strings = strings
@@ -31,12 +32,18 @@ class WorkspaceAutosave(object):
         state.save_state = "saving"
 
         def work():
-            return self._workspace.save(conversation_id)
+            return self._sync.save(conversation_id, True)
 
-        def done(status):
+        def done(saved):
+            status, version = saved
             state.workspace_status[conversation_id] = status
-            if state.conversation_id == conversation_id and state.save_state == "saving":
-                state.save_state = "saved"
+            if state.conversation_id == conversation_id:
+                if state.save_state == "saving":
+                    state.save_state = "saved"
+                if version is not None:
+                    state.project_version = version
+            if self._sync.link_failed:
+                self._notice(self._strings()["project_link_failed"])
 
         def failed(error):
             if state.conversation_id == conversation_id:

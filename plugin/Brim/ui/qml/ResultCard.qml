@@ -5,6 +5,7 @@ Rectangle {
     property var result: ({})
     property var t: ({})
     property var c: ({})
+    property bool stale: false
     signal save(string kind)
 
     height: column.height + 28
@@ -42,6 +43,14 @@ Rectangle {
             color: root.c.accentText
             font.bold: true
             font.pixelSize: 13
+        }
+        Text {
+            visible: root.stale
+            width: parent.width
+            wrapMode: Text.Wrap
+            text: root.t.result_stale || ""
+            color: root.c.danger
+            font.pixelSize: 12
         }
         Row {
             spacing: 10

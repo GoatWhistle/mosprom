@@ -8,6 +8,7 @@ from .preferences import ChatPreferences
 from .autosave import WorkspaceAutosave
 from .switching import ProjectSwitching
 from .messaging import ChatMessaging
+from .project_sync import ProjectSync
 
 class ChatPresenter(object):
     def __init__(self, http, settings, runner, on_change, bridge=None, mcp_port=None, cache_dir=None,
@@ -27,9 +28,10 @@ class ChatPresenter(object):
         self._messaging = ChatMessaging(self.state, http, settings, self._submit, self._notice, self._strings,
                                         lambda: self._bridge)
         self._workspace = workspace
-        self._switching = ProjectSwitching(self.state, workspace, http, self._submit, self._notice,
+        self._sync = ProjectSync(workspace, http) if workspace is not None else None
+        self._switching = ProjectSwitching(self.state, workspace, self._sync, http, self._submit, self._notice,
                                            self._strings, self._history, self._messaging.stop_then)
-        self._autosave = WorkspaceAutosave(self.state, workspace, self._submit, self._notice, self._strings,
+        self._autosave = WorkspaceAutosave(self.state, workspace, self._sync, self._submit, self._notice, self._strings,
                                            post or (lambda function: function()), autosave_delay)
 
     def attach_bridge(self, bridge):

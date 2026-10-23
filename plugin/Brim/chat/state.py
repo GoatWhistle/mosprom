@@ -35,6 +35,8 @@ class ChatState(object):
         self.switch_retry = None
         self.workspace_blocked = False
         self.save_state = None
+        self.project_version = 0
+        self.client_message_id = None
         self.workspace_status = {}
         self._seen = set()
         self._seen_order = []
@@ -67,7 +69,10 @@ class ChatState(object):
         return self.run_state in WORKING_STATES
 
     def set_draft(self, text):
-        self.draft = text or ""
+        text = text or ""
+        if text != self.draft:
+            self.client_message_id = None
+        self.draft = text
 
     def clear_draft(self):
         self.draft = ""
@@ -84,6 +89,8 @@ class ChatState(object):
         self.attachments = list(stored.get("attachments", []))
         self.draft_rev += 1
         self.save_state = None
+        self.project_version = 0
+        self.client_message_id = None
         self.conversation_id = conversation_id
         self.mode = mode or "ask"
         self.entries = []
@@ -101,6 +108,7 @@ class ChatState(object):
         if conversation["id"] != self.conversation_id:
             return
         self.mode = conversation.get("mode", self.mode)
+        self.project_version = (conversation.get("project") or {}).get("version", 0)
         history = []
         known_texts = set()
         for message in detail.get("messages", []):
@@ -133,6 +141,7 @@ class ChatState(object):
         self._slice_result = None
         self.progress = None
         self.attachments = []
+        self.client_message_id = None
         self.clear_draft()
 
     def apply_chat_event(self, frame):

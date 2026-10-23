@@ -73,9 +73,20 @@ class BackendHttpClient(object):
     def get_conversation(self, conversation_id):
         return self._send("GET", "/conversations/%s" % conversation_id)
 
-    def send_message(self, conversation_id, text, attachment_ids, mode):
-        return self._send("POST", "/conversations/%s/messages" % conversation_id,
-                          {"text": text, "attachment_ids": list(attachment_ids), "mode": mode})
+    def send_message(self, conversation_id, text, attachment_ids, mode, client_message_id=None):
+        body = {"text": text, "attachment_ids": list(attachment_ids), "mode": mode}
+        if client_message_id:
+            body["client_message_id"] = client_message_id
+        return self._send("POST", "/conversations/%s/messages" % conversation_id, body)
+
+    def put_project(self, conversation_id, state, sha256, active=True):
+        body = {"state": state, "active": active}
+        if sha256:
+            body["sha256"] = sha256
+        return self._send("PUT", "/conversations/%s/project" % conversation_id, body)
+
+    def activate_conversation(self, conversation_id):
+        return self._send("PUT", "/conversations/%s/active" % conversation_id)
 
     def set_mode(self, conversation_id, mode):
         return self._send("PUT", "/conversations/%s/mode" % conversation_id, {"mode": mode})

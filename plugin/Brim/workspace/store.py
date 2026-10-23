@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import time
@@ -43,6 +44,15 @@ class WorkspaceStore(object):
         if item["state"] == "saved" and not os.path.isfile(self.path_for(conversation_id)):
             return "none"
         return item["state"]
+
+    def digest(self, conversation_id):
+        if self.status(conversation_id) != "saved":
+            return None
+        sha = hashlib.sha256()
+        with open(self.path_for(conversation_id), "rb") as handle:
+            for block in iter(lambda: handle.read(1 << 20), b""):
+                sha.update(block)
+        return sha.hexdigest()
 
     def statuses(self):
         return {key: self.status(key) for key in self._read()["items"]}

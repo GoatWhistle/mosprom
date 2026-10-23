@@ -311,6 +311,7 @@ Window {
                 property var entry: ({})
                 width: parent ? parent.width : 300
                 result: entry.result || ({})
+                stale: view.result_stale
                 t: view.t
                 c: window.c
                 onSave: {

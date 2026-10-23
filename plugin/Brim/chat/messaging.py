@@ -1,3 +1,5 @@
+import uuid
+
 from .history import conversation_row
 
 
@@ -55,9 +57,12 @@ class ChatMessaging(object):
         attachments = list(self.state.attachments)
         ids = [item["id"] for item in attachments]
         mode = self.state.mode
+        if self.state.client_message_id is None:
+            self.state.client_message_id = uuid.uuid4().hex
+        client_id = self.state.client_message_id
 
         def work():
-            return self._http.send_message(conversation_id, text, ids, mode)
+            return self._http.send_message(conversation_id, text, ids, mode, client_id)
 
         def done(reply):
             self.state.add_sent_message(reply.get("message_id"), reply.get("run_id"), text,

@@ -52,7 +52,7 @@ Updated: 2026-10-23, MSK
 
 ## Current state
 
-- 2026-10-23: «@work/chat-improvement-plan.md в другой ветке чатик сделай красивый» — branch feat/chat-redesign: QML redesign plus plugin workspaces (3MF per chat, switching with lock/rollback, autosave, per-chat drafts, truthful status, grouped actions, result in timeline). 151 plugin tests pass; QML previewed dark/light/RU/EN. Not done: chat–project link in PostgreSQL, result versioning, message idempotency; nothing run in real STE Slicer.
+- 2026-10-23: «@work/chat-improvement-plan.md в другой ветке чатик сделай красивый» — branch feat/chat-redesign: QML redesign plus plugin workspaces (3MF per chat, switching with lock/rollback, autosave, per-chat drafts, truthful status, grouped actions, result in timeline). 151 plugin tests pass; QML previewed dark/light/RU/EN. Backend: project link/version/active chat in PostgreSQL, client_message_id idempotency, result project_version. 155 plugin + 89 backend tests pass. Nothing run in real STE Slicer (no Wine here).
 
 - Branch feat/backend-agent; HEAD c28e0a8, pushed with 4e09fcc. Current task is documentation only: saved work/chat-improvement-plan.md for chat UI and one workspace per conversation. No implementation of that plan yet.
 - Implemented backend + embedded PyQt5/QML plugin, PostgreSQL in Compose, contract v2. Agent chooses print settings; deterministic code executes. Prior verification: work/implementation-verification.md; protocol: work/protocol-contract.md.
