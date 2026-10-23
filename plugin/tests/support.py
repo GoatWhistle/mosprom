@@ -79,6 +79,7 @@ class FakePort(object):
         report("slicing", 0.5)
         if self.bump_on_slice:
             self.version += 1
+            self.state = dict(self.state, objects=[{"id": "moved"}])
         return {"print_time_seconds": 600}
 
     def export_artifacts(self, directory, check=None):

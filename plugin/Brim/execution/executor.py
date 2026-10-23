@@ -1,3 +1,4 @@
+import json
 import threading
 
 from ..protocol import constants
@@ -120,15 +121,22 @@ class ToolExecutor(object):
                 raise OperationError(constants.ERR_INVALID_ARGUMENTS, str(error))
         return {"objects": results}
 
+    def _fingerprint(self):
+        state = dict(self._port.read_state())
+        for volatile in ("slice_state", "errors"):
+            state.pop(volatile, None)
+        return json.dumps(state, sort_keys=True, default=str)
+
     def _slice(self, arguments, report, applied, images):
         directory = self._output_dir()
         if directory is None:
             raise OperationError(constants.ERR_NOT_AVAILABLE, "no chat is open to store the result")
         version = self._port.scene_version()
+        before = self._fingerprint()
 
         def check():
             self._check_cancelled()
-            if self._port.scene_version() != version:
+            if self._fingerprint() != before:
                 raise OperationError(constants.ERR_STALE_RESULT, "the scene changed while slicing; result discarded")
 
         check()
