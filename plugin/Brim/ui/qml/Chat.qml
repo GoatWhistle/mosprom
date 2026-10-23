@@ -16,6 +16,9 @@ Window {
     property bool settingsOpen: false
     property bool drawerOpen: false
     property bool narrow: width < 760
+    property var expandedGroups: ({})
+    property int draftRev: view.draft_rev
+    onDraftRevChanged: composer.text = view.draft
     property string currentTitle: {
         var list = view.conversations
         for (var i = 0; i < list.length; i++) {
@@ -48,7 +51,6 @@ Window {
 
     function sendCurrent() {
         brim.send(composer.text)
-        composer.text = ""
         timeline.jumpToEnd()
     }
 
@@ -85,6 +87,7 @@ Window {
         c: window.c
         onChosen: brim.openChat(id)
         onCreate: brim.newChat()
+        onCreateFromScene: brim.newChatFromScene()
     }
 
     Rectangle {
@@ -199,6 +202,10 @@ Window {
                         return confirmCard
                     case "tool":
                         return toolRow
+                    case "tool_group":
+                        return toolGroup
+                    case "result":
+                        return resultCard
                     default:
                         return errorRow
                     }
@@ -283,6 +290,37 @@ Window {
         }
 
         Component {
+            id: toolGroup
+            ToolGroup {
+                t: view.t
+                c: window.c
+                expanded: !!window.expandedGroups[entry.key]
+                onToggled: {
+                    var copy = {}
+                    for (var k in window.expandedGroups)
+                        copy[k] = window.expandedGroups[k]
+                    copy[entry.key] = value
+                    window.expandedGroups = copy
+                }
+            }
+        }
+
+        Component {
+            id: resultCard
+            ResultCard {
+                property var entry: ({})
+                width: parent ? parent.width : 300
+                result: entry.result || ({})
+                t: view.t
+                c: window.c
+                onSave: {
+                    saveDialog.kind = kind
+                    saveDialog.open()
+                }
+            }
+        }
+
+        Component {
             id: errorRow
             Rectangle {
                 property var entry: ({})
@@ -313,47 +351,24 @@ Window {
             anchors.bottomMargin: 8
             spacing: 8
 
-            ResultCard {
+            Rectangle {
+                visible: view.progress !== null && view.progress !== undefined
                 width: parent.width
-                visible: view.result !== null && view.result !== undefined
-                result: view.result || ({})
-                t: view.t
-                c: window.c
-                onSave: {
-                    saveDialog.kind = kind
-                    saveDialog.open()
+                height: 4
+                radius: 2
+                color: c.selected
+                Rectangle {
+                    width: parent.width * Math.max(0, Math.min(1, (view.progress || {}).fraction || 0))
+                    height: parent.height
+                    radius: 2
+                    color: c.accent
                 }
             }
-            Row {
-                spacing: 10
-                visible: view.run_state !== null && view.run_state !== undefined
-                Text {
-                    text: view.t["state_" + view.run_state] || ""
-                    color: c.muted
-                    font.pixelSize: 12
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-                Rectangle {
-                    visible: view.progress !== null && view.progress !== undefined
-                    width: 140
-                    height: 4
-                    radius: 2
-                    color: c.selected
-                    anchors.verticalCenter: parent.verticalCenter
-                    Rectangle {
-                        width: parent.width * Math.max(0, Math.min(1, (view.progress || {}).fraction || 0))
-                        height: parent.height
-                        radius: 2
-                        color: c.accent
-                    }
-                }
-                Text {
-                    visible: view.progress !== null && view.progress !== undefined
-                    text: (view.progress || {}).stage || ""
-                    color: c.muted
-                    font.pixelSize: 12
-                    anchors.verticalCenter: parent.verticalCenter
-                }
+            Text {
+                visible: view.progress !== null && view.progress !== undefined && !!(view.progress || {}).stage
+                text: (view.progress || {}).stage || ""
+                color: c.muted
+                font.pixelSize: 12
             }
             Text {
                 width: parent.width
@@ -365,6 +380,26 @@ Window {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: brim.dismissNotice()
+                }
+            }
+            Flow {
+                width: parent.width
+                spacing: 8
+                visible: view.can_retry_switch || view.workspace_blocked
+                BrimButton {
+                    visible: view.can_retry_switch
+                    text: view.t.retry
+                    primary: true
+                    palette_: c
+                    onClicked: brim.retrySwitch()
+                }
+                BrimButton {
+                    visible: view.workspace_blocked
+                    text: view.t.recover
+                    primary: true
+                    palette_: c
+                    enabledButton: view.switching === null
+                    onClicked: brim.recoverWorkspace()
                 }
             }
         }
@@ -383,6 +418,7 @@ Window {
             onAttach: attachDialog.open()
             onStop: brim.stop()
             onDetach: brim.removeAttachment(index)
+            onTextChanged: brim.setDraft(text)
         }
     }
 
@@ -412,9 +448,90 @@ Window {
                 window.drawerOpen = false
                 brim.newChat()
             }
+            onCreateFromScene: {
+                window.drawerOpen = false
+                brim.newChatFromScene()
+            }
             MouseArea {
                 z: -1
                 anchors.fill: parent
+            }
+        }
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        visible: view.switching !== null || view.switch_prompt
+        color: "#b3000000"
+        MouseArea {
+            anchors.fill: parent
+        }
+        Rectangle {
+            anchors.centerIn: parent
+            width: Math.min(360, parent.width - 48)
+            height: dialogColumn.height + 40
+            radius: 16
+            color: c.panel
+            border.width: 1
+            border.color: c.line
+            Column {
+                id: dialogColumn
+                x: 20
+                y: 20
+                width: parent.width - 40
+                spacing: 12
+                Text {
+                    width: parent.width
+                    wrapMode: Text.Wrap
+                    text: view.switching !== null ? view.status_text : view.t.switch_busy_title
+                    color: c.text
+                    font.pixelSize: 15
+                    font.bold: true
+                }
+                Text {
+                    visible: view.switch_prompt
+                    width: parent.width
+                    wrapMode: Text.Wrap
+                    text: view.t.switch_busy_body
+                    color: c.muted
+                    font.pixelSize: 13
+                }
+                Rectangle {
+                    visible: view.switching !== null
+                    width: parent.width
+                    height: 4
+                    radius: 2
+                    color: c.selected
+                    clip: true
+                    Rectangle {
+                        width: parent.width * 0.35
+                        height: parent.height
+                        radius: 2
+                        color: c.accent
+                        SequentialAnimation on x {
+                            running: view.switching !== null
+                            loops: Animation.Infinite
+                            NumberAnimation { from: 0; to: dialogColumn.width * 0.65; duration: 900; easing.type: Easing.InOutQuad }
+                            NumberAnimation { from: dialogColumn.width * 0.65; to: 0; duration: 900; easing.type: Easing.InOutQuad }
+                        }
+                    }
+                }
+                Flow {
+                    visible: view.switch_prompt
+                    width: parent.width
+                    spacing: 8
+                    BrimButton {
+                        text: view.t.switch_stop
+                        primary: true
+                        palette_: c
+                        onClicked: brim.stopAndSwitch()
+                    }
+                    BrimButton {
+                        text: view.t.switch_wait
+                        palette_: c
+                        onClicked: brim.cancelSwitch()
+                    }
+                }
             }
         }
     }

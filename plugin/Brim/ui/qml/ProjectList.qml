@@ -6,6 +6,7 @@ Rectangle {
     property var c: ({})
     signal chosen(string id)
     signal create()
+    signal createFromScene()
 
     color: c.panel
 
@@ -37,6 +38,13 @@ Rectangle {
             palette_: root.c
             onClicked: root.create()
         }
+        BrimButton {
+            width: parent.width
+            text: root.view.t.new_from_scene
+            palette_: root.c
+            enabledButton: !root.view.busy && root.view.switching === null
+            onClicked: root.createFromScene()
+        }
         Text {
             text: root.view.t.chats
             color: root.c.muted
@@ -53,14 +61,14 @@ Rectangle {
         }
         ListView {
             width: parent.width
-            height: parent.height - 130
+            height: parent.height - 190
             clip: true
             spacing: 2
             model: root.view.conversations
             delegate: Rectangle {
                 property bool current: modelData.id === root.view.conversation_id
                 width: ListView.view.width
-                height: 38
+                height: 50
                 radius: 10
                 color: current ? root.c.selected : (hover.containsMouse ? root.c.hover : "transparent")
                 activeFocusOnTab: true
@@ -74,16 +82,29 @@ Rectangle {
                     radius: 2
                     color: root.c.accent
                 }
-                Text {
-                    anchors.fill: parent
+                Column {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
                     anchors.leftMargin: 14
                     anchors.rightMargin: 10
-                    verticalAlignment: Text.AlignVCenter
-                    elide: Text.ElideRight
-                    text: modelData.title !== "" ? modelData.title : modelData.updated_at.substring(0, 16).replace("T", " ")
-                    color: root.c.text
-                    font.pixelSize: 13
-                    font.bold: parent.current
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 2
+                    Text {
+                        width: parent.width
+                        elide: Text.ElideRight
+                        text: modelData.title !== "" ? modelData.title : modelData.updated_at.substring(0, 16).replace("T", " ")
+                        color: root.c.text
+                        font.pixelSize: 13
+                        font.bold: current
+                    }
+                    Text {
+                        width: parent.width
+                        elide: Text.ElideRight
+                        font.pixelSize: 11
+                        color: current && root.view.status_kind === "busy" ? root.c.accentText : root.c.muted
+                        text: current ? (root.view.run_active ? root.view.status_text : root.view.save_text)
+                                      : (root.view.workspace_status[modelData.id] === undefined || root.view.workspace_status[modelData.id] === "none" ? root.view.t.no_project : "")
+                    }
                 }
                 MouseArea {
                     id: hover

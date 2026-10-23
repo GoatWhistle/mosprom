@@ -37,16 +37,32 @@ Rectangle {
             height: 8
             radius: 4
             anchors.verticalCenter: parent.verticalCenter
-            color: root.view.connection === "connected" ? root.c.ok : root.c.danger
+            color: root.view.status_kind === "error" ? root.c.danger : (root.view.status_kind === "ok" ? root.c.ok : root.c.accent)
+            SequentialAnimation on opacity {
+                running: root.view.status_kind === "busy"
+                loops: Animation.Infinite
+                NumberAnimation { to: 0.3; duration: 600 }
+                NumberAnimation { to: 1.0; duration: 600 }
+            }
         }
-        Text {
+        Column {
             anchors.verticalCenter: parent.verticalCenter
             width: Math.max(40, root.width - actions.width - 64 - (root.compact ? 42 : 0))
-            elide: Text.ElideRight
-            text: root.title !== "" ? root.title : (root.view.connection === "connected" ? root.view.t.connected : root.view.t.disconnected)
-            color: root.c.text
-            font.pixelSize: 14
-            font.bold: true
+            Text {
+                width: parent.width
+                elide: Text.ElideRight
+                text: root.title !== "" ? root.title : root.view.t.new_chat
+                color: root.c.text
+                font.pixelSize: 14
+                font.bold: true
+            }
+            Text {
+                width: parent.width
+                elide: Text.ElideRight
+                text: root.view.status_text + (root.view.save_text !== "" ? "  ·  " + root.view.save_text : "")
+                color: root.view.status_kind === "error" ? root.c.danger : root.c.muted
+                font.pixelSize: 11
+            }
         }
     }
 
