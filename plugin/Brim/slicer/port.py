@@ -8,8 +8,9 @@ from .project_archive import verify_workspace
 
 
 class SlicerPort(object):
-    def __init__(self, host, access, state, scene_ops, settings_ops, catalog, slicing, renderer, main):
+    def __init__(self, host, access, state, scene_ops, settings_ops, catalog, slicing, renderer, main, digest):
         self._h = host
+        self._digest = digest
         self._access = access
         self._state = state
         self._scene_ops = scene_ops
@@ -47,11 +48,12 @@ class SlicerPort(object):
         scene = self._h.scene()
         application = self._h.application
         manager = self._h.machine_manager()
-        sources = [(scene, "sceneChanged", self._on_scene_changed), (application, "globalContainerStackChanged", self._bump)]
+        sources = [(scene, "sceneChanged", self._on_scene_changed),
+                   (application, "globalContainerStackChanged", self._settings_changed)]
         for name in ("activeMaterialChanged", "activeQualityChanged", "activeVariantChanged", "globalValueChanged",
                      "activeStackValueChanged", "extruderChanged"):
-            sources.append((manager, name, self._bump))
-        sources.append((application.getMaterialManager(), "materialsUpdated", self._bump))
+            sources.append((manager, name, self._settings_changed))
+        sources.append((application.getMaterialManager(), "materialsUpdated", self._settings_changed))
         for owner, name, handler in sources:
             signal = getattr(owner, name, None)
             if signal is None:
@@ -66,6 +68,10 @@ class SlicerPort(object):
         if source == self._h.scene().getRoot() or source.callDecoration("isGroup") or source.callDecoration("isSliceable"):
             self._bump()
 
+    def _settings_changed(self, *args):
+        self._digest.invalidate()
+        self._bump()
+
     def _bump(self, *args):
         with self._lock:
             self._version += 1
@@ -76,7 +82,15 @@ class SlicerPort(object):
         return self._epoch
 
     def snapshot(self):
-        return self._main.call(lambda: (self.scene_version(), self._state.read()))
+        return self._main.call(lambda: (self.scene_version(), self._snapshot_state()))
+
+    def _snapshot_state(self):
+        state = self._state.read()
+        try:
+            state["settings"] = self._digest.read()
+        except Exception as error:
+            state["errors"].append("settings unavailable: %s" % error)
+        return state
 
     def scene_version(self):
         with self._lock:
@@ -111,6 +125,7 @@ class SlicerPort(object):
     def load_workspace(self, path):
         verify_workspace(path)
         self._scene_ops.open_3mf({"path": path, "import_as": "restore_project"})
+        self._digest.invalidate()
 
     def clear_workspace(self):
         return self._scene_ops.clear()
@@ -126,7 +141,10 @@ class SlicerPort(object):
             if expected_version is not None and self.scene_version() != expected_version:
                 raise OperationError(constants.ERR_STALE_SCENE, "scene changed before execution")
 
-        return handler(op, guard=guard)
+        try:
+            return handler(op, guard=guard)
+        finally:
+            self._digest.invalidate()
 
     def search_settings(self, query):
         return self._catalog.search_settings(query)

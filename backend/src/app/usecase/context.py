@@ -8,6 +8,10 @@ from app.usecase.dto.run import RunDTO, TranscriptEntry
 from app.usecase.interface.storage import UnitOfWork
 
 IMAGE_TYPES = frozenset({"image/jpeg", "image/png"})
+SETTINGS_HEADER = (
+    "[current values of enabled settings: key = value unit (type; min..max; options; "
+    "per-extruder values); * marks a user override]"
+)
 
 
 async def build_messages(
@@ -57,6 +61,8 @@ async def _images(uow: UnitOfWork, attachment_ids: tuple[str, ...]) -> tuple[Ima
 def _context_text(
     run: RunDTO, instance: InstanceDTO, attachments: list[AttachmentDTO], mode: str
 ) -> str:
+    scene_state = dict(instance.state)
+    settings = scene_state.pop("settings", None)
     context: JsonObject = {
         "requirements_ready": run.requirements_ready,
         "requirements_summary": run.requirements_summary,
@@ -66,13 +72,26 @@ def _context_text(
         "slicer_version": instance.slicer_version,
         "available_modes": list(instance.modes),
         "printer": instance.printer,
-        "scene_state": instance.state,
+        "scene_state": scene_state,
         "attachments": [
             {"id": item.id, "name": item.name, "content_type": item.content_type, "size": item.size}
             for item in attachments
         ],
     }
-    return "[scene context, refreshed every turn]\n" + json.dumps(context, ensure_ascii=False)
+    text = "[scene context, refreshed every turn]\n" + json.dumps(context, ensure_ascii=False)
+    return text + _settings_text(settings)
+
+
+def _settings_text(settings: object) -> str:
+    if not isinstance(settings, list):
+        return ""
+    lines = ["", SETTINGS_HEADER]
+    for group in settings:
+        if not isinstance(group, dict) or not isinstance(group.get("settings"), list):
+            continue
+        lines.append(f"## {group.get('category')}")
+        lines.extend(str(item) for item in group["settings"])
+    return "\n".join(lines)
 
 
 def _tool_call(item: JsonObject) -> ToolCall:

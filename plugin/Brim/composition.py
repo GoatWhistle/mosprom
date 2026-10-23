@@ -21,6 +21,7 @@ from .slicer.nodes import SceneAccess
 from .slicer.port import SlicerPort
 from .slicer.render import Renderer
 from .slicer.scene_ops import SceneOperations
+from .slicer.settings_digest import SettingsDigest
 from .slicer.settings_ops import SettingsOperations
 from .slicer.slicing import SlicingService
 from .slicer.state import StateReader
@@ -59,6 +60,7 @@ class BrimRuntime(object):
             self.host, access, state, SceneOperations(self.host, access, main),
             SettingsOperations(self.host, main), Catalog(self.host, main),
             SlicingService(self.host, main, state), Renderer(self.host, main, self.http), main,
+            SettingsDigest(self.host),
         )
         self.ledger = CallLedger(os.path.join(self.cache_dir, "ledger.json"))
         attachments = AttachmentCache(self.http, self.cache_dir)

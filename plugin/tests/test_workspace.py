@@ -63,7 +63,7 @@ class PortLockTests(unittest.TestCase):
         scene_ops.count.return_value = 0
         slicing = mock.Mock()
         port = SlicerPort(mock.Mock(), mock.Mock(), mock.Mock(), scene_ops, mock.Mock(), mock.Mock(), slicing,
-                          mock.Mock(), mock.Mock())
+                          mock.Mock(), mock.Mock(), mock.Mock())
         return port, scene_ops, slicing
 
     def test_locked_port_rejects_edits_and_slicing(self):

@@ -163,7 +163,7 @@
     },
     {
       "name": "inspect_profile",
-      "description": "Detailed values of the selected profile.",
+      "description": "Selected profile, available quality types, custom profiles and user overrides. Current values of all enabled settings are in the scene context.",
       "input_schema": {
         "type": "object",
         "properties": {}
