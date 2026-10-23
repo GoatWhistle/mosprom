@@ -24,6 +24,10 @@ class InstanceRepository(Protocol):
 
     async def get_by_token_hash(self, token_hash: str) -> InstanceDTO | None: ...
 
+    async def set_active_conversation(
+        self, instance_id: str, conversation_id: str | None
+    ) -> None: ...
+
     async def record_hello(
         self,
         instance_id: str,
@@ -60,6 +64,14 @@ class ConversationRepository(Protocol):
     ) -> list[ConversationDTO]: ...
 
     async def set_mode(self, conversation_id: str, mode: Mode, now: datetime) -> None: ...
+
+    async def set_project(
+        self, conversation_id: str, state: str, sha256: str | None, now: datetime
+    ) -> int: ...
+
+    async def find_message_by_client_id(
+        self, conversation_id: str, client_message_id: str
+    ) -> MessageDTO | None: ...
 
     async def touch(self, conversation_id: str, now: datetime) -> None: ...
 

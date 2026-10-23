@@ -43,6 +43,7 @@ async def conversation_runtime(uow: UnitOfWork, conversation_id: str) -> JsonObj
             if {"gcode", "3mf"} <= artifacts.keys():
                 result = {
                     "run_id": run.id,
+                    "project_version": run.project_version,
                     "summary": (call.result or {}).get("slice") or {},
                     "artifacts": artifacts,
                 }

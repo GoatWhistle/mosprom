@@ -21,6 +21,7 @@ class RunDTO:
     created_at: datetime
     updated_at: datetime
     finished_at: datetime | None = None
+    project_version: int = 0
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)

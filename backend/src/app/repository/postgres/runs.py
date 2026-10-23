@@ -11,17 +11,17 @@ from app.usecase.dto.run import QuestionBatchDTO, RunDTO, RunEventDTO, Transcrip
 COLUMNS = (
     "id, conversation_id, instance_id, state, requirements_ready, requirements_summary, "
     "correction_key, correction_failures, help_required, steps, last_error, created_at, "
-    "updated_at, finished_at"
+    "updated_at, finished_at, project_version"
 )
 ACTIVE = [state.value for state in ACTIVE_STATES]
 
 INSERT = """
 INSERT INTO runs (id, conversation_id, instance_id, state, requirements_ready,
     requirements_summary, correction_key, correction_failures, help_required, steps, last_error,
-    created_at, updated_at, finished_at)
+    created_at, updated_at, finished_at, project_version)
 VALUES (%(id)s, %(conversation_id)s, %(instance_id)s, %(state)s, %(requirements_ready)s,
     %(requirements_summary)s, %(correction_key)s, %(correction_failures)s, %(help_required)s,
-    %(steps)s, %(last_error)s, %(created_at)s, %(updated_at)s, %(finished_at)s)
+    %(steps)s, %(last_error)s, %(created_at)s, %(updated_at)s, %(finished_at)s, %(project_version)s)
 """
 SELECT = f"SELECT {COLUMNS} FROM runs WHERE id = %(id)s"
 SELECT_LOCKED = f"{SELECT} FOR UPDATE"
@@ -38,7 +38,7 @@ UPDATE runs SET state = %(state)s, requirements_ready = %(requirements_ready)s,
     requirements_summary = %(requirements_summary)s, correction_key = %(correction_key)s,
     correction_failures = %(correction_failures)s, help_required = %(help_required)s,
     steps = %(steps)s, last_error = %(last_error)s, updated_at = %(updated_at)s,
-    finished_at = %(finished_at)s
+    finished_at = %(finished_at)s, project_version = %(project_version)s
 WHERE id = %(id)s
 """
 TRANSITION = """

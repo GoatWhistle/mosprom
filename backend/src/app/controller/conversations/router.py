@@ -12,6 +12,7 @@ from app.controller.conversations.schemas import (
     CreateConversationRequest,
     MessageResponse,
     ModeRequest,
+    ProjectRequest,
     SendMessageRequest,
     SendMessageResponse,
 )
@@ -67,6 +68,7 @@ async def send_message(
         body.text,
         tuple(body.attachment_ids),
         Mode(body.mode) if body.mode else None,
+        body.client_message_id,
     )
     return SendMessageResponse(run_id=accepted.run.id, message_id=accepted.message.id)
 
@@ -77,6 +79,24 @@ async def set_mode(
 ) -> ConversationResponse:
     updated = await services.conversations.set_mode(instance.id, conversation_id, Mode(body.mode))
     return ConversationResponse.of(updated)
+
+
+@router.put("/conversations/{conversation_id}/project", response_model=ConversationResponse)
+async def set_project(
+    conversation_id: str, body: ProjectRequest, instance: InstanceDep, services: ServicesDep
+) -> ConversationResponse:
+    updated = await services.conversations.set_project(
+        instance.id, conversation_id, body.state, body.sha256, body.active
+    )
+    return ConversationResponse.of(updated)
+
+
+@router.put("/conversations/{conversation_id}/active", response_model=ConversationResponse)
+async def activate_conversation(
+    conversation_id: str, instance: InstanceDep, services: ServicesDep
+) -> ConversationResponse:
+    activated = await services.conversations.activate(instance.id, conversation_id)
+    return ConversationResponse.of(activated)
 
 
 @router.post("/attachments", response_model=AttachmentResponse, status_code=201)

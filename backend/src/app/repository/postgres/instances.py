@@ -9,7 +9,7 @@ from app.usecase.dto.instance import InstanceDTO
 
 COLUMNS = (
     "id, token_hash, slicer_version, printer, modes, scene_version, state, "
-    "contract_version, last_seen_at, scene_epoch"
+    "contract_version, last_seen_at, scene_epoch, active_conversation_id"
 )
 
 INSERT = """
@@ -27,6 +27,7 @@ UPDATE instances SET slicer_version = %(slicer_version)s, modes = %(modes)s,
     scene_epoch = %(scene_epoch)s, printer = %(printer)s, contract_version = %(contract_version)s, last_seen_at = %(now)s
 WHERE id = %(id)s
 """
+SET_ACTIVE = "UPDATE instances SET active_conversation_id = %(conversation_id)s WHERE id = %(id)s"
 LOCK = "SELECT scene_version, scene_epoch FROM instances WHERE id = %(id)s FOR UPDATE"
 UPDATE_SNAPSHOT = """
 UPDATE instances SET scene_version = %(scene_version)s, state = %(state)s, last_seen_at = %(now)s
@@ -109,6 +110,11 @@ class PostgresInstanceRepository:
         await self._connection.execute(INSERT_SNAPSHOT, params)
         return True
 
+    async def set_active_conversation(self, instance_id: str, conversation_id: str | None) -> None:
+        await self._connection.execute(
+            SET_ACTIVE, {"id": instance_id, "conversation_id": conversation_id}
+        )
+
     async def advance_scene_version(
         self, instance_id: str, scene_version: int, scene_epoch: str = ""
     ) -> None:
@@ -129,4 +135,5 @@ def _to_dto(row: tuple[object, ...]) -> InstanceDTO:
         state=row[6] if isinstance(row[6], dict) else {},
         contract_version=row[7] if isinstance(row[7], str) else None,
         last_seen_at=row[8] if isinstance(row[8], datetime) else None,
+        active_conversation_id=str(row[10]) if row[10] is not None else None,
     )

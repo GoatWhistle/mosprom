@@ -16,3 +16,4 @@ class InstanceDTO:
     state: JsonObject = field(default_factory=dict)
     contract_version: str | None = None
     last_seen_at: datetime | None = None
+    active_conversation_id: str | None = None

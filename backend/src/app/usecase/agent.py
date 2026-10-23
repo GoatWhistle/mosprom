@@ -215,6 +215,8 @@ class AgentLoop:
         await self._store.move(run_id, RunState.AWAITING_USER, "help requested")
 
     async def finish_with_summary(self, run: RunDTO) -> None:
+        version = await self._store.project_version(run.conversation_id)
+        await self._store.save(run, lambda fresh: replace(fresh, project_version=version))
         await self._store.move(run.id, RunState.COMPLETED, "artifacts saved")
         try:
             response = await self._complete(run, (), SUMMARY_PROMPT)

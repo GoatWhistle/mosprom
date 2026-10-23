@@ -12,6 +12,10 @@ class ConversationDTO:
     mode: Mode
     created_at: datetime
     updated_at: datetime
+    project_state: str = "none"
+    project_version: int = 0
+    project_sha256: str | None = None
+    project_saved_at: datetime | None = None
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -23,6 +27,7 @@ class MessageDTO:
     content: str
     attachment_ids: tuple[str, ...]
     created_at: datetime
+    client_message_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)

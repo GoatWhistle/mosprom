@@ -1,10 +1,23 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.domain.jsonvalue import JsonObject
 from app.usecase.dto.conversation import AttachmentDTO, ConversationDTO, MessageDTO
+
+
+class ProjectResponse(BaseModel):
+    state: str
+    version: int
+    sha256: str | None
+    saved_at: datetime | None
+
+
+class ProjectRequest(BaseModel):
+    state: Literal["saved", "empty"]
+    sha256: str | None = Field(default=None, min_length=64, max_length=64)
+    active: bool = True
 
 
 class ConversationResponse(BaseModel):
@@ -13,6 +26,7 @@ class ConversationResponse(BaseModel):
     mode: Literal["auto", "ask"]
     created_at: datetime
     updated_at: datetime
+    project: "ProjectResponse"
 
     @classmethod
     def of(cls, item: ConversationDTO) -> "ConversationResponse":
@@ -22,6 +36,12 @@ class ConversationResponse(BaseModel):
             mode=item.mode.value,
             created_at=item.created_at,
             updated_at=item.updated_at,
+            project=ProjectResponse(
+                state=item.project_state,
+                version=item.project_version,
+                sha256=item.project_sha256,
+                saved_at=item.project_saved_at,
+            ),
         )
 
 
@@ -65,6 +85,7 @@ class SendMessageRequest(BaseModel):
     text: str = ""
     attachment_ids: list[str] = []
     mode: Literal["auto", "ask"] | None = None
+    client_message_id: str | None = Field(default=None, min_length=1, max_length=64)
 
 
 class SendMessageResponse(BaseModel):

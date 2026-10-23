@@ -5,7 +5,10 @@ from psycopg import AsyncConnection
 from app.domain.confirmation import Mode
 from app.usecase.dto.conversation import ConversationDTO, MessageDTO
 
-CONVERSATION_COLUMNS = "id, instance_id, title, mode, created_at, updated_at"
+CONVERSATION_COLUMNS = (
+    "id, instance_id, title, mode, created_at, updated_at, project_state, project_version, "
+    "project_sha256, project_saved_at"
+)
 
 INSERT = """
 INSERT INTO conversations (id, instance_id, title, mode, created_at, updated_at)
@@ -23,9 +26,30 @@ ORDER BY created_at DESC, id DESC LIMIT %(limit)s
 """
 SET_MODE = "UPDATE conversations SET mode = %(mode)s, updated_at = %(now)s WHERE id = %(id)s"
 TOUCH = "UPDATE conversations SET updated_at = %(now)s WHERE id = %(id)s"
+SET_PROJECT = """
+UPDATE conversations SET project_state = %(state)s, project_sha256 = %(sha256)s,
+    project_saved_at = %(now)s,
+    project_version = CASE
+        WHEN project_state = %(state)s AND project_sha256 IS NOT DISTINCT FROM %(sha256)s
+        THEN project_version ELSE project_version + 1 END
+WHERE id = %(id)s
+RETURNING project_version
+"""
 INSERT_MESSAGE = """
-INSERT INTO messages (id, conversation_id, run_id, role, content, created_at)
-VALUES (%(id)s, %(conversation_id)s, %(run_id)s, %(role)s, %(content)s, %(created_at)s)
+INSERT INTO messages (id, conversation_id, run_id, role, content, created_at, client_message_id)
+VALUES (%(id)s, %(conversation_id)s, %(run_id)s, %(role)s, %(content)s, %(created_at)s,
+    %(client_message_id)s)
+"""
+FIND_BY_CLIENT_ID = """
+SELECT m.id, m.conversation_id, m.run_id, m.role, m.content, m.created_at,
+    COALESCE(
+        (SELECT array_agg(ma.attachment_id::text ORDER BY ma.position)
+         FROM message_attachments ma WHERE ma.message_id = m.id),
+        ARRAY[]::text[]
+    ),
+    m.client_message_id
+FROM messages m
+WHERE m.conversation_id = %(conversation_id)s AND m.client_message_id = %(client_message_id)s
 """
 LINK_ATTACHMENT = """
 INSERT INTO message_attachments (message_id, attachment_id, position)
@@ -88,6 +112,26 @@ class PostgresConversationRepository:
             SET_MODE, {"id": conversation_id, "mode": mode.value, "now": now}
         )
 
+    async def set_project(
+        self, conversation_id: str, state: str, sha256: str | None, now: datetime
+    ) -> int:
+        cursor = await self._connection.execute(
+            SET_PROJECT, {"id": conversation_id, "state": state, "sha256": sha256, "now": now}
+        )
+        row = await cursor.fetchone()
+        assert row is not None
+        return int(str(row[0]))
+
+    async def find_message_by_client_id(
+        self, conversation_id: str, client_message_id: str
+    ) -> MessageDTO | None:
+        cursor = await self._connection.execute(
+            FIND_BY_CLIENT_ID,
+            {"conversation_id": conversation_id, "client_message_id": client_message_id},
+        )
+        row = await cursor.fetchone()
+        return _message(row) if row else None
+
     async def touch(self, conversation_id: str, now: datetime) -> None:
         await self._connection.execute(TOUCH, {"id": conversation_id, "now": now})
 
@@ -101,6 +145,7 @@ class PostgresConversationRepository:
                 "role": message.role,
                 "content": message.content,
                 "created_at": message.created_at,
+                "client_message_id": message.client_message_id,
             },
         )
         for position, attachment_id in enumerate(message.attachment_ids):
@@ -123,6 +168,10 @@ def _conversation(row: tuple[object, ...]) -> ConversationDTO:
         mode=Mode(str(row[3])),
         created_at=row[4],
         updated_at=row[5],
+        project_state=str(row[6]),
+        project_version=int(str(row[7])),
+        project_sha256=str(row[8]) if row[8] is not None else None,
+        project_saved_at=row[9] if isinstance(row[9], datetime) else None,
     )
 
 
@@ -136,4 +185,5 @@ def _message(row: tuple[object, ...]) -> MessageDTO:
         content=str(row[4]),
         attachment_ids=tuple(str(item) for item in row[6]),
         created_at=row[5],
+        client_message_id=str(row[7]) if len(row) > 7 and row[7] is not None else None,
     )

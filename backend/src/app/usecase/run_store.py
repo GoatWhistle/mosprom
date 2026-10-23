@@ -27,6 +27,11 @@ class RunStore:
         async with self._uow_factory() as uow:
             return await uow.runs.get(run_id)
 
+    async def project_version(self, conversation_id: str) -> int:
+        async with self._uow_factory() as uow:
+            conversation = await uow.conversations.get(conversation_id)
+        return conversation.project_version if conversation is not None else 0
+
     async def move(self, run_id: str, target: RunState, reason: str) -> bool:
         async with self._uow_factory() as uow:
             run = await uow.runs.get(run_id, lock=True)

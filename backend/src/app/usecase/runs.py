@@ -47,6 +47,7 @@ class RunService:
         text: str,
         attachment_ids: tuple[str, ...],
         mode: Mode | None,
+        client_message_id: str | None = None,
     ) -> MessageAccepted:
         if not text.strip() and not attachment_ids:
             raise InvalidRequest("Message needs text or attachments")
@@ -55,6 +56,14 @@ class RunService:
             conversation = await uow.conversations.get(conversation_id)
             if conversation is None or conversation.instance_id != instance_id:
                 raise NotFound()
+            if client_message_id:
+                known = await uow.conversations.find_message_by_client_id(
+                    conversation_id, client_message_id
+                )
+                if known is not None and known.run_id is not None:
+                    earlier = await uow.runs.get(known.run_id)
+                    if earlier is not None:
+                        return MessageAccepted(run=earlier, message=known)
             if mode is not None and mode is not conversation.mode:
                 await uow.conversations.set_mode(conversation_id, mode, now)
             for attachment_id in attachment_ids:
@@ -69,7 +78,9 @@ class RunService:
                 raise RunActive("The run is busy; wait for it or stop it first")
             answered = False
             if run is None:
-                run = await self._start_run(uow, conversation_id, instance_id, now)
+                run = await self._start_run(
+                    uow, conversation_id, instance_id, now, conversation.project_version
+                )
             else:
                 answered = await self._answer_open_question(uow, run, text, attachment_ids)
             message = MessageDTO(
@@ -80,6 +91,7 @@ class RunService:
                 content=text,
                 attachment_ids=attachment_ids,
                 created_at=now,
+                client_message_id=client_message_id or None,
             )
             await uow.conversations.add_message(message)
             await uow.conversations.touch(conversation_id, now)
@@ -159,7 +171,12 @@ class RunService:
             self._scheduler.start(run.id)
 
     async def _start_run(
-        self, uow: UnitOfWork, conversation_id: str, instance_id: str, now: datetime
+        self,
+        uow: UnitOfWork,
+        conversation_id: str,
+        instance_id: str,
+        now: datetime,
+        project_version: int,
     ) -> RunDTO:
         run = RunDTO(
             id=self._ids.new_id(),
@@ -168,6 +185,7 @@ class RunService:
             state=RunState.INTERVIEWING,
             created_at=now,
             updated_at=now,
+            project_version=project_version,
         )
         await uow.runs.add(run)
         for previous in await uow.conversations.list_messages(conversation_id):

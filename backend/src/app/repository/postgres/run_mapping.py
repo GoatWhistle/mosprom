@@ -21,6 +21,7 @@ def _params(run: RunDTO) -> dict[str, object]:
         "created_at": run.created_at,
         "updated_at": run.updated_at,
         "finished_at": run.finished_at,
+        "project_version": run.project_version,
     }
 
 
@@ -41,6 +42,7 @@ def _run(row: tuple[object, ...]) -> RunDTO:
         created_at=row[11],
         updated_at=row[12],
         finished_at=row[13] if isinstance(row[13], datetime) else None,
+        project_version=int(str(row[14])),
     )
 
 

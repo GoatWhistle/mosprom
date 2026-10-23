@@ -38,6 +38,7 @@ SUFFIX_TYPES = {
     ".3mf": "model/3mf",
 }
 PAGE_LIMIT = 50
+PROJECT_STATES = frozenset({"saved", "empty"})
 
 
 class ConversationService:
@@ -96,6 +97,45 @@ class ConversationService:
             await uow.conversations.set_mode(conversation_id, mode, self._clock.now())
             await uow.commit()
         return replace(conversation, mode=mode)
+
+    async def set_project(
+        self,
+        instance_id: str,
+        conversation_id: str,
+        state: str,
+        sha256: str | None,
+        active: bool,
+    ) -> ConversationDTO:
+        if state not in PROJECT_STATES:
+            raise InvalidRequest("Project state must be saved or empty")
+        if state == "saved" and not sha256:
+            raise InvalidRequest("A saved project needs its sha256")
+        now = self._clock.now()
+        async with self._uow_factory() as uow:
+            conversation = await uow.conversations.get(conversation_id)
+            if conversation is None or conversation.instance_id != instance_id:
+                raise NotFound()
+            kept = sha256 if state == "saved" else None
+            version = await uow.conversations.set_project(conversation_id, state, kept, now)
+            if active:
+                await uow.instances.set_active_conversation(instance_id, conversation_id)
+            await uow.commit()
+        return replace(
+            conversation,
+            project_state=state,
+            project_version=version,
+            project_sha256=kept,
+            project_saved_at=now,
+        )
+
+    async def activate(self, instance_id: str, conversation_id: str) -> ConversationDTO:
+        async with self._uow_factory() as uow:
+            conversation = await uow.conversations.get(conversation_id)
+            if conversation is None or conversation.instance_id != instance_id:
+                raise NotFound()
+            await uow.instances.set_active_conversation(instance_id, conversation_id)
+            await uow.commit()
+        return conversation
 
     async def add_attachment(
         self,
