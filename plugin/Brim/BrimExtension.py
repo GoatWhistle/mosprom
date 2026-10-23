@@ -55,10 +55,10 @@ class BrimExtension(Extension):
             QCoreApplication.instance().aboutToQuit.connect(self._runtime.shutdown)
 
     def _watch_main_window(self):
-        engine = getattr(self._application, "_qml_engine", None)
-        created = getattr(engine, "objectCreated", None)
-        if created is not None:
-            created.connect(lambda root, url: QTimer.singleShot(0, self._ensure_dock))
+        changed = getattr(self._application, "mainWindowChanged", None)
+        if changed is not None:
+            changed.connect(lambda: QTimer.singleShot(0, self._ensure_dock))
+        QTimer.singleShot(0, self._ensure_dock)
 
     def _ensure_dock(self):
         if self._dock is not None:
