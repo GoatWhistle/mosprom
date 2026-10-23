@@ -15,6 +15,7 @@ def test_ascii_name_keeps_plain_filename() -> None:
 def test_cyrillic_name_is_latin1_safe_and_recoverable() -> None:
     header = attachment_disposition("Шестерня.stl")
     header.encode("latin-1")
+    assert 'filename="________.stl"' in header
     assert unquote(header.split("filename*=UTF-8''", 1)[1]) == "Шестерня.stl"
 
 

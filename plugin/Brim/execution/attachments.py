@@ -1,12 +1,27 @@
 import os
 import re
+from urllib.parse import unquote
 
 from ..protocol import constants
 from ..protocol.backend_http import BackendHttpError
 from .errors import OperationError
 from .operations import MODEL_EXTENSIONS
 
-NAME_PATTERN = re.compile(r'filename\*?=(?:UTF-8\'\')?"?([^";]+)"?', re.IGNORECASE)
+ENCODED_NAME = re.compile(r"filename\*\s*=\s*UTF-8''([^;\s]+)", re.IGNORECASE)
+PLAIN_NAME = re.compile(r'filename\s*=\s*"?([^";]+)"?', re.IGNORECASE)
+UNSAFE_NAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
+
+
+def disposition_name(value):
+    match = ENCODED_NAME.search(value)
+    if match:
+        return unquote(match.group(1), encoding="utf-8", errors="replace")
+    match = PLAIN_NAME.search(value)
+    return match.group(1) if match else None
+
+
+def safe_name(name):
+    return UNSAFE_NAME_CHARS.sub("_", os.path.basename(name or "").replace("\\", "/").split("/")[-1])
 
 
 class AttachmentCache(object):
@@ -22,9 +37,8 @@ class AttachmentCache(object):
         name = name_hint
         disposition = headers.get("Content-Disposition") if hasattr(headers, "get") else None
         if not name and disposition:
-            match = NAME_PATTERN.search(disposition)
-            name = match.group(1) if match else None
-        name = os.path.basename(name or "")
+            name = disposition_name(disposition)
+        name = safe_name(name)
         if os.path.splitext(name)[1].lower() not in MODEL_EXTENSIONS:
             raise OperationError(constants.ERR_INVALID_ARGUMENTS,
                                  "attachment %s has no supported model extension (stl, obj, 3mf)" % attachment_id)
