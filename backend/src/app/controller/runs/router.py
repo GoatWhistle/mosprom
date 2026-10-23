@@ -5,6 +5,7 @@ from fastapi import APIRouter, File, Form, Response, UploadFile
 from pydantic import BaseModel
 
 from app.controller.auth import InstanceDep, ServicesDep
+from app.controller.downloads import attachment_disposition
 from app.domain.confirmation import Decision
 
 router = APIRouter(prefix="/runs", tags=["runs"])
@@ -169,5 +170,5 @@ async def download_artifact(
     return Response(
         content=blob.data,
         media_type=blob.meta.content_type,
-        headers={"Content-Disposition": f'attachment; filename="{blob.meta.name}"'},
+        headers={"Content-Disposition": attachment_disposition(blob.meta.name)},
     )

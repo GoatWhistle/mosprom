@@ -16,6 +16,7 @@ from app.controller.conversations.schemas import (
     SendMessageRequest,
     SendMessageResponse,
 )
+from app.controller.downloads import attachment_disposition
 from app.domain.confirmation import Mode
 
 router = APIRouter(tags=["conversations"])
@@ -118,5 +119,5 @@ async def download_attachment(
     return Response(
         content=blob.data,
         media_type=blob.meta.content_type,
-        headers={"Content-Disposition": f'attachment; filename="{blob.meta.name}"'},
+        headers={"Content-Disposition": attachment_disposition(blob.meta.name)},
     )
