@@ -28,7 +28,7 @@ Plugin → backend:
 | type | fields |
 |---|---|
 | `hello` | `contract_version`, `scene_epoch` (UUID per plugin process), `instance_id`, `slicer_version`, `modes` (list), `printer` |
-| `state_snapshot` | `scene_epoch`, `scene_version` (int), `state` (object: printer, materials, profile, overrides, objects[], slice_state, errors[]) |
+| `state_snapshot` | `scene_epoch`, `scene_version` (int), `state` (object: printer, materials, profile, overrides, objects[], slice_state, errors[], settings[] — `{category, settings: [line]}`, only in snapshots) |
 | `chat_message` | `conversation_id`, `text`, `attachment_ids` |
 | `tool_result` | `call_id`, `run_id`, `ok` (bool), `scene_epoch`, `scene_version`, `result` (object), `error` (`{code, message}` or null), `applied` (list of completed ops) |
 | `progress` | `call_id`, `stage`, `fraction` |
