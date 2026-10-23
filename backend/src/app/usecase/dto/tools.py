@@ -25,6 +25,8 @@ class ToolCallDTO:
     llm_call_id: str
     tool: str
     arguments: JsonObject
+    expected_scene_epoch: str = ""
+    scene_epoch: str = ""
     expected_scene_version: int
     status: CallStatus
     batch_id: str | None = None
@@ -38,6 +40,7 @@ class ToolCallDTO:
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class ToolOutcome:
+    scene_epoch: str = ""
     call_id: str
     ok: bool
     scene_version: int | None
@@ -48,6 +51,7 @@ class ToolOutcome:
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class ChangeBatchDTO:
+    scene_epoch: str = ""
     id: str
     run_id: str
     call_id: str

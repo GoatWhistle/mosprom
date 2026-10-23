@@ -3,6 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from app.domain.jsonvalue import JsonObject
 from app.usecase.dto.conversation import AttachmentDTO, ConversationDTO, MessageDTO
 
 
@@ -47,6 +48,7 @@ class MessageResponse(BaseModel):
 class ConversationDetail(BaseModel):
     conversation: ConversationResponse
     messages: list[MessageResponse]
+    runtime: JsonObject
 
 
 class ConversationPageResponse(BaseModel):

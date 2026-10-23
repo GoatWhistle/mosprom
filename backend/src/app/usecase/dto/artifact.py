@@ -7,6 +7,7 @@ class ArtifactDTO:
     id: str
     run_id: str
     kind: str
+    scene_epoch: str = ""
     scene_version: int
     name: str
     content_type: str
@@ -25,6 +26,7 @@ class ArtifactBlob:
 class ArtifactChunk:
     run_id: str
     kind: str
+    scene_epoch: str = ""
     scene_version: int
     chunk_index: int
     chunk_count: int

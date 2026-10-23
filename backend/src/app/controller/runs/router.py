@@ -27,6 +27,7 @@ class ConfirmationRequest(BaseModel):
 class ArtifactResponse(BaseModel):
     id: str
     kind: str
+    scene_epoch: str
     scene_version: int
     name: str
     content_type: str
@@ -105,6 +106,7 @@ async def list_artifacts(
             id=item.id,
             kind=item.kind,
             scene_version=item.scene_version,
+            scene_epoch=item.scene_epoch,
             name=item.name,
             content_type=item.content_type,
             size=item.size,
@@ -123,6 +125,7 @@ async def upload_artifact_chunk(
     file: Annotated[UploadFile, File()],
     kind: Annotated[str, Form()],
     scene_version: Annotated[int, Form()],
+    scene_epoch: Annotated[str, Form()],
     chunk_index: Annotated[int, Form()],
     chunk_count: Annotated[int, Form()],
     sha256: Annotated[str, Form()],
@@ -132,6 +135,7 @@ async def upload_artifact_chunk(
         run_id,
         kind=kind,
         scene_version=scene_version,
+        scene_epoch=scene_epoch,
         chunk_index=chunk_index,
         chunk_count=chunk_count,
         sha256=sha256,
@@ -147,6 +151,7 @@ async def upload_artifact_chunk(
             id=meta.id,
             kind=meta.kind,
             scene_version=meta.scene_version,
+            scene_epoch=meta.scene_epoch,
             name=meta.name,
             content_type=meta.content_type,
             size=meta.size,

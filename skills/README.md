@@ -23,7 +23,6 @@ the project workflows (`brand-identity`, `presentation`, `site-identity`) remain
 
 | Skill | Mode | Use for | Origin |
 | --- | --- | --- | --- |
-| `hack-kickoff` | auto | first hours: `brief/` and `context/`, criteria, thesis, P0, timeline | own |
 | `compact-context` | auto | keep `context/` under its budget: promote entries to their home, delete what is done | own |
 | `naming` | auto | product name, tagline, name origin | own |
 | `refero-style` | auto | the user picks a style on styles.refero.design; pull tokens, type, components, DESIGN.md, study the source site, map onto product tokens | own |
@@ -33,7 +32,6 @@ the project workflows (`brand-identity`, `presentation`, `site-identity`) remain
 | `competitors` | auto | rivals, threat tiers, honest "where they beat us" | own |
 | `readme` | auto | README in two phases, visuals rendered in the product's design system, hero shot | own |
 | `repo-meta` | auto | GitHub description (rule plus definition, no AI patterns), homepage and 10–20 topics from the real stack, `meta.mjs scan/check` | own |
-| `docs-writing` | auto | docs standard, evidence statuses, pre-submission docs audit | own |
 | `jury-route` | auto | `docs/for-jury.md`, requirements map, criteria coverage | own |
 | `submission` | manual | final day: platform checklist, fresh-clone run, scrub | own |
 | `orchestrate-issues` | manual | autonomous run of an issue queue in worktrees | own |
@@ -44,8 +42,6 @@ the project workflows (`brand-identity`, `presentation`, `site-identity`) remain
 | `wayfinder` | manual | big fuzzy work as a map of decision issues | mattpocock |
 | `grilling` | auto | relentless interview on a plan | mattpocock |
 | `grill-with-docs` | manual | grilling plus domain docs | mattpocock |
-| `domain-modeling` | auto | glossary and ADRs | mattpocock |
-| `codebase-design` | auto | deep modules vocabulary | mattpocock |
 | `improve-codebase-architecture` | manual | find deepening opportunities, HTML report | mattpocock |
 | `diagnosing-bugs` | auto | hard bugs and regressions | mattpocock |
 | `tdd` | auto | red → green → refactor | mattpocock |
@@ -53,7 +49,6 @@ the project workflows (`brand-identity`, `presentation`, `site-identity`) remain
 | `research` | auto | primary-source research into a markdown file | mattpocock |
 | `handoff` | manual | persistent context/SESSION.md handoff | mattpocock |
 | `pr` | auto | PR body: summary, evidence, merge danger | mattpocock |
-| `writing-for-agents` | auto | writing skills and `AGENTS.md` | mattpocock |
 | `design-system` | manual | token architecture, slide generation helpers | ui-ux-pro-max |
 | `design` | manual | logo/icon/CIP generation (needs `GEMINI_API_KEY` or another provider) | ui-ux-pro-max |
 | `brand` | manual | brand voice and consistency | ui-ux-pro-max |

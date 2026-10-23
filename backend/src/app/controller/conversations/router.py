@@ -45,10 +45,11 @@ async def list_conversations(
 async def get_conversation(
     conversation_id: str, instance: InstanceDep, services: ServicesDep
 ) -> ConversationDetail:
-    conversation, messages = await services.conversations.get(instance.id, conversation_id)
+    conversation, messages, runtime = await services.conversations.get(instance.id, conversation_id)
     return ConversationDetail(
         conversation=ConversationResponse.of(conversation),
         messages=[MessageResponse.of(item) for item in messages],
+        runtime=runtime,
     )
 
 

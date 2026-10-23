@@ -33,13 +33,21 @@ class InstanceRepository(Protocol):
         printer: JsonObject,
         contract_version: str,
         now: datetime,
+        scene_epoch: str = "",
     ) -> None: ...
 
     async def record_snapshot(
-        self, instance_id: str, scene_version: int, state: JsonObject, now: datetime
+        self,
+        instance_id: str,
+        scene_version: int,
+        state: JsonObject,
+        now: datetime,
+        scene_epoch: str = "",
     ) -> bool: ...
 
-    async def advance_scene_version(self, instance_id: str, scene_version: int) -> None: ...
+    async def advance_scene_version(
+        self, instance_id: str, scene_version: int, scene_epoch: str = ""
+    ) -> None: ...
 
 
 class ConversationRepository(Protocol):
@@ -76,6 +84,8 @@ class RunRepository(Protocol):
     async def get(self, run_id: str, *, lock: bool = False) -> RunDTO | None: ...
 
     async def get_active_for_instance(self, instance_id: str) -> RunDTO | None: ...
+
+    async def get_latest_for_conversation(self, conversation_id: str) -> RunDTO | None: ...
 
     async def update(self, run: RunDTO) -> None: ...
 
@@ -127,6 +137,7 @@ class ToolCallRepository(Protocol):
         status: str,
         metrics: JsonObject,
         now: datetime,
+        scene_epoch: str = "",
     ) -> None: ...
 
 
@@ -150,15 +161,19 @@ class ChangeBatchRepository(Protocol):
 
 
 class ArtifactRepository(Protocol):
-    async def lock(self, run_id: str, kind: str, scene_version: int) -> None: ...
+    async def lock(
+        self, run_id: str, kind: str, scene_version: int, scene_epoch: str = ""
+    ) -> None: ...
 
     async def put_chunk(self, chunk: ArtifactChunk, now: datetime) -> None: ...
 
     async def list_chunks(
-        self, run_id: str, kind: str, scene_version: int
+        self, run_id: str, kind: str, scene_version: int, scene_epoch: str = ""
     ) -> list[ArtifactChunk]: ...
 
-    async def delete_chunks(self, run_id: str, kind: str, scene_version: int) -> None: ...
+    async def delete_chunks(
+        self, run_id: str, kind: str, scene_version: int, scene_epoch: str = ""
+    ) -> None: ...
 
     async def save(self, blob: ArtifactBlob) -> None: ...
 
@@ -179,6 +194,8 @@ class UnitOfWork(Protocol):
     async def __aenter__(self) -> Self: ...
 
     async def __aexit__(self, *exc: object) -> None: ...
+
+    async def read_snapshot(self) -> None: ...
 
     async def commit(self) -> None: ...
 

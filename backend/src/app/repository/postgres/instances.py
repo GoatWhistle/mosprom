@@ -9,7 +9,7 @@ from app.usecase.dto.instance import InstanceDTO
 
 COLUMNS = (
     "id, token_hash, slicer_version, printer, modes, scene_version, state, "
-    "contract_version, last_seen_at"
+    "contract_version, last_seen_at, scene_epoch"
 )
 
 INSERT = """
@@ -22,21 +22,23 @@ SELECT_BY_ID = f"SELECT {COLUMNS} FROM instances WHERE id = %(id)s"
 SELECT_BY_TOKEN = f"SELECT {COLUMNS} FROM instances WHERE token_hash = %(token_hash)s"
 RECORD_HELLO = """
 UPDATE instances SET slicer_version = %(slicer_version)s, modes = %(modes)s,
-    printer = %(printer)s, contract_version = %(contract_version)s, last_seen_at = %(now)s
+    scene_version = CASE WHEN scene_epoch = %(scene_epoch)s THEN scene_version ELSE 0 END,
+    state = CASE WHEN scene_epoch = %(scene_epoch)s THEN state ELSE '{}'::jsonb END,
+    scene_epoch = %(scene_epoch)s, printer = %(printer)s, contract_version = %(contract_version)s, last_seen_at = %(now)s
 WHERE id = %(id)s
 """
-LOCK = "SELECT scene_version FROM instances WHERE id = %(id)s FOR UPDATE"
+LOCK = "SELECT scene_version, scene_epoch FROM instances WHERE id = %(id)s FOR UPDATE"
 UPDATE_SNAPSHOT = """
 UPDATE instances SET scene_version = %(scene_version)s, state = %(state)s, last_seen_at = %(now)s
 WHERE id = %(id)s
 """
 INSERT_SNAPSHOT = """
-INSERT INTO state_snapshots (instance_id, scene_version, state, created_at)
-VALUES (%(id)s, %(scene_version)s, %(state)s, %(now)s)
+INSERT INTO state_snapshots (instance_id, scene_version, state, created_at, scene_epoch)
+VALUES (%(id)s, %(scene_version)s, %(state)s, %(now)s, %(scene_epoch)s)
 """
 ADVANCE = """
 UPDATE instances SET scene_version = GREATEST(scene_version, %(scene_version)s)
-WHERE id = %(id)s
+WHERE id = %(id)s AND scene_epoch = %(scene_epoch)s
 """
 
 
@@ -69,6 +71,7 @@ class PostgresInstanceRepository:
         printer: JsonObject,
         contract_version: str,
         now: datetime,
+        scene_epoch: str = "",
     ) -> None:
         await self._connection.execute(
             RECORD_HELLO,
@@ -78,33 +81,45 @@ class PostgresInstanceRepository:
                 "modes": Jsonb(list(modes)),
                 "printer": Jsonb(printer),
                 "contract_version": contract_version,
+                "scene_epoch": scene_epoch,
                 "now": now,
             },
         )
 
     async def record_snapshot(
-        self, instance_id: str, scene_version: int, state: JsonObject, now: datetime
+        self,
+        instance_id: str,
+        scene_version: int,
+        state: JsonObject,
+        now: datetime,
+        scene_epoch: str = "",
     ) -> bool:
         cursor = await self._connection.execute(LOCK, {"id": instance_id})
         row = await cursor.fetchone()
-        if row is None or scene_version < int(row[0]):
+        if row is None or row[1] != scene_epoch or scene_version < int(row[0]):
             return False
         params = {
             "id": instance_id,
             "scene_version": scene_version,
             "state": Jsonb(state),
+            "scene_epoch": scene_epoch,
             "now": now,
         }
         await self._connection.execute(UPDATE_SNAPSHOT, params)
         await self._connection.execute(INSERT_SNAPSHOT, params)
         return True
 
-    async def advance_scene_version(self, instance_id: str, scene_version: int) -> None:
-        await self._connection.execute(ADVANCE, {"id": instance_id, "scene_version": scene_version})
+    async def advance_scene_version(
+        self, instance_id: str, scene_version: int, scene_epoch: str = ""
+    ) -> None:
+        await self._connection.execute(
+            ADVANCE, {"id": instance_id, "scene_version": scene_version, "scene_epoch": scene_epoch}
+        )
 
 
 def _to_dto(row: tuple[object, ...]) -> InstanceDTO:
     return InstanceDTO(
+        scene_epoch=str(row[9]),
         id=str(row[0]),
         token_hash=str(row[1]),
         slicer_version=row[2] if isinstance(row[2], str) else None,

@@ -29,6 +29,7 @@ class ToolExecutor:
         arguments: JsonObject,
         scene_version: int,
         batch_id: str | None,
+        scene_epoch: str = "",
     ) -> ToolCallDTO:
         call = ToolCallDTO(
             call_id=self._ids.new_id(),
@@ -37,6 +38,7 @@ class ToolExecutor:
             tool=tool,
             arguments=arguments,
             expected_scene_version=scene_version,
+            expected_scene_epoch=scene_epoch,
             status=CallStatus.PENDING,
             batch_id=batch_id,
             created_at=self._clock.now(),
@@ -62,6 +64,7 @@ class ToolExecutor:
             "tool": call.tool,
             "arguments": call.arguments,
             "expected_scene_version": call.expected_scene_version,
+            "expected_scene_epoch": call.expected_scene_epoch,
         }
         if not await self._gateway.send(instance_id, frame):
             return None

@@ -18,7 +18,7 @@ Open `brief/PLATFORM.md` and turn every requirement into a row: requirement, art
 ## 3. Product surfaces
 
 - README in its product phase — `readme` skill.
-- Docs pass, one file at a time — `docs-writing` skill (audit section). `docs/for-jury.md` route matches the e2e test and the live stand — `jury-route` skill.
+- Docs pass, one file at a time — check claims against source files and actual verification results. `docs/for-jury.md` route matches the e2e test and the live stand — `jury-route` skill.
 - Deck and speech audited — `presentation/` skills `deck-audit` and `speaker-script`; PDF exported from the final deck.
 - Limitations are stated first and match reality.
 - No product file links into `brief/`, `context/`, `work/`, `.claude/` or any `AGENTS.md`: those disappear in the scrub.

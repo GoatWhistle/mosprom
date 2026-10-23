@@ -11,6 +11,7 @@ class InstanceDTO:
     slicer_version: str | None = None
     printer: JsonObject = field(default_factory=dict)
     modes: tuple[str, ...] = ()
+    scene_epoch: str = ""
     scene_version: int = 0
     state: JsonObject = field(default_factory=dict)
     contract_version: str | None = None

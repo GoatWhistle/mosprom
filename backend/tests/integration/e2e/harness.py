@@ -12,6 +12,7 @@ from app.settings import Settings
 from app.usecase.config import AgentConfig
 
 INSTANCE = "slicer-e2e"
+EPOCH = "11111111-1111-4111-8111-111111111111"
 
 
 def text_reply(text: str) -> dict[str, Any]:
@@ -100,7 +101,8 @@ def hello(ws: WebSocketTestSession, scene_state: dict[str, Any] | None = None) -
         {
             "type": "hello",
             "id": "h1",
-            "contract_version": "1",
+            "contract_version": "2",
+            "scene_epoch": EPOCH,
             "instance_id": INSTANCE,
             "slicer_version": "5.2.4",
             "modes": ["classic", "cylindrical"],
@@ -110,8 +112,15 @@ def hello(ws: WebSocketTestSession, scene_state: dict[str, Any] | None = None) -
     ack = ws.receive_json()
     assert ack["type"] == "hello_ack", ack
     ws.send_json(
-        {"type": "state_snapshot", "id": "s1", "scene_version": 1, "state": scene_state or {}}
+        {
+            "type": "state_snapshot",
+            "scene_epoch": EPOCH,
+            "id": "s1",
+            "scene_version": 1,
+            "state": scene_state or {},
+        }
     )
+    ws.send_json({"type": "pending_calls", "id": "p1", "call_ids": []})
     return ack
 
 
@@ -141,6 +150,7 @@ def ok_result(call: dict[str, Any], scene_version: int, **extra: Any) -> dict[st
         "run_id": call["run_id"],
         "ok": True,
         "scene_version": scene_version,
+        "scene_epoch": call["expected_scene_epoch"],
         "result": extra,
         "error": None,
         "applied": [],

@@ -9,9 +9,11 @@ class InstanceGateway:
     def attach(self, instance_id: str, sink: FrameSink) -> None:
         self._sinks[instance_id] = sink
 
-    def detach(self, instance_id: str, sink: FrameSink) -> None:
+    def detach(self, instance_id: str, sink: FrameSink) -> bool:
         if self._sinks.get(instance_id) is sink:
             del self._sinks[instance_id]
+            return True
+        return False
 
     def is_connected(self, instance_id: str) -> bool:
         return instance_id in self._sinks

@@ -41,39 +41,28 @@ Updated: 2026-10-23, MSK
 
 - 2026-10-23: «сгенерь и пропиши в .env.example» — explicitly requests a generated connection token in the tracked example file.
 
+- 2026-10-23: «Implement the plan.» — authorizes implementation; supersedes the earlier read-only phase.
+- 2026-10-23: «продолжи проверять».
+- 2026-10-23: «ты там все нормально делаешь? или ты уже делаешь что-то ненужное?» — finish scoped verification; no new features.
+
+- 2026-10-23: «все то, что ты сделал закоммить и пушь. вот вообще все изменения».
+
 ## Current state
 
-- Task: discussing plugin loading and runtime. User chose a VM: «поднимать все буду на виртуалке». Preserve concurrent backend/plugin implementation. Target runtime has not been tested.
-- Branch: main; HEAD 28cc4017b0782fb56430fabc3238ad59620943e6. No commit or push in this turn. Prior uncommitted skill removals/instruction edits preserved.
-- Approved design, not implemented: embedded STE Slicer chat; Clean Architecture; OpenAI-compatible LLM adapter; PostgreSQL in Compose for persistent conversations and results.
-- Agent interviews the user with a question pool and follows up on missing/ambiguous answers. Model knowledge, slicer facts and user answers only for now; no reference database or web search.
-- Code supplies initial facts, structured scene updates and numerical geometry. Agent chooses print settings, transformations and tool calls. Image renders are supplementary.
-- Attachments stay in the conversation until the agent imports them. Every successful slice automatically saves matching G-code and 3MF. Improvements need a new user request; the agent may repair execution errors within the agreed requirements.
-- Auto applies edits autonomously; Ask before edits requires approval before applying a related group of edits. Enforcement belongs to code. Both modes interview the user.
-- Approved: agent in backend Compose service, PostgreSQL separately in Compose; plugin executes slicer tools and provides embedded chat. Backend address configurable, default localhost. Implementation plan delivered in chat; code remains a template.
-- Prior work removed five project skills: hack-kickoff, codebase-design, domain-modeling, docs-writing, writing-for-agents. Their aliases/dependent invocation edits remain uncommitted. No global skills changed.
-- PDF embedded-chat wording and website browser-SPA wording conflict. User chose embedded chat; official sources remain unchanged. WebView support is unverified.
+- Publication task: commit and push the entire working tree on feat/backend-agent, including frontend/skill removals, instructions, plugin, backend fixes and docs. Starting HEAD: 54c4a57. Final commit SHA and remote state are available in Git; no merge to main requested in this turn.
+- Implemented: embedded PyQt5/QML chat plugin, agent backend with OpenAI-compatible port, PostgreSQL and migrations in Compose. No standalone frontend. LLM chooses, deterministic tools execute.
+- Auto/Ask, interviews, attachments imported only by agent, numerical geometry/structured state, paired G-code/3MF, improvement only on new user request remain the agreed design.
+- Review fixes complete: epoch/version protocol v2, history/runtime restore, LLM resend/readiness, cancellation/Qt deadlines/thread access, 3MF writer validation, material catalog, snapshot-before-result and exported revision preservation.
+- Detailed changes and commands: work/implementation-verification.md. Contract: work/protocol-contract.md. Plugin archive: plugin/dist/Brim-0.1.0.zip.
+- Earlier user choice: «поднимать все буду на виртуалке». Windows stand remains pending; backend/plugin must upgrade together with scene_epochs migration.
+- Explicit plugin scope from prior session: «work/slicer-agent-plan.md делай все кроме проверок на винде. твоя задача написать сам плагин».
+- PDF embedded-chat and website browser-SPA wording conflict; user chose embedded chat. Official sources unchanged.
 
-## How to continue
+## Verification and next actions
 
-1. Continue design discussion; do not implement the agent, database or plugin until authorized.
-2. Implement the agreed plan only when requested; verify Qt integration against the supplied STE Slicer. Read brief/requirements.md and TECHNICAL.md without silently restoring a browser frontend.
-3. User chose a VM for the slicer stand; installation and runtime validation remain pending. Check checkpoint slots and submission fields when needed.
-4. Preserve Brim name and molten-plastic brand in docs/visual-system.md and docs/brand/.
-
-## Verification and limitations
-
-- Checks passed: frontend absent, Compose config valid/backend only, bake print/backend only, git diff --check, context budgets, changed docs links (excluding root README).
-- Presentation build passed after npm ci --ignore-scripts fixed missing qrcode. speech:check still reports the ten known stale sections; root README link check still fails on pre-existing missing docs/images/hero.png. No container startup or image build run.
-- Previous intake: PDF pp. 1–12, transcript, website task and seven DOCX tasks read; seven JPGs viewed. Original hashes, ZIP CRC and STL sizes checked; no slicing or physical validation.
-- Video files deleted at user request, transcript retained. Website key excluded from repository.
-- Historical/template docs and reusable web skills may mention the removed frontend; they are not the current product architecture.
-
-## 2026-10-23 backend implementation (agent plan)
-
-- User: «так плагин я отдельно буду писать» — plugin work stopped; user writes it. `plugin/Brim/` holds an unfinished, unverified draft (protocol, ledger, geometry, slicer modules written from STE Slicer sources, no UI/extension/tests); do not treat it as done.
-- Backend done in working tree, not committed: PostgreSQL repositories, dbmate migration, OpenAI-compatible adapter, agent loop, HTTP and WebSocket API, Compose db/migrate/backend. Contract: `work/protocol-contract.md`; tool schema source `backend/src/app/domain/tools.json` (frame only `scene`).
-- Checks run: ruff, mypy strict, 77 pytest tests (11 repository + 7 e2e on real PostgreSQL via docker, scripted LLM, fake plugin over WebSocket); Compose up with data kept after down/up. Not run: real LLM, real slicer, Windows.
-- Artifact chunk `sha256` is the digest of the whole artifact (same on every chunk).
-- `.env.example` had an uncommitted token-like BRIM_CONNECTION_TOKEN value; blanked and removed.
-- Next: commit, update docs/ (api, architecture, running) and ADR for PostgreSQL, hand the contract to the plugin author.
+- Backend: Ruff, mypy, 83 tests passed (59 unit + 24 integration with real PostgreSQL).
+- Plugin: 123 tests passed on Python 3.14; Python 3.5 Docker: 122 passed, one AST API check skipped. Package built.
+- Isolated brim-review Compose build/up healthy; real plugin HTTP/WebSocket + backend + PostgreSQL scenario passed, scripted LLM/fake slicer, files SHA-256 matched and history restored. No paid calls.
+- Remaining: real STE Slicer 7.10.12 / Qt5 / Windows runtime and real 3MF reopen not verified; no quality or physical-print claims. Resource warnings in test fixtures and Starlette httpx deprecation remain.
+- Next work only as requested: validate on user's VM. Do not expand features or rewrite template docs during this review.
+- Historical issues: presentation speech:check ten stale sections, root README missing docs/images/hero.png; not rechecked or changed here. Several docs remain template drafts.

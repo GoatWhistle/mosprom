@@ -8,13 +8,13 @@ from app.usecase.dto.tools import CallStatus, ToolCallDTO, ToolOutcome
 
 COLUMNS = (
     "call_id, run_id, llm_call_id, tool, arguments, expected_scene_version, status, batch_id, "
-    "result, error, applied, scene_version, created_at, finished_at"
+    "result, error, applied, scene_version, created_at, finished_at, expected_scene_epoch, scene_epoch"
 )
 INSERT = """
 INSERT INTO tool_calls (call_id, run_id, llm_call_id, tool, arguments, expected_scene_version,
-    status, batch_id, created_at)
+    status, batch_id, created_at, expected_scene_epoch)
 VALUES (%(call_id)s, %(run_id)s, %(llm_call_id)s, %(tool)s, %(arguments)s,
-    %(expected_scene_version)s, %(status)s, %(batch_id)s, %(created_at)s)
+    %(expected_scene_version)s, %(status)s, %(batch_id)s, %(created_at)s, %(expected_scene_epoch)s)
 """
 SELECT = f"SELECT {COLUMNS} FROM tool_calls WHERE call_id = %(call_id)s"
 MARK_SENT = """
@@ -23,7 +23,7 @@ WHERE call_id = %(call_id)s AND status IN ('pending', 'sent')
 """
 COMPLETE = """
 UPDATE tool_calls SET status = %(status)s, result = %(result)s, error = %(error)s,
-    applied = %(applied)s, scene_version = %(scene_version)s, finished_at = %(now)s
+    scene_epoch = %(scene_epoch)s, applied = %(applied)s, scene_version = %(scene_version)s, finished_at = %(now)s
 WHERE call_id = %(call_id)s AND status IN ('pending', 'sent', 'outcome_unknown')
 RETURNING call_id
 """
@@ -40,10 +40,10 @@ ORDER BY t.created_at
 """
 LIST_FOR_RUN = f"SELECT {COLUMNS} FROM tool_calls WHERE run_id = %(run_id)s ORDER BY created_at"
 SAVE_SLICE_JOB = """
-INSERT INTO slice_jobs (run_id, call_id, scene_version, status, metrics, created_at)
-VALUES (%(run_id)s, %(call_id)s, %(scene_version)s, %(status)s, %(metrics)s, %(now)s)
+INSERT INTO slice_jobs (run_id, call_id, scene_version, status, metrics, created_at, scene_epoch)
+VALUES (%(run_id)s, %(call_id)s, %(scene_version)s, %(status)s, %(metrics)s, %(now)s, %(scene_epoch)s)
 ON CONFLICT ON CONSTRAINT slice_jobs_call_key DO UPDATE
-SET status = EXCLUDED.status, metrics = EXCLUDED.metrics, scene_version = EXCLUDED.scene_version
+SET scene_epoch = EXCLUDED.scene_epoch, status = EXCLUDED.status, metrics = EXCLUDED.metrics, scene_version = EXCLUDED.scene_version
 """
 
 
@@ -61,6 +61,7 @@ class PostgresToolCallRepository:
                 "tool": call.tool,
                 "arguments": Jsonb(call.arguments),
                 "expected_scene_version": call.expected_scene_version,
+                "expected_scene_epoch": call.expected_scene_epoch,
                 "status": call.status.value,
                 "batch_id": call.batch_id,
                 "created_at": call.created_at,
@@ -85,6 +86,7 @@ class PostgresToolCallRepository:
                 "error": Jsonb(outcome.error) if outcome.error is not None else None,
                 "applied": Jsonb(list(outcome.applied)),
                 "scene_version": outcome.scene_version,
+                "scene_epoch": outcome.scene_epoch,
                 "now": now,
             },
         )
@@ -110,6 +112,7 @@ class PostgresToolCallRepository:
         status: str,
         metrics: JsonObject,
         now: datetime,
+        scene_epoch: str = "",
     ) -> None:
         await self._connection.execute(
             SAVE_SLICE_JOB,
@@ -119,6 +122,7 @@ class PostgresToolCallRepository:
                 "scene_version": scene_version,
                 "status": status,
                 "metrics": Jsonb(metrics),
+                "scene_epoch": scene_epoch,
                 "now": now,
             },
         )
@@ -127,6 +131,8 @@ class PostgresToolCallRepository:
 def _call(row: tuple[object, ...]) -> ToolCallDTO:
     assert isinstance(row[4], dict) and isinstance(row[10], list) and isinstance(row[12], datetime)
     return ToolCallDTO(
+        expected_scene_epoch=str(row[14]),
+        scene_epoch=str(row[15]),
         call_id=str(row[0]),
         run_id=str(row[1]),
         llm_call_id=str(row[2]),

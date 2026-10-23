@@ -36,4 +36,5 @@ async def set_llm(
     body: LlmSettingsRequest, instance: InstanceDep, services: ServicesDep
 ) -> StatusResponse:
     services.instances.set_llm(instance.id, body.base_url, body.model, body.api_key)
+    await services.session.configure(instance.id)
     return StatusResponse(status="configured")

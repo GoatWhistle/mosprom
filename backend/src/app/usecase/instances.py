@@ -79,6 +79,7 @@ class InstanceService:
         slicer_version: str,
         modes: Sequence[str],
         printer: JsonObject,
+        scene_epoch: str = "",
     ) -> HelloResult:
         if contract_version != CONTRACT_VERSION:
             raise ContractMismatch()
@@ -89,6 +90,7 @@ class InstanceService:
                 modes=modes,
                 printer=printer,
                 contract_version=contract_version,
+                scene_epoch=scene_epoch,
                 now=self._clock.now(),
             )
             instance = await uow.instances.get(instance_id)
@@ -99,11 +101,11 @@ class InstanceService:
         return HelloResult(instance, tuple(call.call_id for call in unfinished))
 
     async def record_snapshot(
-        self, instance_id: str, scene_version: int, state: JsonObject
+        self, instance_id: str, scene_version: int, state: JsonObject, scene_epoch: str = ""
     ) -> bool:
         async with self._uow_factory() as uow:
             stored = await uow.instances.record_snapshot(
-                instance_id, scene_version, state, self._clock.now()
+                instance_id, scene_version, state, self._clock.now(), scene_epoch
             )
             await uow.commit()
         return stored
@@ -130,7 +132,9 @@ class InstanceService:
                 raise NotFound("Unknown tool call")
             stored = await uow.tool_calls.complete(outcome, self._clock.now())
             if stored and outcome.scene_version is not None:
-                await uow.instances.advance_scene_version(instance_id, outcome.scene_version)
+                await uow.instances.advance_scene_version(
+                    instance_id, outcome.scene_version, outcome.scene_epoch
+                )
             await uow.commit()
         self._signals.notify(outcome.call_id)
         return stored

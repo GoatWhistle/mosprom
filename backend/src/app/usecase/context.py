@@ -62,6 +62,7 @@ def _context_text(
         "requirements_summary": run.requirements_summary,
         "mode": mode,
         "scene_version": instance.scene_version,
+        "scene_epoch": instance.scene_epoch,
         "slicer_version": instance.slicer_version,
         "available_modes": list(instance.modes),
         "printer": instance.printer,

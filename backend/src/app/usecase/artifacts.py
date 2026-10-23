@@ -8,6 +8,7 @@ from app.domain.artifacts import (
     verify_sha256,
 )
 from app.domain.errors import InvalidArtifact, NotFound, PayloadTooLarge
+from app.domain.run import RunState
 from app.usecase.config import AgentConfig
 from app.usecase.dto.artifact import ArtifactBlob, ArtifactChunk, ArtifactDTO
 from app.usecase.interface.runtime import CallSignals, Clock, IdGenerator
@@ -49,6 +50,7 @@ class ArtifactService:
         chunk_count: int,
         sha256: str,
         data: bytes,
+        scene_epoch: str = "",
     ) -> ChunkReceipt:
         artifact_kind = parse_kind(kind)
         verify_chunk_plan(chunk_index, chunk_count)
@@ -58,12 +60,18 @@ class ArtifactService:
             run = await uow.runs.get(run_id)
             if run is None or run.instance_id != instance_id:
                 raise NotFound()
-            await uow.artifacts.lock(run_id, kind, scene_version)
+            instance = await uow.instances.get(instance_id)
+            if run.state is RunState.ABORTED:
+                raise InvalidArtifact("Run was cancelled")
+            if instance is None or instance.scene_epoch != scene_epoch:
+                raise InvalidArtifact("Artifact belongs to another slicer session")
+            await uow.artifacts.lock(run_id, kind, scene_version, scene_epoch)
             await uow.artifacts.put_chunk(
                 ArtifactChunk(
                     run_id=run_id,
                     kind=kind,
                     scene_version=scene_version,
+                    scene_epoch=scene_epoch,
                     chunk_index=chunk_index,
                     chunk_count=chunk_count,
                     sha256=sha256.lower(),
@@ -71,7 +79,7 @@ class ArtifactService:
                 ),
                 self._clock.now(),
             )
-            chunks = await uow.artifacts.list_chunks(run_id, kind, scene_version)
+            chunks = await uow.artifacts.list_chunks(run_id, kind, scene_version, scene_epoch)
             total = sum(len(chunk.data) for chunk in chunks)
             if total > self._config.max_artifact_bytes:
                 raise PayloadTooLarge()
@@ -88,6 +96,7 @@ class ArtifactService:
                 run_id=run_id,
                 kind=kind,
                 scene_version=scene_version,
+                scene_epoch=scene_epoch,
                 name=f"{run_id}-v{scene_version}.{EXTENSIONS[artifact_kind]}",
                 content_type=CONTENT_TYPES[artifact_kind],
                 size=len(assembled),
@@ -95,7 +104,7 @@ class ArtifactService:
                 created_at=self._clock.now(),
             )
             await uow.artifacts.save(ArtifactBlob(meta=meta, data=assembled))
-            await uow.artifacts.delete_chunks(run_id, kind, scene_version)
+            await uow.artifacts.delete_chunks(run_id, kind, scene_version, scene_epoch)
             await uow.commit()
         self._signals.notify(f"artifacts:{run_id}")
         return ChunkReceipt(complete=True, received=chunk_count, artifact=meta)

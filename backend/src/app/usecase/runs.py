@@ -109,7 +109,10 @@ class RunService:
                 raise NoPendingBatch()
             instance = await uow.instances.get(instance_id)
             assert instance is not None
-            fresh = instance.scene_version == batch.scene_version
+            fresh = (instance.scene_epoch, instance.scene_version) == (
+                batch.scene_epoch,
+                batch.scene_version,
+            )
             if decision is Decision.ACCEPT and fresh:
                 await uow.batches.set_status(
                     batch.id, BatchStatus.PROPOSED, BatchStatus.ACCEPTED, text, now

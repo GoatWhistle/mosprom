@@ -49,10 +49,6 @@
   ],
   "stack": [
     {
-      "label": "фронтенд",
-      "value": "React 19 и TypeScript"
-    },
-    {
       "label": "API",
       "value": "{{FastAPI}}"
     },

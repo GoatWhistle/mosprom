@@ -24,6 +24,7 @@ from app.usecase.conversations import ConversationService
 from app.usecase.events import EventPublisher
 from app.usecase.instances import InstanceService
 from app.usecase.plugin_session import PluginSession
+from app.usecase.readiness import InstanceReadiness
 from app.usecase.run_store import RunStore
 from app.usecase.runs import RunService
 from app.usecase.tool_executor import ToolExecutor
@@ -44,6 +45,7 @@ def create_app(
         clock, ids = SystemClock(), UuidGenerator()
         gateway, signals = InstanceGateway(), AsyncCallSignals()
         connections = InMemoryLlmConnectionStore()
+        readiness = InstanceReadiness()
         events = EventPublisher(uow_factory, gateway, clock, ids)
         store = RunStore(uow_factory, clock, ids, events)
         executor = ToolExecutor(uow_factory, gateway, signals, clock, ids)
@@ -60,6 +62,7 @@ def create_app(
             clock,
             config.agent,
             logger,
+            readiness,
         )
         scheduler = AsyncioRunScheduler(agent.run)
         runs = RunService(uow_factory, scheduler, gateway, clock, ids)
@@ -69,10 +72,9 @@ def create_app(
             conversations=ConversationService(uow_factory, clock, ids, config.agent),
             runs=runs,
             artifacts=ArtifactService(uow_factory, signals, clock, ids, config.agent),
-            session=PluginSession(instances, runs, uow_factory, clock, ids),
+            session=PluginSession(readiness, instances, runs, uow_factory, clock, ids),
             registry=gateway,
         )
-        await runs.resume_all()
         try:
             yield
         finally:

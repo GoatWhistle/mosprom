@@ -5,6 +5,7 @@ from psycopg import AsyncConnection
 from psycopg_pool import AsyncConnectionPool
 
 from tests.integration.e2e.harness import (
+    EPOCH,
     ScriptedLlm,
     Session,
     build_client,
@@ -40,6 +41,7 @@ def upload(session: Session, run_id: str, kind: str, scene: int, data: bytes) ->
             data={
                 "kind": kind,
                 "scene_version": str(scene),
+                "scene_epoch": EPOCH,
                 "chunk_index": str(index),
                 "chunk_count": "2",
                 "sha256": digest,
@@ -94,6 +96,9 @@ def test_auto_mode_runs_to_completed_with_both_artifacts(dsn: str) -> None:
         assert session.get(f"/runs/{run_id}/artifacts/3mf").content == archive
         messages = session.get(f"/conversations/{conversation}").json()["messages"]
         assert messages[-1]["content"] == "Done: PLA at defaults."
+        runtime = session.get(f"/conversations/{conversation}").json()["runtime"]
+        assert runtime["result"]["run_id"] == run_id
+        assert set(runtime["result"]["artifacts"]) == {"gcode", "3mf"}
         assert len(llm.requests) == 5
         roles = [message["role"] for message in llm.requests[2]["messages"]]
         assert "tool" in roles
@@ -141,7 +146,15 @@ def test_ask_mode_waits_for_confirmation_and_rejects_stale_scene(dsn: str) -> No
             confirmation = next_event(ws, "confirmation_request")
             assert confirmation["payload"]["explanation"] == "Use PLA"
             wait_state(session, run_id, "awaiting_confirmation")
-            ws.send_json({"type": "state_snapshot", "id": "s2", "scene_version": 2, "state": {}})
+            ws.send_json(
+                {
+                    "type": "state_snapshot",
+                    "scene_epoch": EPOCH,
+                    "id": "s2",
+                    "scene_version": 2,
+                    "state": {},
+                }
+            )
             import time
 
             time.sleep(0.3)
@@ -205,6 +218,7 @@ def test_correction_limit_requests_help_instead_of_looping(dsn: str) -> None:
                         "run_id": run_id,
                         **failing,
                         "scene_version": 1,
+                        "scene_epoch": EPOCH,
                         "result": {},
                         "applied": [],
                     }
@@ -215,7 +229,7 @@ def test_correction_limit_requests_help_instead_of_looping(dsn: str) -> None:
         assert len(llm.requests) == 5
 
 
-def test_missing_llm_connection_fails_with_explicit_error(dsn: str) -> None:
+def test_missing_llm_connection_waits_without_failing(dsn: str) -> None:
     llm = ScriptedLlm([])
     with build_client(dsn, llm) as client:
         registered = client.post("/api/v1/instances/register", json={"instance_id": "no-llm"})
@@ -225,16 +239,10 @@ def test_missing_llm_connection_fails_with_explicit_error(dsn: str) -> None:
         run_id = client.post(
             f"/api/v1/conversations/{conversation}/messages", headers=headers, json={"text": "hi"}
         ).json()["run_id"]
-        import time
-
-        deadline = time.monotonic() + 5
-        while time.monotonic() < deadline:
-            run = client.get(f"/api/v1/runs/{run_id}", headers=headers).json()
-            if run["state"] == "failed":
-                break
-            time.sleep(0.05)
-        assert run["state"] == "failed"
-        assert run["last_error"].startswith("llm_not_configured")
+        run = client.get(f"/api/v1/runs/{run_id}", headers=headers).json()
+        assert run["state"] == "interviewing"
+        assert run["last_error"] is None
+        assert not llm.requests
 
 
 def test_unauthorized_requests_are_rejected(dsn: str) -> None:

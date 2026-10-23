@@ -38,7 +38,11 @@ def permits_execution(
     batch_status: BatchStatus | None,
     batch_hash_value: str | None,
     batch_scene_version: int | None,
+    scene_epoch: str = "",
+    batch_scene_epoch: str = "",
 ) -> bool:
+    if scene_epoch != batch_scene_epoch:
+        return False
     if batch_status is BatchStatus.EXECUTED or batch_status is BatchStatus.STALE:
         return False
     if batch_scene_version is not None and batch_scene_version != scene_version:

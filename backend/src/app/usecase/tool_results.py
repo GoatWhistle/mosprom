@@ -25,6 +25,7 @@ def result_entry(call: ToolCallDTO) -> TranscriptEntry:
         "error": call.error,
         "applied": list(call.applied),
         "scene_version": call.scene_version,
+        "scene_epoch": call.scene_epoch,
     }
     if call.status is CallStatus.OUTCOME_UNKNOWN:
         body["error"] = {

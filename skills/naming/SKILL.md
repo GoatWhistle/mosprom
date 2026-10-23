@@ -7,7 +7,7 @@ A hackathon name has one job: the jury remembers it after one hearing and it tel
 
 ## Inputs
 
-Read `AGENTS.md` (thesis), `brief/requirements.md` (audience, jury language) and the three solutions. Write down in one line each: the core mechanism (a verb), the domain's own technical terms, the user, the feeling after using it. If the thesis is not fixed yet, stop and run `hack-kickoff` first.
+Read `AGENTS.md` (thesis), `brief/requirements.md` (audience, jury language) and the three solutions. Write down in one line each: the core mechanism (a verb), the domain's own technical terms, the user, the feeling after using it. If the thesis is not fixed yet, label proposals as tentative.
 
 ## Generate wide
 

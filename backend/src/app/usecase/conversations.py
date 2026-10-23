@@ -4,7 +4,9 @@ from datetime import datetime
 
 from app.domain.confirmation import Mode
 from app.domain.errors import InvalidRequest, NotFound, PayloadTooLarge
+from app.domain.jsonvalue import JsonObject
 from app.usecase.config import AgentConfig
+from app.usecase.conversation_runtime import conversation_runtime
 from app.usecase.dto.conversation import (
     AttachmentBlob,
     AttachmentDTO,
@@ -64,12 +66,15 @@ class ConversationService:
 
     async def get(
         self, instance_id: str, conversation_id: str
-    ) -> tuple[ConversationDTO, list[MessageDTO]]:
+    ) -> tuple[ConversationDTO, list[MessageDTO], JsonObject]:
         async with self._uow_factory() as uow:
+            await uow.read_snapshot()
             conversation = await uow.conversations.get(conversation_id)
             if conversation is None or conversation.instance_id != instance_id:
                 raise NotFound()
-            return conversation, await uow.conversations.list_messages(conversation_id)
+            messages = await uow.conversations.list_messages(conversation_id)
+            runtime = await conversation_runtime(uow, conversation_id)
+            return conversation, messages, runtime
 
     async def list(self, instance_id: str, cursor: str | None, limit: int) -> ConversationPage:
         size = max(1, min(limit, PAGE_LIMIT))

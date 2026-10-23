@@ -8,13 +8,13 @@ from app.usecase.dto.tools import ChangeBatchDTO
 
 COLUMNS = (
     "id, run_id, call_id, content_hash, scene_version, operations, explanation, status, "
-    "decision_text, created_at"
+    "decision_text, created_at, scene_epoch"
 )
 INSERT = """
 INSERT INTO change_batches (id, run_id, call_id, content_hash, scene_version, operations,
-    explanation, status, decision_text, created_at)
+    explanation, status, decision_text, created_at, scene_epoch)
 VALUES (%(id)s, %(run_id)s, %(call_id)s, %(content_hash)s, %(scene_version)s, %(operations)s,
-    %(explanation)s, %(status)s, %(decision_text)s, %(created_at)s)
+    %(explanation)s, %(status)s, %(decision_text)s, %(created_at)s, %(scene_epoch)s)
 """
 SELECT = f"SELECT {COLUMNS} FROM change_batches WHERE id = %(id)s"
 SELECT_PROPOSED = (
@@ -46,6 +46,7 @@ class PostgresChangeBatchRepository:
                 "call_id": batch.call_id,
                 "content_hash": batch.content_hash,
                 "scene_version": batch.scene_version,
+                "scene_epoch": batch.scene_epoch,
                 "operations": Jsonb(list(batch.operations)),
                 "explanation": batch.explanation,
                 "status": batch.status.value,
@@ -93,6 +94,7 @@ class PostgresChangeBatchRepository:
 def _batch(row: tuple[object, ...]) -> ChangeBatchDTO:
     assert isinstance(row[5], list) and isinstance(row[9], datetime)
     return ChangeBatchDTO(
+        scene_epoch=str(row[10]),
         id=str(row[0]),
         run_id=str(row[1]),
         call_id=str(row[2]),

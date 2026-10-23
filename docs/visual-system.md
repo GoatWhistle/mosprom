@@ -6,8 +6,9 @@
 > экрана, в центре — модель, а единственный яркий цвет — раскалённый пластик.
 
 **Живой брендбук:** [`brand/index.html`](brand/index.html) показывает все варианты знака, палитру,
-шрифты и анимации. **Исходники:** [`brand/`](brand/README.md). **Значения:** токены в
-`frontend/src/shared/styles/tokens/` — при расхождении прав код, этот документ надо поправить.
+шрифты и анимации. **Исходники:** [`brand/`](brand/README.md). **Значения для презентации:** `presentation/src/core/css/tokens.css`.
+Веб-фронтенд удалён; описания его экранов и анимаций ниже остаются дизайн-ориентирами,
+а не реализованным интерфейсом плагина.
 
 Стиль-источник — Refero «Max Yinger» (yinger.dev): тёмный холст, тёплый белый текст, моноширинная
 телеметрия, плотная сетка с шагом 4 px, один 3D-объект в центре.
@@ -182,11 +183,9 @@ Brim говорит как опытный технолог у принтера: 
 
 | Что | Где |
 |---|---|
-| Токены цвета, шрифтов, отступов, движения | `frontend/src/shared/styles/tokens/` |
-| Знак, словесный знак и локап в интерфейсе | `frontend/src/shared/ui/brand/` (`BrandMark`, `BrandWordmark`, `BrandLockup`) |
-| Анимации темы и языка | `frontend/src/shared/motion/` (`withLayerSweep`, `withTextScramble`) |
-| Фавиконы, иконки, манифест, соцкарточки | `cd frontend && npm run brand:assets` из `docs/brand/symbol*.svg` |
+| Токены и шрифты презентации | `presentation/src/core/css/tokens.css`, `fonts.css` |
+| Знак, словесный знак и локап | `docs/brand/` |
 | Картинки README | `cd presentation && npm run readme` |
-| Токены для презентации | `cd frontend && npm run tokens:export` |
+| Встроенный интерфейс STE Slicer | Реализация ещё не начата |
 
 <sub>[Оглавление документации](README.md) · [README проекта](../README.md)</sub>

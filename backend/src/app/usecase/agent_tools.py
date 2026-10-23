@@ -1,37 +1,28 @@
-from dataclasses import replace
-from enum import StrEnum
-
 from app.domain.chat import ToolCall
 from app.domain.confirmation import BatchStatus, Mode, batch_hash, permits_execution
-from app.domain.corrections import CorrectionState, limit_reached, operation_key, register_outcome
 from app.domain.errors import InvalidRequest
 from app.domain.jsonvalue import JsonObject
 from app.domain.operations import operations_of, validate_tool_arguments
 from app.domain.protocol import (
     EVENT_CONFIRMATION,
-    EVENT_QUESTION,
     EVENT_TOOL_FINISHED,
     EVENT_TOOL_STARTED,
     STALE_SCENE,
 )
 from app.domain.run import RunState
 from app.domain.tools import INTERVIEW_BLOCKED_TOOLS
+from app.usecase.agent_corrections import correction_flow
+from app.usecase.agent_flow import Flow
+from app.usecase.agent_questions import QuestionHandler
 from app.usecase.config import AgentConfig
-from app.usecase.dto.run import QuestionBatchDTO, RunDTO
-from app.usecase.dto.tools import CallStatus, ChangeBatchDTO, ToolCallDTO
+from app.usecase.dto.run import RunDTO
+from app.usecase.dto.tools import ChangeBatchDTO, ToolCallDTO
 from app.usecase.events import EventPublisher
 from app.usecase.interface.runtime import Clock, IdGenerator
 from app.usecase.interface.storage import UnitOfWorkFactory
 from app.usecase.run_store import RunStore
 from app.usecase.tool_executor import ToolExecutor
 from app.usecase.tool_results import call_ok, error_code, error_entry, result_entry
-
-
-class Flow(StrEnum):
-    CONTINUE = "continue"
-    WAIT = "wait"
-    SUSPEND = "suspend"
-    HELP = "help"
 
 
 class ToolHandler:
@@ -45,6 +36,7 @@ class ToolHandler:
         ids: IdGenerator,
         config: AgentConfig,
     ) -> None:
+        self._questions = QuestionHandler(uow_factory, store, events, clock, ids)
         self._uow_factory = uow_factory
         self._store = store
         self._executor = executor
@@ -59,7 +51,9 @@ class ToolHandler:
             if current is None:
                 return Flow.SUSPEND
             flow = await self._one(current, tool_call)
-            if flow is not Flow.CONTINUE:
+            fresh = await self._store.load(run.id)
+            saving = fresh is not None and fresh.state is RunState.SAVING
+            if flow is not Flow.CONTINUE or saving:
                 for skipped in calls[index + 1 :]:
                     await self._store.append(
                         run.id,
@@ -77,7 +71,7 @@ class ToolHandler:
             )
             return Flow.CONTINUE
         if tool_call.name == "ask_user":
-            return await self._ask(run, tool_call, arguments)
+            return await self._questions.ask(run, tool_call, arguments)
         if tool_call.name in INTERVIEW_BLOCKED_TOOLS and not run.requirements_ready:
             await self._store.append(
                 run.id,
@@ -91,54 +85,11 @@ class ToolHandler:
         if tool_call.name == "apply_changes":
             return await self._apply(run, tool_call, arguments)
         target = RunState.SLICING if tool_call.name == "slice" else RunState.EXECUTING_TOOL
-        scene = await self._scene_version(run)
+        epoch, scene = await self._scene_version(run)
         call = await self._executor.create(
-            run, tool_call.id, tool_call.name, arguments, scene, None
+            run, tool_call.id, tool_call.name, arguments, scene, None, epoch
         )
         return await self.execute(run, call, target)
-
-    async def _ask(self, run: RunDTO, tool_call: ToolCall, arguments: JsonObject) -> Flow:
-        raw = arguments.get("questions")
-        questions = (
-            tuple(str(item["text"]) for item in raw if isinstance(item, dict) and "text" in item)
-            if isinstance(raw, list)
-            else ()
-        )
-        if not questions:
-            summary = arguments.get("requirements_summary")
-            if not isinstance(summary, str) or not summary.strip():
-                await self._store.append(
-                    run.id,
-                    error_entry(
-                        tool_call.id, "invalid_arguments", "requirements_summary is required"
-                    ),
-                )
-                return Flow.CONTINUE
-            updated = await self._store.save(
-                run,
-                lambda fresh: replace(fresh, requirements_ready=True, requirements_summary=summary),
-            )
-            await self._store.append(
-                run.id, error_entry(tool_call.id, "ok", "Requirements accepted.")
-            )
-            await self._store.move(updated.id, RunState.AGENT_WORKING, "requirements ready")
-            return Flow.CONTINUE
-        batch = QuestionBatchDTO(
-            id=self._ids.new_id(),
-            run_id=run.id,
-            call_id=tool_call.id,
-            questions=questions,
-            answer=None,
-            created_at=self._clock.now(),
-        )
-        async with self._uow_factory() as uow:
-            await uow.runs.add_question_batch(batch)
-            await uow.commit()
-        await self._store.move(run.id, RunState.AWAITING_USER, "ask_user")
-        await self._events.emit(
-            run, EVENT_QUESTION, {"batch_id": batch.id, "questions": list(questions)}
-        )
-        return Flow.WAIT
 
     async def _apply(self, run: RunDTO, tool_call: ToolCall, arguments: JsonObject) -> Flow:
         operations = operations_of(arguments)
@@ -154,6 +105,7 @@ class ToolHandler:
             call_id=tool_call.id,
             content_hash=batch_hash(operations),
             scene_version=instance.scene_version,
+            scene_epoch=instance.scene_epoch,
             operations=tuple(operations),
             explanation=explanation if isinstance(explanation, str) else "",
             status=BatchStatus.ACCEPTED if auto else BatchStatus.PROPOSED,
@@ -172,6 +124,7 @@ class ToolHandler:
                     "operations": list(batch.operations),
                     "explanation": batch.explanation,
                     "scene_version": batch.scene_version,
+                    "scene_epoch": batch.scene_epoch,
                 },
             )
             return Flow.WAIT
@@ -186,9 +139,11 @@ class ToolHandler:
             mode=conversation.mode,
             operations=list(batch.operations),
             scene_version=instance.scene_version,
+            scene_epoch=instance.scene_epoch,
             batch_status=batch.status,
             batch_hash_value=batch.content_hash,
             batch_scene_version=batch.scene_version,
+            batch_scene_epoch=batch.scene_epoch,
         )
         if not allowed:
             async with self._uow_factory() as uow:
@@ -209,7 +164,13 @@ class ToolHandler:
             "explanation": batch.explanation,
         }
         call = await self._executor.create(
-            run, batch.call_id, "apply_changes", arguments, batch.scene_version, batch.id
+            run,
+            batch.call_id,
+            "apply_changes",
+            arguments,
+            batch.scene_version,
+            batch.id,
+            batch.scene_epoch,
         )
         return await self.execute(run, call, RunState.EXECUTING_TOOL)
 
@@ -254,7 +215,7 @@ class ToolHandler:
             await self._after_slice(current, call)
         else:
             await self._store.move(current.id, _resume(current), f"{call.tool} finished")
-        return await self._corrections(current, call)
+        return await correction_flow(current, call, self._store, self._config.correction_limit)
 
     async def _after_slice(self, run: RunDTO, call: ToolCallDTO) -> None:
         if call.scene_version is not None:
@@ -266,37 +227,17 @@ class ToolHandler:
                     "ok" if call_ok(call) else "failed",
                     call.result or {},
                     self._clock.now(),
+                    call.scene_epoch,
                 )
                 await uow.commit()
         target = RunState.SAVING if call_ok(call) else _resume(run)
         await self._store.move(run.id, target, "slice finished")
 
-    async def _scene_version(self, run: RunDTO) -> int:
+    async def _scene_version(self, run: RunDTO) -> tuple[str, int]:
         async with self._uow_factory() as uow:
             instance = await uow.instances.get(run.instance_id)
         assert instance is not None
-        return instance.scene_version
-
-    async def _corrections(self, run: RunDTO, call: ToolCallDTO) -> Flow:
-        if call.tool not in {"apply_changes", "slice"} or error_code(call) in {STALE_SCENE}:
-            return Flow.CONTINUE
-        key = operation_key(call.tool, call.arguments, len(call.applied))
-        state = register_outcome(
-            CorrectionState(run.correction_key, run.correction_failures),
-            key,
-            succeeded=call_ok(call),
-        )
-        limit = limit_reached(state, self._config.correction_limit)
-        await self._store.save(
-            run,
-            lambda fresh: replace(
-                fresh,
-                correction_key=state.key,
-                correction_failures=state.failures,
-                help_required=limit,
-            ),
-        )
-        return Flow.HELP if limit and call.status is not CallStatus.COMPLETED else Flow.CONTINUE
+        return instance.scene_epoch, instance.scene_version
 
 
 def _resume(run: RunDTO) -> RunState:

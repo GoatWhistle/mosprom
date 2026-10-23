@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from app.domain.confirmation import Mode
 from app.domain.errors import DomainError, InvalidRequest
 from app.domain.jsonvalue import JsonObject, JsonValue
@@ -10,12 +12,14 @@ from app.usecase.dto.tools import ToolOutcome
 from app.usecase.instances import InstanceService
 from app.usecase.interface.runtime import Clock, IdGenerator
 from app.usecase.interface.storage import UnitOfWorkFactory
+from app.usecase.readiness import InstanceReadiness
 from app.usecase.runs import RunService
 
 
 class PluginSession:
     def __init__(
         self,
+        readiness: InstanceReadiness,
         instances: InstanceService,
         runs: RunService,
         uow_factory: UnitOfWorkFactory,
@@ -24,6 +28,7 @@ class PluginSession:
     ) -> None:
         self._instances = instances
         self._runs = runs
+        self._readiness = readiness
         self._uow_factory = uow_factory
         self._clock = clock
         self._ids = ids
@@ -43,7 +48,12 @@ class PluginSession:
                 state = frame.get("state")
                 if not isinstance(state, dict):
                     raise InvalidRequest("state must be an object")
-                await self._instances.record_snapshot(instance_id, scene, state)
+                stored = await self._instances.record_snapshot(
+                    instance_id, scene, state, _epoch(frame)
+                )
+                if stored:
+                    self._readiness.snapshot(instance_id)
+                    await self.resume(instance_id)
                 return []
             case "chat_message":
                 return await self._chat(instance_id, frame)
@@ -61,11 +71,13 @@ class PluginSession:
         raise InvalidRequest(f"Unknown frame type {frame.get('type')!r}")
 
     async def _hello(self, instance_id: str, frame: JsonObject) -> list[JsonObject]:
+        self._readiness.disconnect(instance_id)
         modes = frame.get("modes")
         printer = frame.get("printer")
         result = await self._instances.hello(
             instance_id,
             contract_version=str(frame.get("contract_version", "")),
+            scene_epoch=_epoch(frame),
             slicer_version=str(frame.get("slicer_version", "")),
             modes=[str(item) for item in modes] if isinstance(modes, list) else [],
             printer=printer if isinstance(printer, dict) else {},
@@ -96,7 +108,19 @@ class PluginSession:
         raw = frame.get("call_ids")
         known = [str(item) for item in raw] if isinstance(raw, list) else []
         await self._instances.reconcile(instance_id, known)
-        await self._runs.resume_instance(instance_id)
+        self._readiness.reconcile(instance_id)
+        await self.resume(instance_id)
+
+    async def configure(self, instance_id: str) -> None:
+        self._readiness.configure(instance_id)
+        await self.resume(instance_id)
+
+    def disconnect(self, instance_id: str) -> None:
+        self._readiness.disconnect(instance_id)
+
+    async def resume(self, instance_id: str) -> None:
+        if self._readiness.ready(instance_id):
+            await self._runs.resume_instance(instance_id)
 
     async def _progress(self, instance_id: str, frame: JsonObject) -> None:
         call_id = str(frame.get("call_id", ""))
@@ -145,6 +169,7 @@ def _outcome(frame: JsonObject) -> ToolOutcome:
     applied = frame.get("applied")
     scene = frame.get("scene_version")
     return ToolOutcome(
+        scene_epoch=_epoch(frame),
         call_id=call_id,
         ok=frame.get("ok") is True,
         scene_version=scene if isinstance(scene, int) and not isinstance(scene, bool) else None,
@@ -154,3 +179,11 @@ def _outcome(frame: JsonObject) -> ToolOutcome:
         if isinstance(applied, list)
         else (),
     )
+
+
+def _epoch(frame: JsonObject) -> str:
+    value = frame.get("scene_epoch")
+    try:
+        return str(UUID(str(value)))
+    except ValueError:
+        raise InvalidRequest("scene_epoch must be a UUID") from None

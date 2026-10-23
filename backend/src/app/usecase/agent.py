@@ -1,13 +1,14 @@
 import asyncio
 from dataclasses import replace
 
-from app.domain.artifacts import REQUIRED_KINDS
 from app.domain.chat import ChatRequest, ChatResponse, LlmConnection, ToolDefinition
 from app.domain.errors import DomainError, LlmNotConfigured
 from app.domain.protocol import EVENT_ERROR
 from app.domain.run import TERMINAL_STATES, WAITING_STATES, RunState
 from app.domain.tools import load_catalog
-from app.usecase.agent_tools import Flow, ToolHandler
+from app.usecase.agent_completion import ArtifactCompletion
+from app.usecase.agent_flow import Flow
+from app.usecase.agent_tools import ToolHandler
 from app.usecase.config import AgentConfig
 from app.usecase.context import build_messages
 from app.usecase.dto.run import RunDTO, TranscriptEntry
@@ -18,6 +19,7 @@ from app.usecase.interface.llm import ChatModel, LlmConnectionStore
 from app.usecase.interface.runtime import CallSignals, Clock
 from app.usecase.interface.storage import UnitOfWorkFactory
 from app.usecase.prompts import HELP_PROMPT, SUMMARY_PROMPT, SYSTEM_PROMPT
+from app.usecase.readiness import InstanceReadiness
 from app.usecase.run_store import RunStore
 from app.usecase.tool_executor import ToolExecutor
 from app.usecase.tool_results import error_entry
@@ -42,7 +44,9 @@ class AgentLoop:
         clock: Clock,
         config: AgentConfig,
         logger: Logger,
+        readiness: InstanceReadiness,
     ) -> None:
+        self._readiness = readiness
         self._uow_factory = uow_factory
         self._store = store
         self._chat_model = chat_model
@@ -54,6 +58,9 @@ class AgentLoop:
         self._clock = clock
         self._config = config
         self._logger = logger
+        self._completion = ArtifactCompletion(
+            uow_factory, store, clock, signals, config, self.finish_with_summary, self._fail
+        )
 
     async def run(self, run_id: str) -> None:
         try:
@@ -71,6 +78,8 @@ class AgentLoop:
             run = await self._store.load(run_id)
             if run is None or run.state in TERMINAL_STATES or run.state in WAITING_STATES:
                 return
+            if not self._readiness.ready(run.instance_id):
+                return
             if run.steps >= self._config.max_steps:
                 await self._fail(run_id, "step_limit", "The agent reached its step limit")
                 return
@@ -83,7 +92,7 @@ class AgentLoop:
 
     async def _advance(self, run: RunDTO) -> Flow:
         if run.state is RunState.SAVING:
-            return await self._await_artifacts(run)
+            return await self._completion.wait(run)
         pending = await self._unfinished(run)
         if pending is not None:
             finished = await self._executor.run_call(
@@ -204,39 +213,6 @@ class AgentLoop:
         await self._store.append(run_id, TranscriptEntry(role="assistant", content=response.text))
         await self._store.say(run, response.text)
         await self._store.move(run_id, RunState.AWAITING_USER, "help requested")
-
-    async def _await_artifacts(self, run: RunDTO) -> Flow:
-        async with self._uow_factory() as uow:
-            calls = await uow.tool_calls.list_for_run(run.id)
-        sliced = [call for call in calls if call.tool == "slice" and call.scene_version is not None]
-        if not sliced or sliced[-1].scene_version is None:
-            await self._store.move(run.id, RunState.AGENT_WORKING, "no slice result")
-            return Flow.CONTINUE
-        scene = sliced[-1].scene_version
-        deadline = self._clock.now().timestamp() + self._config.save_timeout_s
-        while True:
-            async with self._uow_factory() as uow:
-                instance = await uow.instances.get(run.instance_id)
-                saved = await uow.artifacts.list_meta(run.id)
-            assert instance is not None
-            kinds = {item.kind for item in saved if item.scene_version == scene}
-            if kinds >= {kind.value for kind in REQUIRED_KINDS}:
-                if instance.scene_version == scene:
-                    await self.finish_with_summary(run)
-                    return Flow.WAIT
-                await self._stale_result(run)
-                return Flow.CONTINUE
-            remaining = deadline - self._clock.now().timestamp()
-            if remaining <= 0 or not await self._signals.wait(f"artifacts:{run.id}", remaining):
-                await self._fail(
-                    run.id, "artifact_timeout", "G-code and 3MF were not saved in time"
-                )
-                return Flow.WAIT
-
-    async def _stale_result(self, run: RunDTO) -> None:
-        note = "[system] The scene changed after slicing, so the saved files are stale. Re-slice."
-        await self._store.append(run.id, TranscriptEntry(role="user", content=note))
-        await self._store.move(run.id, RunState.AGENT_WORKING, "stale artifacts")
 
     async def finish_with_summary(self, run: RunDTO) -> None:
         await self._store.move(run.id, RunState.COMPLETED, "artifacts saved")

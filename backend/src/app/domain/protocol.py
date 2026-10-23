@@ -1,4 +1,4 @@
-CONTRACT_VERSION = "1"
+CONTRACT_VERSION = "2"
 
 HELLO = "hello"
 STATE_SNAPSHOT = "state_snapshot"

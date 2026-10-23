@@ -58,6 +58,11 @@ class PostgresUnitOfWork:
             self._connection = None
             await self._pool.putconn(connection)
 
+    async def read_snapshot(self) -> None:
+        if self._connection is None:
+            raise RuntimeError("Unit of work is not open")
+        await self._connection.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
+
     async def commit(self) -> None:
         if self._connection is None or self._committed:
             raise RuntimeError("Unit of work is not open or already committed")

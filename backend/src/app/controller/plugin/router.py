@@ -56,7 +56,8 @@ async def plugin_socket(websocket: WebSocket, token: str = "") -> None:
     except DomainError:
         await websocket.close(code=CLOSE_BAD_FRAME)
     finally:
-        services.registry.detach(instance.id, sink)
+        if services.registry.detach(instance.id, sink):
+            services.session.disconnect(instance.id)
 
 
 async def _receive(websocket: WebSocket) -> JsonObject | None:
