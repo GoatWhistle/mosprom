@@ -32,6 +32,38 @@ Item {
         danger: "#b3261e", ok: "#2e7d32"
     }
 
+    Theme {
+        id: theme
+    }
+
+    property string seenConversation: "\u0000"
+    property var seenKeys: ({})
+
+    function isFresh(key) {
+        if (view.conversation_id !== seenConversation) {
+            seenConversation = view.conversation_id
+            var keys = {}
+            var list = view.entries
+            for (var i = 0; i < list.length; i++)
+                keys[list[i].key] = true
+            seenKeys = keys
+            return false
+        }
+        if (seenKeys[key])
+            return false
+        seenKeys[key] = true
+        return true
+    }
+
+    property var announced: ({})
+
+    function once(key) {
+        if (announced[key])
+            return false
+        announced[key] = true
+        return true
+    }
+
     function openSettings() {
         settingsOpen = true
     }
@@ -196,6 +228,19 @@ Item {
                 id: slot
                 width: ListView.view.width
                 property var entry: modelData
+                transform: Translate { id: rise }
+                Component.onCompleted: {
+                    if (!panel.isFresh(modelData.key))
+                        return
+                    opacity = 0
+                    rise.y = 6
+                    appear.start()
+                }
+                ParallelAnimation {
+                    id: appear
+                    NumberAnimation { target: slot; property: "opacity"; to: 1; duration: theme.durBase; easing.type: theme.easeOut }
+                    NumberAnimation { target: rise; property: "y"; to: 0; duration: theme.durBase; easing.type: theme.easeOut }
+                }
                 onHeightChanged: {
                     if (index === timeline.count - 1)
                         timeline.followToEnd()
@@ -263,6 +308,10 @@ Item {
                 c: panel.c
                 active: !!view.confirmation && view.confirmation.call_id === entry.call_id && !view.busy
                 onDecide: brim.confirm(decision, composer.text)
+                onEntryChanged: {
+                    if (entry && entry.call_id && panel.once("confirm-" + entry.call_id))
+                        announce()
+                }
             }
         }
 
@@ -333,24 +382,14 @@ Item {
             anchors.bottomMargin: 8
             spacing: 8
 
-            Rectangle {
-                visible: view.progress !== null && view.progress !== undefined
+            ActivityBar {
                 width: parent.width
-                height: 4
-                radius: 2
-                color: c.selected
-                Rectangle {
-                    width: parent.width * Math.max(0, Math.min(1, (view.progress || {}).fraction || 0))
-                    height: parent.height
-                    radius: 2
-                    color: c.accent
-                }
-            }
-            Text {
-                visible: view.progress !== null && view.progress !== undefined && !!(view.progress || {}).stage
-                text: (view.progress || {}).stage || ""
-                color: c.muted
-                font.pixelSize: 12
+                activity: view.activity || null
+                progress: view.progress || null
+                t: view.t
+                c: panel.c
+                theme: theme
+                onStop: brim.stop()
             }
             Text {
                 width: parent.width

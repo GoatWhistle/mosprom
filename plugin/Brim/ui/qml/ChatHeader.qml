@@ -34,17 +34,24 @@ Rectangle {
             palette_: root.c
             onClicked: root.menu()
         }
-        Rectangle {
-            width: 8
-            height: 8
-            radius: 4
+        Item {
+            width: 14
+            height: 14
             anchors.verticalCenter: parent.verticalCenter
-            color: root.view.status_kind === "error" ? root.c.danger : (root.view.status_kind === "ok" ? root.c.ok : root.c.accent)
-            SequentialAnimation on opacity {
-                running: root.view.status_kind === "busy"
-                loops: Animation.Infinite
-                NumberAnimation { to: 0.3; duration: 600 }
-                NumberAnimation { to: 1.0; duration: 600 }
+            Spinner {
+                anchors.fill: parent
+                visible: root.view.status_kind === "busy"
+                running: visible
+                color: root.c.accent
+                track: Qt.rgba(0.5, 0.5, 0.5, 0.25)
+            }
+            Rectangle {
+                visible: root.view.status_kind !== "busy"
+                anchors.centerIn: parent
+                width: 8
+                height: 8
+                radius: 4
+                color: root.view.status_kind === "error" ? root.c.danger : (root.view.status_kind === "ok" ? root.c.ok : root.c.accent)
             }
         }
         Column {

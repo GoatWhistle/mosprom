@@ -8,6 +8,7 @@ Rectangle {
     property bool failed: entry.status === "failed" || entry.status === "rejected"
     property string statusKey: "tool_" + entry.status
     property bool running: entry.status === "running"
+    property bool ok: entry.status === "ok"
 
     width: parent ? parent.width : 300
     height: column.height + 12
@@ -25,18 +26,25 @@ Rectangle {
 
         Row {
             spacing: 8
-            Rectangle {
-                id: dot
-                width: 7
-                height: 7
-                radius: 4
+            Item {
+                width: 12
+                height: 12
                 anchors.verticalCenter: parent ? parent.verticalCenter : undefined
-                color: root.failed ? root.c.danger : (root.entry.status === "ok" ? root.c.ok : (root.running ? root.c.accent : root.c.muted))
-                SequentialAnimation on opacity {
+                Spinner {
+                    anchors.fill: parent
+                    visible: root.running
                     running: root.running
-                    loops: Animation.Infinite
-                    NumberAnimation { to: 0.3; duration: 600 }
-                    NumberAnimation { to: 1.0; duration: 600 }
+                    color: root.c.accent
+                    track: Qt.rgba(0.5, 0.5, 0.5, 0.25)
+                }
+                Text {
+                    id: mark
+                    anchors.centerIn: parent
+                    visible: !root.running
+                    text: root.failed ? "✕" : (root.ok ? "✓" : "•")
+                    color: root.failed ? root.c.danger : (root.ok ? root.c.ok : root.c.muted)
+                    font.pixelSize: 12
+                    font.bold: true
                 }
             }
             Text {
@@ -45,6 +53,28 @@ Rectangle {
                       + " · " + (root.t[root.statusKey] || root.entry.status)
                 color: root.failed ? root.c.danger : root.c.muted
                 font.pixelSize: 12
+            }
+        }
+        Item {
+            x: 20
+            width: parent.width - 20
+            height: root.running ? 3 : 0
+            visible: root.running
+            clip: true
+            Row {
+                id: dashes
+                spacing: 6
+                Repeater {
+                    model: Math.ceil(dashes.parent.width / 14) + 2
+                    Rectangle { width: 8; height: 3; radius: 1.5; color: root.c.accent; opacity: 0.7 }
+                }
+                NumberAnimation on x {
+                    running: root.running
+                    loops: Animation.Infinite
+                    from: -14
+                    to: 0
+                    duration: 450
+                }
             }
         }
         SelectableText {

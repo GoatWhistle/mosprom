@@ -1,3 +1,5 @@
+import time
+
 MAX_ERRORS = 20
 
 
@@ -26,6 +28,9 @@ class ChatState(object):
         self.save_state = None
         self.workspace_status = {}
         self.servers = {}
+        self.step = 0
+        self.activity = None
+        self.activity_since = None
 
     def set_draft(self, text):
         self.draft = text or ""
@@ -52,6 +57,7 @@ class ChatState(object):
         self.errors = []
         self.progress = None
         self.phase = None
+        self.reset_activity()
 
     def upsert_row(self, row):
         rows = [item for item in self.conversations if item["id"] != row["id"]]
@@ -68,6 +74,8 @@ class ChatState(object):
         self.progress = None
         self.attachments = []
         self.clear_draft()
+        self.step = 0
+        self.mark_activity("working")
 
     def turn_finished(self):
         self.running = False
@@ -75,6 +83,16 @@ class ChatState(object):
         self.phase = None
         self.confirmation = None
         self.progress = None
+        self.reset_activity()
+
+    def mark_activity(self, key):
+        if key != self.activity:
+            self.activity = key
+            self.activity_since = time.time() if key is not None else None
+
+    def reset_activity(self):
+        self.step = 0
+        self.mark_activity(None)
 
     def add_error(self, text):
         self.errors.append({"kind": "error", "text": text, "after": len(self.messages)})
