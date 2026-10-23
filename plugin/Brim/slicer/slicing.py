@@ -6,6 +6,7 @@ import time
 from ..execution.errors import OperationError
 from ..protocol import constants
 from .project_archive import verify_project
+from .qt_wrappers import direct_qt_calls
 
 SLICE_TIMEOUT = 900.0
 ESTIMATE_RETRIES = 10
@@ -114,7 +115,7 @@ class SlicingService(object):
     def _write_gcode(self, path):
         writer = self._h.plugin("GCodeWriter")
         stream = io.StringIO()
-        if writer is None or not writer.write(stream, None):
+        if writer is None or not self._write_on_qt_thread(writer, stream, None, "_createSnapshot"):
             raise OperationError(constants.ERR_OPERATION_FAILED, "G-code writer failed",
                                  {"writer_error": str(getattr(writer, "getInformation", lambda: "")())})
         with open(path, "w", encoding="utf-8", newline="") as handle:
@@ -124,7 +125,11 @@ class SlicingService(object):
         writer = self._h.application.getWorkspaceFileHandler().getWriter("3MFWriter")
         stream = io.BytesIO()
         nodes = [self._h.scene().getRoot()]
-        if writer is None or not writer.write(stream, nodes):
+        if writer is None or not self._write_on_qt_thread(writer, stream, nodes, "write"):
             raise OperationError(constants.ERR_OPERATION_FAILED, "3MF project writer failed")
         with open(path, "wb") as handle:
             handle.write(stream.getvalue())
+
+    def _write_on_qt_thread(self, writer, stream, nodes, *wrapped):
+        with direct_qt_calls(writer, *wrapped):
+            return writer.write(stream, nodes)
