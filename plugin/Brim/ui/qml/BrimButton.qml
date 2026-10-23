@@ -10,14 +10,16 @@ Rectangle {
     signal clicked()
 
     implicitWidth: label.implicitWidth + 28
-    implicitHeight: 34
-    radius: 6
+    implicitHeight: 32
+    radius: 16
     activeFocusOnTab: true
     opacity: enabledButton ? 1.0 : 0.45
     color: primary ? (area.containsMouse && enabledButton ? palette_.accentHover : palette_.accent)
                    : (area.containsMouse && enabledButton ? palette_.selected : "transparent")
     border.width: primary ? 0 : 1
     border.color: activeFocus ? palette_.accent : (danger ? palette_.danger : palette_.line)
+
+    Behavior on color { ColorAnimation { duration: 120 } }
 
     Text {
         id: label

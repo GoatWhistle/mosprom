@@ -7,10 +7,10 @@ Rectangle {
     property var c: ({})
     signal save(string kind)
 
-    height: column.height + 24
-    radius: 8
+    height: column.height + 28
+    radius: 14
     color: c.panel
-    border.width: 1
+    border.width: 2
     border.color: c.accent
 
     function duration(seconds) {
@@ -32,10 +32,10 @@ Rectangle {
 
     Column {
         id: column
-        x: 14
-        y: 12
-        width: parent.width - 28
-        spacing: 6
+        x: 16
+        y: 14
+        width: parent.width - 32
+        spacing: 10
 
         Text {
             text: root.t.result || ""
@@ -43,20 +43,44 @@ Rectangle {
             font.bold: true
             font.pixelSize: 13
         }
-        Text {
-            text: (root.t.print_time || "") + ": " + root.duration((root.result.summary || {}).print_time_seconds)
-            color: root.c.text
-            font.pixelSize: 13
-        }
-        Text {
-            text: (root.t.material || "") + ": " + root.weight((root.result.summary || {}).material_weight_g)
-            color: root.c.text
-            font.pixelSize: 13
-        }
         Row {
+            spacing: 10
+            Repeater {
+                model: [
+                    {label: root.t.print_time || "", value: root.duration((root.result.summary || {}).print_time_seconds)},
+                    {label: root.t.material || "", value: root.weight((root.result.summary || {}).material_weight_g)}
+                ]
+                delegate: Rectangle {
+                    width: (column.width - 10) / 2
+                    height: 56
+                    radius: 10
+                    color: root.c.bg
+                    Column {
+                        anchors.centerIn: parent
+                        spacing: 2
+                        Text {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: modelData.value
+                            color: root.c.text
+                            font.pixelSize: 16
+                            font.bold: true
+                        }
+                        Text {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: modelData.label
+                            color: root.c.muted
+                            font.pixelSize: 11
+                        }
+                    }
+                }
+            }
+        }
+        Flow {
+            width: parent.width
             spacing: 8
             BrimButton {
                 text: root.t.save_gcode || ""
+                primary: true
                 palette_: root.c
                 onClicked: root.save("gcode")
             }

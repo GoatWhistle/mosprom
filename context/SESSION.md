@@ -47,22 +47,22 @@ Updated: 2026-10-23, MSK
 
 - 2026-10-23: «все то, что ты сделал закоммить и пушь. вот вообще все изменения».
 
+- 2026-10-23: «нужно чтобы каждый новый чат был подвязан к одному рабочему пространству (файлу) чтоли, как то так брат ; нужно чтобы я мог менять чаты и как бы из за этого менялись файлы . понял задачу?»
+- 2026-10-23: «план именно задачи для исправления чатика сделай братан».
+
 ## Current state
 
-- Publication task: commit and push the entire working tree on feat/backend-agent, including frontend/skill removals, instructions, plugin, backend fixes and docs. Starting HEAD: 54c4a57. Final commit SHA and remote state are available in Git; no merge to main requested in this turn.
-- Implemented: embedded PyQt5/QML chat plugin, agent backend with OpenAI-compatible port, PostgreSQL and migrations in Compose. No standalone frontend. LLM chooses, deterministic tools execute.
-- Auto/Ask, interviews, attachments imported only by agent, numerical geometry/structured state, paired G-code/3MF, improvement only on new user request remain the agreed design.
-- Review fixes complete: epoch/version protocol v2, history/runtime restore, LLM resend/readiness, cancellation/Qt deadlines/thread access, 3MF writer validation, material catalog, snapshot-before-result and exported revision preservation.
-- Detailed changes and commands: work/implementation-verification.md. Contract: work/protocol-contract.md. Plugin archive: plugin/dist/Brim-0.1.0.zip.
-- Earlier user choice: «поднимать все буду на виртуалке». Windows stand remains pending; backend/plugin must upgrade together with scene_epochs migration.
-- Explicit plugin scope from prior session: «work/slicer-agent-plan.md делай все кроме проверок на винде. твоя задача написать сам плагин».
-- PDF embedded-chat and website browser-SPA wording conflict; user chose embedded chat. Official sources unchanged.
+- 2026-10-23: «@work/chat-improvement-plan.md в другой ветке чатик сделай красивый» — branch feat/chat-redesign: visual QML redesign only (header, bubbles, composer, cards, drawer, scroll button); project/workspace switching from the plan is NOT implemented. Previewed via qml with mock view at 980/440 px dark; light theme, real STE Slicer and PyQt5 run unchecked.
+
+- Branch feat/backend-agent; HEAD c28e0a8, pushed with 4e09fcc. Current task is documentation only: saved work/chat-improvement-plan.md for chat UI and one workspace per conversation. No implementation of that plan yet.
+- Implemented backend + embedded PyQt5/QML plugin, PostgreSQL in Compose, contract v2. Agent chooses print settings; deterministic code executes. Prior verification: work/implementation-verification.md; protocol: work/protocol-contract.md.
+- Proposed chat changes: compact UI, truthful statuses, preserved drafts, readable confirmations/results, project autosave and scene switching when changing chats. Plan separates agreed project behavior from proposed defaults.
+- Local Compose brim was left running: backend/db healthy, migrations exited 0, localhost:8000 health 200. Port bound to loopback. LLM settings come from plugin, not .env LLM_*.
+- Actual local STE Slicer runs under ~/.wine-ste. Installed plugin was found to have contract 1 and 27 files different from current source; backend expects 2. Replacement instructions supplied, installation not replaced by us. Current ZIP was rebuilt and all 57 files matched source. Real slicing/3MF reopen remain unverified.
+- Build pitfall: bake defaults produced app-backend:latest; Compose selected brim-backend:latest. Fresh image retagged and container recreated. Match image tags on future builds.
 
 ## Verification and next actions
 
-- Backend: Ruff, mypy, 83 tests passed (59 unit + 24 integration with real PostgreSQL).
-- Plugin: 123 tests passed on Python 3.14; Python 3.5 Docker: 122 passed, one AST API check skipped. Package built.
-- Isolated brim-review Compose build/up healthy; real plugin HTTP/WebSocket + backend + PostgreSQL scenario passed, scripted LLM/fake slicer, files SHA-256 matched and history restored. No paid calls.
-- Remaining: real STE Slicer 7.10.12 / Qt5 / Windows runtime and real 3MF reopen not verified; no quality or physical-print claims. Resource warnings in test fixtures and Starlette httpx deprecation remain.
-- Next work only as requested: validate on user's VM. Do not expand features or rewrite template docs during this review.
-- Historical issues: presentation speech:check ten stale sections, root README missing docs/images/hero.png; not rechecked or changed here. Several docs remain template drafts.
+- Prior backend checks: Ruff, mypy, 83 tests passed. Plugin: 123 tests on Python 3.14; Python 3.5: 122 passed, one skipped. Real backend/PostgreSQL scenario passed with fake slicer/scripted LLM. No paid calls.
+- Next: discuss/implement work/chat-improvement-plan.md when requested; this turn only writes the Markdown plan. Windows/Qt5 scene operations still need real verification.
+- Preserve official embedded-chat vs browser-SPA source conflict. Existing template documentation and prior speech/README checks have known stale content; do not expand this task into their cleanup.
