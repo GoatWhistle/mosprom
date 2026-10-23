@@ -5,6 +5,7 @@ from ..agent import ask_user
 from ..agent.hub import LOCAL_SERVER
 from ..agent.transcript import call_arguments, call_name, pending_question, rejection_comment
 from ..protocol import constants
+from . import markdown_html
 
 
 def _payload(message):
@@ -74,7 +75,8 @@ def build_entries(messages, running):
                             "attachments": [item.get("name", "") for item in message.get("brim_attachments") or []]})
         elif role == "assistant":
             if message.get("content"):
-                entries.append({"kind": "assistant", "key": key, "text": message["content"], "attachments": []})
+                entries.append({"kind": "assistant", "key": key, "text": message["content"],
+                                "html": markdown_html.render(message["content"]), "attachments": []})
             for position, call in enumerate(message.get("tool_calls") or []):
                 entry = _question(call, results) if call_name(call) == ask_user.NAME else _tool(call, results, running)
                 entry["key"] = "%s-%d" % (key, position)
