@@ -13,6 +13,7 @@ DEFAULTS = {
     "language": "ru",
     "theme": "dark",
     "mcp_port": 0,
+    "panel_width": 0,
 }
 SERVER_NAME = re.compile(r"^[A-Za-z0-9_-]{1,24}$")
 
@@ -136,3 +137,9 @@ class PluginSettings(object):
 
     def set_theme(self, value):
         self._store.set("theme", "light" if value == "light" else "dark")
+
+    def panel_width(self):
+        return int(self._store.get("panel_width") or 0)
+
+    def set_panel_width(self, value):
+        self._store.set("panel_width", max(0, int(value)))

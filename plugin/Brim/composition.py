@@ -62,7 +62,7 @@ class BrimRuntime(object):
         self.hub = McpHub(self.dispatcher, self.settings.mcp_servers, lambda url, headers: McpHttpClient(url, headers))
         policy = ConfirmationPolicy(self.port.setting_facts, self.settings.risk_ratio)
         self.loop = AgentLoop(self.llm, self.hub, policy, SceneContext(self.port), self.executor.cancel)
-        self.controller = ChatController(self._build_presenter)
+        self.controller = ChatController(self._build_presenter, self.settings)
         self.port.add_change_listener(self._ui(lambda: self.presenter.on_scene_changed()))
         self._started = False
 

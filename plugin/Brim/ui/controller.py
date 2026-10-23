@@ -13,10 +13,12 @@ def local_path(value):
 
 class ChatController(QObject):
     viewChanged = pyqtSignal()
+    panelWidthChanged = pyqtSignal()
     _invoke = pyqtSignal(object)
 
-    def __init__(self, build_presenter, parent=None):
+    def __init__(self, build_presenter, settings=None, parent=None):
         QObject.__init__(self, parent)
+        self._settings = settings
         self._invoke.connect(self._run_invoked)
         self._runner = ThreadRunner(self.post)
         self._presenter = build_presenter(self._runner, self._publish)
@@ -42,6 +44,16 @@ class ChatController(QObject):
     @pyqtProperty("QVariantMap", notify=viewChanged)
     def view(self):
         return self._cache
+
+    @pyqtProperty(int, notify=panelWidthChanged)
+    def panelWidth(self):
+        return self._settings.panel_width() if self._settings is not None else 0
+
+    @pyqtSlot(int)
+    def setPanelWidth(self, value):
+        if self._settings is not None:
+            self._settings.set_panel_width(value)
+            self.panelWidthChanged.emit()
 
     @property
     def presenter(self):
