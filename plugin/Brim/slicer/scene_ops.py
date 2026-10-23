@@ -5,7 +5,7 @@ from ..execution.errors import OperationError, OutcomeUnknown
 from ..protocol import constants
 from . import frames
 
-LOAD_TIMEOUT = 300.0
+LOAD_TIMEOUT = 120.0
 JOB_TIMEOUT = 300.0
 
 
@@ -118,8 +118,11 @@ class SceneOperations(object):
         application = self._h.application
         done = threading.Event()
 
-        def on_completed(*args):
-            done.set()
+        target = os.path.basename(path)
+
+        def on_completed(name=""):
+            if os.path.basename(str(name)) == target:
+                done.set()
 
         self._main.call(application.fileCompleted.connect, on_completed)
         try:
@@ -128,7 +131,8 @@ class SceneOperations(object):
         finally:
             self._main.call(application.fileCompleted.disconnect, on_completed)
         if not finished:
-            raise OutcomeUnknown("file import did not finish within %.0f s" % LOAD_TIMEOUT)
+            raise OutcomeUnknown("file import did not finish within %.0f s" % LOAD_TIMEOUT,
+                                 {"note": "the slicer emits no completion signal when a file cannot be read"})
         self._main.call(lambda: None)
 
     def _run_job(self, make_job):
