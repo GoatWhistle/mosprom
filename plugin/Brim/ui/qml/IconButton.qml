@@ -64,6 +64,9 @@ Rectangle {
                     g.moveTo(9 + Math.cos(a) * 5.5, 9 + Math.sin(a) * 5.5)
                     g.lineTo(9 + Math.cos(a) * 7.5, 9 + Math.sin(a) * 7.5)
                 }
+            } else if (root.glyph === "close") {
+                g.moveTo(4, 4); g.lineTo(14, 14)
+                g.moveTo(14, 4); g.lineTo(4, 14)
             } else if (root.glyph === "stop") {
                 g.rect(4, 4, 10, 10)
             } else if (root.glyph === "down") {

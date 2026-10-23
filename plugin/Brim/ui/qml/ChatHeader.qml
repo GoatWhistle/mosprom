@@ -6,10 +6,12 @@ Rectangle {
     property var c: ({})
     property bool compact: false
     property string title: ""
+    property bool closable: false
     signal menu()
     signal create()
     signal settings()
     signal modeChosen(string mode)
+    signal close()
 
     height: 52
     color: c.bg
@@ -131,6 +133,12 @@ Rectangle {
             glyph: "gear"
             palette_: root.c
             onClicked: root.settings()
+        }
+        IconButton {
+            visible: root.closable
+            glyph: "close"
+            palette_: root.c
+            onClicked: root.close()
         }
     }
 }
