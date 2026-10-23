@@ -52,7 +52,7 @@ Updated: 2026-10-23, MSK
 
 ## Current state
 
-- Branch `feat/claude-agent-adapter` (9e303a1, 66bb88b, 86f9cab; not pushed/merged), built from main a3bc507.
+- Claude adapter merged into local main (fast-forward to 37c0e7f, «смерджи в main»); main not pushed.
   Earlier fix/feature branches are committed to main; full entries and user quotes in
   [session log](../work/session-log.md).
 - Stand: backend Compose on this host (192.168.1.137:8000), image `brim-backend:latest` built with
@@ -67,7 +67,7 @@ Updated: 2026-10-23, MSK
 
 - Claude adapter: ruff, 85 backend unit pass; mypy errors only pre-existing
   `tests/integration/e2e/harness.py`. Live smoke 3 turns ~8 s each (local) and one call from container OK.
-- Next: full chat scenario through Claude in the real slicer; then push/merge the branch on request.
+- Next: full chat scenario through Claude in the real slicer; push main on request.
 - Open: 409 run_active fix proposed,
   not implemented; G-code export on stand unverified; uvicorn access log prints WS instance token.
 - Preserve official embedded-chat vs browser-SPA conflict; avoid unrelated template cleanup.
