@@ -3,11 +3,17 @@ export type DurationToken =
   | `--delay-${string}`
   | "--hold-skeleton"
   | "--stagger"
+  | "--stagger-layer"
   | "--reduced-fade"
   | "--reduced-fade-exit"
   | "--view-transition-limit"
 
-export type EasingToken = "--ease-out" | "--ease-in-out" | "--ease-drawer" | "--ease-linear"
+export type EasingToken =
+  | "--ease-out"
+  | "--ease-in-out"
+  | "--ease-drawer"
+  | "--ease-linear"
+  | "--ease-wave"
 
 const MS_PER_SECOND = 1000
 const DURATION_PATTERN = /^(-?\d*\.?\d+)(ms|s)$/

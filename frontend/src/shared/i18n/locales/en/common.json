@@ -1,10 +1,10 @@
 {
   "app": {
-    "name": "Product",
-    "tagline": "Product interface skeleton"
+    "name": "Brim",
+    "tagline": "Holds from the first layer"
   },
   "meta": {
-    "description": "Product interface skeleton: shell, themes, languages and shared states."
+    "description": "Brim picks FDM print settings from an STL model, a photo and a request, returns ready G-code and runs a printer fleet from chat."
   },
   "shell": {
     "skip": "Skip to content"

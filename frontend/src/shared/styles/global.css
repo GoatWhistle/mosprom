@@ -91,6 +91,37 @@ samp {
   animation-timing-function: var(--ease-out);
 }
 
+.layer-sweep {
+  position: fixed;
+  inset: 0;
+  z-index: var(--layer-skip-link);
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+.layer-sweep-dark {
+  --sweep-surface: var(--surface-dark-base);
+}
+
+.layer-sweep-light {
+  --sweep-surface: var(--surface-light-base);
+}
+
+.layer-band {
+  position: relative;
+  flex: 1;
+  margin-block-end: calc(var(--hairline) * -1);
+  background-color: var(--sweep-surface);
+  box-shadow: var(--shadow-nozzle-end);
+  transform: translateX(-101%);
+}
+
+.layer-band-reverse {
+  box-shadow: var(--shadow-nozzle-start);
+  transform: translateX(101%);
+}
+
 .visually-hidden {
   position: absolute;
   inset-block-start: 0;

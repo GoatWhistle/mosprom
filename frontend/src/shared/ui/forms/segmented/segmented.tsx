@@ -58,7 +58,7 @@ export function Segmented<T extends string>({
   const modality = useInputModality()
   const { listRef, indicatorRef, itemRef } = useSlidingIndicator<HTMLFieldSetElement>(value, {
     instant: modality.instant,
-    radiusToken: "--radius-md",
+    radiusToken: "--radius-pill",
   })
   return (
     <fieldset

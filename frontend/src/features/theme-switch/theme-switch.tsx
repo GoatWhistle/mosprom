@@ -1,4 +1,5 @@
 import { useTranslation } from "@/shared/i18n"
+import { withLayerSweep } from "@/shared/motion"
 import { THEMES, type Theme, useTheme } from "@/shared/theme"
 import { type IconName, Segmented, type SegmentedOption } from "@/shared/ui"
 
@@ -15,13 +16,16 @@ export function ThemeSwitch() {
     label: t(`common:theme.${value}`),
     icon: THEME_ICON[value],
   }))
+  const change = (next: Theme) => {
+    void withLayerSweep(next, () => setTheme(next))
+  }
   return (
     <Segmented
       label={t("common:theme.legend")}
       options={options}
       value={theme}
       display="icon"
-      onChange={setTheme}
+      onChange={change}
     />
   )
 }

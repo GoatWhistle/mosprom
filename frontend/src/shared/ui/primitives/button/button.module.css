@@ -12,7 +12,7 @@
   place-items: center;
   min-block-size: var(--button-height);
   padding-inline: var(--button-padding);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   background-color: var(--button-surface);
   color: var(--button-text);
   text-decoration: none;

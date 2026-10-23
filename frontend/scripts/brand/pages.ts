@@ -43,9 +43,14 @@ export function cardHtml(
   colors: ThemePalette,
   fonts: string,
   family: string,
+  wordmark?: string,
 ): string {
+  const name =
+    wordmark === undefined
+      ? `<span style="font-size:44px;font-weight:650;letter-spacing:-0.02em">${escapeHtml(text.name)}</span>`
+      : `<div style="height:52px;display:flex">${wordmark.replace("<svg ", '<svg height="52" ')}</div>`
   const body = `<div id="asset" style="width:1200px;height:630px;display:grid;grid-template-rows:auto 1fr auto;padding:72px 88px;background:${colors.surface};color:${colors.base};-webkit-font-smoothing:antialiased">
-  <div style="display:flex;align-items:center;gap:22px"><div style="width:72px;height:72px">${mark}</div><span style="font-size:44px;font-weight:650;letter-spacing:-0.02em">${escapeHtml(text.name)}</span></div>
+  <div style="display:flex;align-items:center;gap:24px"><div style="width:72px;height:72px">${mark}</div>${name}</div>
   <div style="display:grid;align-content:center;gap:28px">
     <p style="font-size:68px;font-weight:700;line-height:1.05;letter-spacing:-0.035em;text-wrap:balance;max-width:1000px">${escapeHtml(text.tagline)}</p>
     <p style="font-size:30px;line-height:1.35;color:${colors.muted};max-width:960px;text-wrap:pretty">${escapeHtml(text.description)}</p>

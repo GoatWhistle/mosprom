@@ -1,10 +1,10 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { chromium, type Page } from "@playwright/test"
 import { ICO_SIZES, type Locale, MANIFEST, META_LOCALE, ogFile, RASTERS } from "./brand/assets.ts"
 import { buildIco, type PngImage } from "./brand/binary.ts"
-import { faviconSvg, paintedMark, readMark, readPalette } from "./brand/marks.ts"
+import { faviconSvg, paintedMark, readFaviconMark, readMark, readPalette } from "./brand/marks.ts"
 import { cardHtml, rasterHtml, tileHtml } from "./brand/pages.ts"
 import { FONT_PACKAGES, pickFontFaces } from "./exportTokens.ts"
 
@@ -54,21 +54,28 @@ async function shoot(page: Page, html: string): Promise<Buffer> {
   return page.locator("#asset").screenshot({ omitBackground: true })
 }
 
+function wordmark(): string | undefined {
+  const file = join(repoRoot, "docs", "brand", "wordmark-dark.svg")
+  return existsSync(file) ? readFileSync(file, "utf8").trim() : undefined
+}
+
 const mark = readMark(repoRoot)
+const small = readFaviconMark(repoRoot)
 const palette = readPalette(frontendRoot)
-const light = paintedMark(mark, palette.light)
+const painted = paintedMark(mark, palette.dark)
+const paintedSmall = paintedMark(small, palette.dark)
 const site = process.env.SITE_URL?.replace(/^https?:\/\//, "").replace(/\/$/, "") ?? ""
 
-write("favicon.svg", faviconSvg(mark, palette))
+write("favicon.svg", faviconSvg(small, palette))
 
 const browser = await chromium.launch()
 const page = await browser.newPage({ deviceScaleFactor: 1 })
 const ico: PngImage[] = []
 for (const size of ICO_SIZES)
-  ico.push({ size, data: await shoot(page, tileHtml(light, size, palette.light, true, 0.78)) })
+  ico.push({ size, data: await shoot(page, tileHtml(paintedSmall, size, palette.dark, false, 1)) })
 write("favicon.ico", buildIco(ico))
 for (const asset of RASTERS)
-  write(asset.file, await shoot(page, rasterHtml(light, asset, palette.light)))
+  write(asset.file, await shoot(page, rasterHtml(painted, asset, palette.dark)))
 const fonts = fontFaces()
 const family = fontFamily()
 for (const locale of LOCALES) {
@@ -79,7 +86,10 @@ for (const locale of LOCALES) {
     description: text.meta.description,
     site: site || text.app.name,
   }
-  write(ogFile(locale), await shoot(page, cardHtml(light, card, palette.light, fonts, family)))
+  write(
+    ogFile(locale),
+    await shoot(page, cardHtml(painted, card, palette.dark, fonts, family, wordmark())),
+  )
 }
 await browser.close()
 
@@ -92,8 +102,8 @@ const manifest = {
   start_url: "/",
   scope: "/",
   display: "standalone",
-  background_color: palette.light.surface,
-  theme_color: palette.light.surface,
+  background_color: palette.dark.surface,
+  theme_color: palette.dark.surface,
   icons: RASTERS.filter((asset) => asset.file.startsWith("icons/")).map((asset) => ({
     src: `/${asset.file}`,
     sizes: `${asset.size}x${asset.size}`,

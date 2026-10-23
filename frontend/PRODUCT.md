@@ -18,9 +18,10 @@ the product deliberately leaves to the human.}}
 
 ## Brand Personality
 
-{{Three words for the character, then one sentence each on voice and tone. Example shape: "Quiet,
-exact, helpful. Copy is plain and short, names things the way users do and never shouts." State
-which colour carries action and which carries attention once the palette is chosen.}}
+Exact, calm, workmanlike. Brim talks like an experienced print technologist standing next to the
+printer: numbers with units, the reason for each choice, no panic when a print fails. Hot-plastic
+orange carries action and the running process; yellow carries attention; everything else is warm
+off-white on carbon.
 
 ## Anti-references
 
@@ -31,8 +32,8 @@ which colour carries action and which carries attention once the palette is chos
 - Centred narrow column with empty fields on the sides of a wide screen.
 - Caps-lock eyebrows above every section, fake step numbers 01, 02, 03.
 - Dashes and middle dots as separators, emoji instead of icons.
-- {{Domain-specific anti-reference: the legacy system or competitor screen users already dislike,
-  and what exactly is wrong with it.}}
+- Slicer settings dumps: hundreds of unlabelled fields in nested tabs with no reason for any value.
+- Toy-like maker branding: rainbow filament colours, cartoon printers, stock photos of printers.
 
 ## Design Principles
 

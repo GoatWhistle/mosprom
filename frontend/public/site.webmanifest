@@ -1,13 +1,13 @@
 {
-  "name": "Продукт",
-  "short_name": "Продукт",
-  "description": "Каркас интерфейса продукта: оболочка, темы, языки и общие состояния.",
+  "name": "Brim",
+  "short_name": "Brim",
+  "description": "Brim подбирает параметры FDM-печати по STL-модели, фото и запросу, отдаёт готовый G-код и управляет парком принтеров из чата.",
   "lang": "ru",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#f6f6f7",
-  "theme_color": "#f6f6f7",
+  "background_color": "#12130f",
+  "theme_color": "#12130f",
   "icons": [
     {
       "src": "/icons/icon-192.png",

@@ -3,6 +3,8 @@
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-linear: linear;
+  --ease-brim: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-wave: cubic-bezier(0.22, 1, 0.36, 1);
 
   --dur-instant: 80ms;
   --dur-press: 140ms;
@@ -15,8 +17,19 @@
   --dur-draw: 900ms;
   --dur-spin: 800ms;
   --dur-breathe: 2400ms;
+  --dur-ring: 280ms;
+  --dur-brim-loop: 3200ms;
+  --dur-travel: 1000ms;
+  --dur-layer: 280ms;
+  --dur-scramble: 520ms;
 
   --stagger: 40ms;
+  --stagger-ring: 120ms;
+  --stagger-layer: 40ms;
+  --scale-part-from: 0.6;
+  --scale-ring-from: 0.84;
+  --scale-ring-to: 1.04;
+  --dash-travel: 26px;
   --press-scale: 0.97;
   --press-scale-surface: 0.99;
   --enter-scale: 0.95;
@@ -48,6 +61,10 @@
   --motion-swap-out: kf-swap-out var(--dur-fast-exit) var(--ease-out) both;
   --motion-spin: kf-spin var(--dur-spin) var(--ease-linear) infinite;
   --motion-shimmer: kf-shimmer var(--dur-breathe) var(--ease-in-out) infinite;
+  --motion-brim-part: kf-brim-part var(--dur-ring) var(--ease-brim) both;
+  --motion-brim-ring-in: kf-brim-ring-in var(--dur-ring) var(--ease-brim) both;
+  --motion-brim-ring-loop: kf-brim-ring-loop var(--dur-brim-loop) var(--ease-brim) infinite both;
+  --motion-travel: kf-travel var(--dur-travel) var(--ease-linear) infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -63,7 +80,19 @@
     --dur-draw: 1ms;
     --dur-spin: 1ms;
     --dur-breathe: 1ms;
+    --dur-ring: 1ms;
+    --dur-brim-loop: 1ms;
+    --dur-travel: 1ms;
+    --dur-layer: 1ms;
+    --dur-scramble: 1ms;
     --stagger: 0ms;
+    --stagger-ring: 0ms;
+    --stagger-layer: 0ms;
+    --scale-part-from: 1;
+    --scale-ring-from: 1;
+    --scale-ring-to: 1;
+    --motion-brim-ring-loop: none;
+    --motion-travel: none;
     --press-scale: 1;
     --press-scale-surface: 1;
     --enter-scale: 1;

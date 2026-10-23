@@ -7,7 +7,7 @@
 }
 
 .glyph {
-  animation: var(--motion-spin);
+  --mark-size: var(--icon-md);
 }
 
 .label {

@@ -53,6 +53,43 @@
   }
 }
 
+@keyframes kf-brim-part {
+  from {
+    transform: scale(var(--scale-part-from));
+  }
+}
+
+@keyframes kf-brim-ring-in {
+  from {
+    opacity: 0;
+    transform: scale(var(--scale-ring-from));
+  }
+}
+
+@keyframes kf-brim-ring-loop {
+  0% {
+    opacity: 0;
+    transform: scale(var(--scale-ring-from));
+  }
+
+  22%,
+  84% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(var(--scale-ring-to));
+  }
+}
+
+@keyframes kf-travel {
+  to {
+    stroke-dashoffset: calc(var(--dash-travel) * -1);
+  }
+}
+
 @keyframes kf-shimmer {
   0%,
   100% {

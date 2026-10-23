@@ -31,8 +31,14 @@ const PALETTE_TOKENS: Readonly<Record<keyof ThemePalette, string>> = {
   line: "--border-subtle",
 }
 
-export function readMark(repoRoot: string): Mark {
-  const symbol = join(repoRoot, "docs", "brand", "symbol.svg")
+export function readFaviconMark(repoRoot: string): Mark {
+  return existsSync(join(repoRoot, "docs", "brand", "symbol-small.svg"))
+    ? readMark(repoRoot, "symbol-small.svg")
+    : readMark(repoRoot)
+}
+
+export function readMark(repoRoot: string, file = "symbol.svg"): Mark {
+  const symbol = join(repoRoot, "docs", "brand", file)
   const shell = join(repoRoot, "presentation", "src", "shell.html")
   const svg = existsSync(symbol)
     ? readFileSync(symbol, "utf8")

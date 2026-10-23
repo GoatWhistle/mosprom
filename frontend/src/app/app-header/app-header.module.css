@@ -14,10 +14,7 @@
   display: inline-flex;
   align-items: center;
   min-block-size: var(--target-min);
-  color: var(--text-primary);
-  font-size: var(--font-size-subheading);
-  font-weight: var(--weight-semibold);
-  letter-spacing: var(--tracking-tight);
+  border-radius: var(--radius-sm);
   text-decoration: none;
 }
 

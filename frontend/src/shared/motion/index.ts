@@ -7,8 +7,10 @@ export {
   readPixels,
   readToken,
 } from "./css-tokens"
+export { type SweepTarget, withLayerSweep } from "./layer-sweep"
 export { type StaggerStyle, staggerStyle } from "./stagger"
 export { Swap, type SwapPhase, type SwapProps } from "./swap/swap"
+export { withTextScramble } from "./text-scramble"
 export { type InputModality, useInputModality } from "./use-input-modality"
 export { useLatched } from "./use-latched"
 export {

@@ -10,7 +10,7 @@ import {
   REQUIRED_HEAD,
 } from "../../scripts/brand/assets.ts"
 import { icoSizes, pngSize } from "../../scripts/brand/binary.ts"
-import { faviconSvg, readMark, readPalette } from "../../scripts/brand/marks.ts"
+import { faviconSvg, readFaviconMark, readPalette } from "../../scripts/brand/marks.ts"
 
 const ROOT = process.cwd()
 const PUBLIC = join(ROOT, "public")
@@ -27,7 +27,7 @@ interface Manifest {
 
 describe("brand assets in public/", () => {
   it(`favicon.svg matches the current mark and tokens (${FIX})`, () => {
-    const expected = faviconSvg(readMark(resolve(ROOT, "..")), readPalette(ROOT))
+    const expected = faviconSvg(readFaviconMark(resolve(ROOT, "..")), readPalette(ROOT))
     expect(readFileSync(join(PUBLIC, "favicon.svg"), "utf8")).toBe(expected)
     expect(expected).toContain("prefers-color-scheme:dark")
   })

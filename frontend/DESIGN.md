@@ -1,14 +1,15 @@
 ---
-name: "{{PRODUCT}}"
-description: "{{One-line visual direction, e.g. calm workspace where data is the main visual}}"
+name: "Brim"
+description: "Midnight print workshop: warm off-white type on carbon, telemetry at the edges, one hot-plastic accent"
 ---
 
-# Design System: {{PRODUCT}}
+# Design System: Brim
 
-{{Two sentences: the visual idea and the one thing every screen must make obvious.}}
+A dark workshop lit by one warm light: data and telemetry hug the edges, the model sits in the centre, and the only bright colour is hot plastic. Every screen must make obvious which settings were chosen, why, and what the printer is doing right now.
 
-Source style, picked by the user: {{https://styles.refero.design/style/<uuid>}}, extracted from
-{{source site URL}}. Full extraction and conflicts resolved with the user: `work/design/style.md`.
+Source style, picked by the user: https://styles.refero.design/style/a7891223-a93e-4731-a1aa-4079f1ee928b,
+extracted from https://yinger.dev. Product-level rules for people: `docs/visual-system.md`; brand
+sources: `docs/brand/`.
 
 Values live only in `src/shared/styles/tokens/`. This file names roles, usage and rules and never
 copies a hex, px or ms value: change the token, not this file. `npm run tokens:export -- --print`
@@ -17,7 +18,7 @@ Inter and JetBrains Mono.
 
 ## 1. Overview
 
-- **Register:** product UI. {{Density: calm, standard or dense, and why for these users.}}
+- **Register:** product UI. Dense like a cockpit: operators scan parameters and printer telemetry, so 4–8px gaps inside groups and 48–64px between sections.
 - **Layout:** the site uses the full screen width. Pages have no `max-width`; padding is
   `--space-page` and `--space-page-wide` from 75rem. Width is filled by panels: sidebar, list with
   detail, filters with results. Grids use `minmax()` and `fr`. Only prose (`--prose-measure`) and a
@@ -42,33 +43,36 @@ inside `tokens/`. Every semantic token exists in both themes.
 | Sunken | `--surface-sunken` | recessed track | segmented track, wells |
 | Selected | `--surface-selected` | current choice inside a track | segment indicator |
 | Text | `--text-primary`, `--text-secondary`, `--text-muted` | body, supporting, quiet | headings and body, hints, placeholders |
-| Accent | `--action-primary`, `--action-primary-text` | {{what the accent means: action, selection, link}} | primary button, links, focus |
+| Accent | `--action-primary`, `--action-primary-text` | hot plastic: the main action and the running process | primary button, focus, active printer, outer ring of the mark |
 | Lines | `--border-subtle`, `--border-strong` | separation, control outline | dividers, card edge, secondary button |
 | Focus | `--focus-ring` | keyboard position | the shared `:focus-visible` |
-| Status | `--status-success`, `--status-warning`, `--status-danger` | {{confirmed, needs a human, failed}} | status icons with text |
+| Status | `--status-success`, `--status-warning`, `--status-danger` | printing or done, needs an operator, failed | status icons with text |
 
 Rules:
 
-- The accent means one thing: {{action and selection}}. It never decorates.
+- The accent means one thing: action and the process in progress. It never decorates.
 - Status is an icon plus text, colour only reinforces it.
 - Contrast is checked by `npm run rules` (`contrast`): text 4.5:1 and the focus ring 3:1 on every
   surface, in both themes.
-- {{Brand rule, e.g. "warm colour only for what needs a human decision".}}
+- Text on the orange button is always dark carbon, in both themes.
+- Warning is yellow, deliberately distinct from the orange accent.
 
 ## 3. Typography
 
-- **Sans:** `--font-sans`, {{brand font, loaded locally from `@fontsource-variable/*`}}.
+- **Sans:** `--font-sans`, Onest, loaded locally from `@fontsource-variable/onest`.
+- **Display:** `--font-display`, Handjet, for big printer-display numbers only (time, progress, temperature), with `--font-size-display`.
 - **Mono:** `--font-mono` for codes, identifiers and paths, never for prose.
 - **Scale:** `--font-size-caption`, `-label`, `-body-sm`, `-body`, `-subheading`, `-heading`,
   `-heading-lg` (fluid page title). Each has a matching `--line-height-*`. No other sizes.
-- **Weights:** `--weight-regular` text, `--weight-medium` controls, `--weight-semibold` headings.
+- **Weights:** `--weight-regular` text, `--weight-medium` controls and headings; contrast comes from face and size, not weight.
+- **Telemetry:** mono 12px uppercase with `--tracking-telemetry`.
 - **Numbers:** tabular (`--font-numeric`) wherever values line up; formatted with `Intl` by locale.
 - Page title is `PageHeader`, card titles are `Card title`; screens write no `h2`-`h6` by hand.
 
 ## 4. Elevation
 
-- **Radii:** `--radius-sm` small marks, `--radius-md` controls, `--radius-lg` cards and tracks,
-  `--radius-pill` pills and scrollbar thumbs. Nested corners stay concentric.
+- **Radii:** `--radius-sm` links and focus, `--radius-md` fields, `--radius-lg` (0) cards and panels,
+  `--radius-pill` buttons, segmented controls, tags and scrollbar thumbs. Nested corners stay concentric.
 - **Lines before shadows:** a card is `--surface-raised` with a `--border-subtle` hairline.
   `--shadow-ring` outlines secondary controls, `--shadow-raised` lifts the selected segment,
   `--shadow-float` is reserved for popovers and dialogs.
@@ -87,8 +91,12 @@ primitive.
 - **States:** `Skeleton` after 200ms and held 300ms, `Spinner` after 400ms, `stale` dimming when
   data is already shown, `EmptyState` with a 48px icon, `ErrorState` with retry. `NoValue` replaces
   manual dashes.
-- **Data components:** {{the product's signature data component: what it shows, which tokens it
-  uses, how it reads at 375px. Add it to `shared/ui/data-display` or `entities/`.}}
+- **Brand:** `BrandMark` (`motion`: none, intro, loop), `BrandWordmark`, `BrandLockup` in
+  `shared/ui/brand`. `Spinner` is the looping mark.
+- **Data components:** parameter rows with the reason next to the value, printer telemetry in mono, and
+  progress as layers growing bottom-up.
+- **Theme and language:** `withLayerSweep` (layers of the new theme printed bottom-up) and
+  `withTextScramble` (short text decodes from G-code glyphs) in `shared/motion`.
 - **Motion per element:** press scales to `--press-scale`; content swaps through `Swap`;
   overlays fade and scale from 0.95 at the anchor and close faster than they open; screen changes
   use View Transitions. Values: `src/shared/styles/tokens/motion.css` and `keyframes.css`.
@@ -110,4 +118,5 @@ primitive.
 - No caps-lock section labels, no fake 01/02/03 numbering, no coloured side stripe on cards.
 - No dash or middle dot as a separator; no `null` or "Loading..." text instead of a skeleton.
 - No colour as the only signal of state; no text below 4.5:1 in either theme.
-- {{Product-specific don't.}}
+- No typing the name in a font: use `BrandWordmark` or the SVG files.
+- No orange for decoration, headings or charts that do not mean action or a running process.

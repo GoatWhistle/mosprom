@@ -1,4 +1,13 @@
 export {
+  BrandLockup,
+  type BrandLockupProps,
+  BrandMark,
+  type BrandMarkProps,
+  type BrandMotion,
+  BrandWordmark,
+  type BrandWordmarkProps,
+} from "./brand/brand-mark"
+export {
   Segmented,
   type SegmentedDisplay,
   type SegmentedOption,
