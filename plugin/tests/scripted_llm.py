@@ -40,7 +40,7 @@ class ScriptedLlm(object):
                 self.end_headers()
                 self.wfile.write(body)
 
-        self._server = _Server(("0.0.0.0", 0), Handler)
+        self._server = _Server(("127.0.0.1", 0), Handler)
         self.port = self._server.server_port
         threading.Thread(target=self._server.serve_forever, daemon=True).start()
 
