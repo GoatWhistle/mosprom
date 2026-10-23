@@ -11,8 +11,7 @@ judge can verify, and keeps them honest as the code moves:
 - `docs/requirements-map.md`: every requirement of the task → implementation → check → status.
 - `docs/for-jury.md`: a click-by-click route on the stand, then every criterion → where it is answered.
 
-Both pages exist as templates with their guidance in `{{…}}`. Write them in the product language and by
-the `docs-writing` standard.
+Both pages exist as templates with their guidance in `{{…}}`. Write them in the product language and with explicit evidence for implementation and verification claims.
 
 ## Two statuses that never merge
 
@@ -66,7 +65,7 @@ Then «Чего в этом checkout нет?»: weights, keys, private data, ser
 and how a judge can check without them.
 
 Done: every criterion and sub-item from `requirements.md` has a row, and
-`node skills/docs-writing/check-links.mjs docs` prints nothing.
+`node .claude/scripts/check-doc-links.mjs docs` prints nothing.
 
 ## 5. Mirror the route in an e2e test
 

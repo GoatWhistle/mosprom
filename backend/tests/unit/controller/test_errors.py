@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from pydantic import BaseModel
 
 from app.controller.errors import ErrorHandlers
-from app.domain.errors import DecisionFailure, DomainError, InvalidQuestion
+from app.domain.errors import DomainError, InvalidRequest, ModelFailure
 from app.usecase.interface import LogValue
 
 
@@ -49,14 +49,14 @@ def build_client(error: Exception, logger: RecordingLogger | None = None) -> Tes
     ("error", "status", "body"),
     [
         (
-            InvalidQuestion("Choice question needs at least two options"),
+            InvalidRequest("operations must be a list"),
             422,
-            {"code": "invalid_question", "message": "Choice question needs at least two options"},
+            {"code": "invalid_request", "message": "operations must be a list"},
         ),
         (
-            DecisionFailure("Decision model failed: HTTP 500 token=secret"),
+            ModelFailure("Language model returned HTTP 500 token=secret"),
             503,
-            {"code": "decision_failure", "message": "Decision model failed"},
+            {"code": "model_failure", "message": "Language model failed"},
         ),
         (DomainError("unmapped"), 500, {"code": "internal_error", "message": "Internal error"}),
         (RuntimeError("boom"), 500, {"code": "internal_error", "message": "Internal error"}),
@@ -89,7 +89,7 @@ def test_unknown_route_uses_error_envelope() -> None:
 @pytest.mark.parametrize(
     ("error", "level", "event"),
     [
-        (DecisionFailure("HTTP 500"), "warning", "domain_failure"),
+        (ModelFailure("HTTP 500"), "warning", "domain_failure"),
         (DomainError("unmapped"), "error", "unmapped_domain_error"),
         (RuntimeError("boom"), "error", "unexpected_error"),
     ],
@@ -115,6 +115,6 @@ def test_unexpected_error_passes_exception_to_logger() -> None:
 def test_client_errors_are_not_logged() -> None:
     logger = RecordingLogger()
 
-    build_client(InvalidQuestion("bad"), logger).get("/fail")
+    build_client(InvalidRequest("bad"), logger).get("/fail")
 
     assert logger.records == []

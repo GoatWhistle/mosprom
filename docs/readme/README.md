@@ -10,7 +10,7 @@
 |---|---|
 | Кнопки и бейджи: тексты, ссылки, акцент | `presentation/readme/readme.json` |
 | Обещание на баннере | `presentation/readme/assets.html` |
-| Цвета, шрифты, скругления | токены фронтенда, затем `cd frontend && npm run tokens:export` |
+| Цвета, шрифты, скругления | `presentation/src/core/css/tokens.css` и `fonts.css` |
 | Знак | шаблон `brand-mark` в `presentation/src/shell.html` |
 
 Пересборка: `cd presentation && npm run readme`. Команда заново снимает все картинки в 2x, пересобирает

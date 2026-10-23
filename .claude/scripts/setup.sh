@@ -11,4 +11,4 @@ find skills -path '*/scripts/*' -type f \
 bash .claude/scripts/sync-agents.sh
 
 printf 'hooks: %s\n' "$(git config core.hooksPath)"
-printf 'next: put the organizer materials into brief/, then run the hack-kickoff skill\n'
+printf 'next: put the organizer materials into brief/, then read the organizer sources directly\n'

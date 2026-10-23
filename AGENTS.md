@@ -2,7 +2,8 @@
 
 Otkroy Mosprom hackathon, additive manufacturing track. Submission: October 25, 10:00 MSK
 (PDF p. 10; year 2026 inferred from event context). Product positioning and P0 await user discussion.
-Official target: a STE Slicer plugin with a browser SPA, Python 3.5-compatible code and PyQt5;
+User-selected target: a STE Slicer plugin with embedded chat, Python 3.5-compatible code and PyQt5.
+The website specifies a browser SPA; the PDF says embedded chat. Keep this source conflict explicit;
 read `brief/requirements.md` and `brief/TECHNICAL.md` before planning implementation.
 Existing Compose services are template infrastructure; plugin packaging remains undecided.
 
@@ -11,13 +12,13 @@ Existing Compose services are template infrastructure; plugin packaging remains 
 1. Read `context/README.md`, `context/SESSION.md` and `context/open-questions.md` before acting.
    Claude's SessionStart hook injects them; Codex reads them explicitly. These files contain state,
    not workflow rules. Preserve active user instructions word for word.
-2. Read the area's `AGENTS.md` before touching `frontend/`, `backend/` or `presentation/`.
+2. Read the area's `AGENTS.md` before touching `backend/` or `presentation/`.
    For work on this template itself, consult `work/template-development.md`; its history does not
    become instructions for a new hackathon.
 3. Use the skills required by the task, from canonical `skills/<name>/`. Load supporting references
    only when their branch applies. Skill recommendations yield to project rules and user instructions.
-4. For a new hackathon or a changed organizer brief, use `hack-kickoff`. Template maintenance and
-   ordinary edits can proceed with the available information while missing facts are recorded.
+4. Read organizer sources directly when the brief changes. Record unresolved conflicts explicitly;
+   do not present an interpretation or proposed architecture as an organizer requirement.
 
 ## Sources of truth
 
@@ -30,7 +31,7 @@ Existing Compose services are template infrastructure; plugin packaging remains 
 | Durable decisions and uncommented code explanations | `docs/adr/`, `docs/design-decisions.md` |
 | Product documentation and measured claims | `docs/README.md`, `docs/evidence.md` |
 | Internal working artifacts | `work/README.md`, by pointer |
-| UI / backend / defense rules | `frontend/AGENTS.md` / `backend/AGENTS.md` / `presentation/AGENTS.md` |
+| Backend / defense rules | `backend/AGENTS.md` / `presentation/AGENTS.md` |
 
 On conflict: organizer originals, then `brief/QA.md`, then derived brief views, then product docs.
 A newer official source supersedes an older answer; record source, date and page. Label assumptions.
@@ -39,10 +40,10 @@ Originals and verbatim quotes are preserved; derived views may be updated with t
 ## Priorities and architecture
 
 - P0 is the scenario the jury will use. Order work by criteria weights; finish P0 before P1/P2.
-- Frontend: React, Vite and TypeScript. Backend: Clean Architecture under
+- UI: embedded STE Slicer chat; the standalone frontend has been removed. Backend: Clean Architecture under
   `src/app/{domain,usecase,repository,adapter,controller}`, wired in `main.py`. Outer layers depend
   on domain/usecase interfaces. Read the backend topic documents before implementation.
-- The current template has frontend and backend Compose services. The backend has LLM/embedding
+- The current template has a backend Compose service. The backend has LLM/embedding
   ports with Claude Agent SDK and Codex SDK adapters, a decision-model port with a System One HTTP
   adapter and a lexical fallback, and a FastAPI composition root in `main.py` serving only
   `GET /api/v1/health`; no use cases, database or migrations yet. Add them when implementing the
@@ -95,7 +96,7 @@ Originals and verbatim quotes are preserved; derived views may be updated with t
 
 - `skills/` is the source for both agents. `.claude/skills/<name>` and `.agents/skills/<name>` are
   relative symlinks. Resolve resources from the canonical source, not an alias. Catalog: `skills/README.md`.
-- Frontend skill commands run in `frontend/`, defense commands in `presentation/`, unless specified.
+- Defense commands run in `presentation/`, unless specified. Web frontend workflows are inactive.
   Repository paths are relative to its root; resources inside a skill are relative to that skill.
 - Run `bash .claude/scripts/setup.sh` once per clone, before the first commit. It activates Git hooks
   and syncs aliases. After adding/removing/renaming skills, run `.claude/scripts/sync-agents.sh`.
@@ -114,7 +115,7 @@ Originals and verbatim quotes are preserved; derived views may be updated with t
   commits to subjects only, fixes attribution and tags, removes internal paths and verifies blobs.
 - `bash .claude/scripts/scrub-history.sh [source [output]]` uses the same engine to create a cleaned
   bare copy; source history stays unchanged. Review the copy before manually publishing it.
-- Frontend verification: `cd frontend && npm run verify`. Deck: `cd presentation && npm run build`
+- Deck: `cd presentation && npm run build`
   and `npm run speech:check`. Backend: `cd backend && uv run ruff check . && uv run mypy . &&
   uv run pytest tests/unit`, plus `uv run pytest tests/integration` for storage or stand changes.
   The pre-commit hook runs backend unit tests when `backend/` is staged.

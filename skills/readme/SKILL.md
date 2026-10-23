@@ -70,14 +70,14 @@ whenever commands, ports, the promise or a limitation change.
 ## Phase 2: product README (T − 8h, before `submission`)
 
 Finish `docs/for-jury.md`, `docs/requirements-map.md`, `docs/evidence.md`, `docs/limitations.md`
-first (`jury-route`, `docs-writing`); the README condenses them and never says more. Fill the blocks
+first (`jury-route`); the README condenses them and never says more. Fill the blocks
 top to bottom, render the visuals, take the hero shot, then run the final check. Delete a block
 rather than leave it hollow, together with its button.
 
 ## Final check
 
 1. `grep -rn "{{" README.md docs/ presentation/readme/` prints nothing.
-2. `node skills/docs-writing/check-links.mjs README.md docs` prints nothing.
+2. `node .claude/scripts/check-doc-links.mjs README.md docs` prints nothing.
 3. `cd presentation && npm run readme` was run after the last change of tokens, texts or numbers;
    the strip numbers equal «Результаты» and `docs/evidence.md`.
 4. GitHub preview of the branch in light and dark themes: banner, buttons and mermaid switch with the

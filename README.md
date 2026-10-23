@@ -31,7 +31,6 @@
 
 <p align="center">
   <!-- readme:stack -->
-  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-1.dark.png"><img src="docs/readme/badge-stack-1.light.png" alt="фронтенд: React 19 и TypeScript" width="227" height="28"></picture>
   <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-2.dark.png"><img src="docs/readme/badge-stack-2.light.png" alt="API: {{FastAPI}}" width="122" height="28"></picture>
   <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-3.dark.png"><img src="docs/readme/badge-stack-3.light.png" alt="хранилище: {{PostgreSQL 16}}" width="212" height="28"></picture>
   <br>
@@ -163,7 +162,8 @@ docker buildx bake
 docker compose up
 ```
 
-Интерфейс шаблона — http://localhost:8080, Swagger бэкенда — http://localhost:8000/docs.
+Compose запускает только бэкенд; Swagger — http://localhost:8000/docs.
+Интерфейс планируется как встроенный чат STE Slicer; плагин ещё не реализован.
 У бэкенда пока один метод — `GET /api/v1/health`; сценарии, база и засев данных появятся при реализации
 проекта. Сборка образов требует сети.
 
@@ -172,10 +172,10 @@ docker compose up
 <br>
 
 ```bash
-cd frontend && npm ci --silent && npm run dev
+cd backend && uv sync && uv run uvicorn app.main:create_app --factory --reload
 ```
 
-Проверки: `cd frontend && npm run verify`; бэкенд — `cd backend && uv run ruff check . && uv run mypy . && uv run pytest tests/unit`. Переменные окружения,
+Проверки бэкенда: `cd backend && uv run ruff check . && uv run mypy . && uv run pytest tests/unit`. Переменные окружения,
 демо-учётки, тесты и деплой — в [запуске и проверках](docs/running.md).
 
 </details>
@@ -214,7 +214,7 @@ cd frontend && npm ci --silent && npm run dev
 2. Материалы организаторов — в `brief/sources/`, затем скил `hack-kickoff`: `brief/` и `context/`, шапка
    `AGENTS.md`, тезис и P0-сценарий.
 3. Название и знак — скилы `naming` и `brand-identity`.
-4. Визуал README — в стиле сайта: `cd frontend && npm run tokens:export`, затем
+4. Визуал README использует сохранённые токены презентации:
    `cd presentation && npm run readme` пересобирает `docs/readme/*.png` из `presentation/readme/assets.html`
    и красит mermaid-диаграммы цветами продукта. Бейджи shields.io не используются.
 5. Этот README ведёт скил `readme`: рабочая версия во время хакатона, продуктовая к сдаче.
