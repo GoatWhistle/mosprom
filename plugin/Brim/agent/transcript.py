@@ -4,6 +4,7 @@ import json
 from . import ask_user
 
 PRIVATE_PREFIX = "brim_"
+REJECTED_TEXT = "the user rejected this call"
 
 
 def call_name(call):
@@ -19,6 +20,15 @@ def call_arguments(call):
     except (TypeError, ValueError):
         return {}
     return value if isinstance(value, dict) else {}
+
+
+def rejected_text(comment):
+    return REJECTED_TEXT + (": " + comment if comment else "")
+
+
+def rejection_comment(message):
+    text = str(message or "")
+    return text[len(REJECTED_TEXT) + 2:].strip() if text.startswith(REJECTED_TEXT + ": ") else ""
 
 
 def answered_ids(messages, start):

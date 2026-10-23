@@ -4,7 +4,7 @@ import threading
 from . import ask_user
 from .conversation import read_file
 from .llm_client import LlmError
-from .transcript import call_name, dangling_calls, wire_messages
+from .transcript import call_name, dangling_calls, rejected_text, wire_messages
 
 DEFAULT_MAX_STEPS = 40
 WAIT_SLICE = 0.2
@@ -176,7 +176,7 @@ class Turn(object):
             if decision is None:
                 return False
             if decision != "accept":
-                text = "the user rejected this call" + (": " + comment if comment else "")
+                text = rejected_text(comment)
                 self._record(call, _error_result("rejected_by_user", text), "rejected", tool["server"])
                 self.conversation.save()
                 self.emit("changed")

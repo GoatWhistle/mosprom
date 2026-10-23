@@ -2,7 +2,7 @@ import json
 import os
 
 from ..agent import ask_user
-from ..agent.transcript import call_arguments, call_name
+from ..agent.transcript import call_arguments, call_name, rejection_comment
 from ..protocol import constants
 
 OPERATION_FIELDS = ("mode", "profile_id", "material_id", "key", "value", "extruder", "keys", "import_as",
@@ -82,7 +82,7 @@ def _tool_lines(call, reply, strings):
     payload = _payload(reply) if reply is not None else {}
     error = payload.get("error")
     if status == "rejected":
-        comment = str((error or {}).get("message") or "").partition(": ")[2] if isinstance(error, dict) else ""
+        comment = rejection_comment(error.get("message") if isinstance(error, dict) else None)
         lines.append("  - %s%s" % (strings["tool_rejected"], ": " + comment if comment else ""))
     elif isinstance(error, dict):
         lines.append("  - %s: `%s` %s" % (strings["error"], error.get("code"), error.get("message") or ""))

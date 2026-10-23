@@ -3,7 +3,7 @@ import os
 
 from ..agent import ask_user
 from ..agent.hub import LOCAL_SERVER
-from ..agent.transcript import call_arguments, call_name, pending_question
+from ..agent.transcript import call_arguments, call_name, pending_question, rejection_comment
 from ..protocol import constants
 
 
@@ -23,6 +23,8 @@ def _detail(name, message):
             return ", ".join(item.get("kind", "") for item in payload.get("applied") or []) or None
         return None
     error = payload.get("error")
+    if status == "rejected":
+        return rejection_comment((error or {}).get("message") if isinstance(error, dict) else None) or None
     if isinstance(error, dict):
         return "%s: %s" % (error.get("code"), error.get("message"))
     if status == "failed":
