@@ -165,6 +165,7 @@ Window {
             anchors.rightMargin: 20
             clip: true
             spacing: 12
+            cacheBuffer: 1000000
             model: view.entries
             property bool followEnd: true
             property bool unread: false
@@ -173,6 +174,28 @@ Window {
                 followEnd = true
                 unread = false
             }
+            function followToEnd() {
+                if (!followEnd)
+                    return
+                settle.left = 20
+                settle.lastY = -1
+                settle.restart()
+            }
+            Timer {
+                id: settle
+                interval: 16
+                repeat: true
+                property int left: 0
+                property real lastY: -1
+                onTriggered: {
+                    timeline.positionViewAtEnd()
+                    left -= 1
+                    if (timeline.contentY === lastY || left <= 0)
+                        stop()
+                    lastY = timeline.contentY
+                }
+            }
+            onMovementStarted: settle.stop()
             onMovementEnded: {
                 followEnd = atYEnd
                 if (atYEnd)
@@ -180,16 +203,21 @@ Window {
             }
             onCountChanged: {
                 if (followEnd)
-                    positionViewAtEnd()
+                    followToEnd()
                 else
                     unread = true
             }
-            onContentHeightChanged: if (followEnd) positionViewAtEnd()
+            onModelChanged: followToEnd()
+            onHeightChanged: followToEnd()
 
             delegate: Loader {
                 id: slot
                 width: ListView.view.width
                 property var entry: modelData
+                onHeightChanged: {
+                    if (index === timeline.count - 1)
+                        timeline.followToEnd()
+                }
                 onLoaded: item.entry = Qt.binding(function() { return slot.entry })
                 sourceComponent: {
                     switch (modelData.kind) {

@@ -29,7 +29,7 @@ Rectangle {
                 width: 7
                 height: 7
                 radius: 4
-                anchors.verticalCenter: parent.verticalCenter
+                anchors.verticalCenter: parent ? parent.verticalCenter : undefined
                 color: root.entry.status === "failed" ? root.c.danger : (root.entry.status === "ok" ? root.c.ok : root.c.accent)
                 SequentialAnimation on opacity {
                     running: root.running
