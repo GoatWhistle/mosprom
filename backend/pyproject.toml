@@ -20,9 +20,12 @@ dev = [
     "pytest-xdist>=3.8",
     "ruff>=0.14",
 ]
+llm = [
+    "claude-agent-sdk>=0.2.173",
+]
 
 [tool.uv]
-default-groups = ["dev"]
+default-groups = ["dev", "llm"]
 
 [build-system]
 requires = ["hatchling"]

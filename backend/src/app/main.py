@@ -6,6 +6,7 @@ import httpx
 from fastapi import FastAPI
 
 from app.adapter.llm.openai_compatible import OpenAICompatibleChatAdapter
+from app.adapter.llm.routing import ChatModelRouter, UnavailableChatModel
 from app.adapter.log.stdlib import StdlibLogger
 from app.adapter.runtime.connections import InMemoryLlmConnectionStore
 from app.adapter.runtime.gateway import InstanceGateway
@@ -23,11 +24,14 @@ from app.usecase.artifacts import ArtifactService
 from app.usecase.conversations import ConversationService
 from app.usecase.events import EventPublisher
 from app.usecase.instances import InstanceService
+from app.usecase.interface.llm import ChatModel
 from app.usecase.plugin_session import PluginSession
 from app.usecase.readiness import InstanceReadiness
 from app.usecase.run_store import RunStore
 from app.usecase.runs import RunService
 from app.usecase.tool_executor import ToolExecutor
+
+CLAUDE_AGENT_SCHEME = "claude-agent"
 
 
 def create_app(
@@ -40,7 +44,10 @@ def create_app(
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         pool = await open_pool(config.database_url, config.pool_max_size)
         client = httpx.AsyncClient(timeout=config.llm_timeout_s, transport=transport)
-        chat_model = OpenAICompatibleChatAdapter(client)
+        chat_model = ChatModelRouter(
+            OpenAICompatibleChatAdapter(client),
+            {CLAUDE_AGENT_SCHEME: build_claude_agent(config.llm_timeout_s)},
+        )
         uow_factory = PostgresUnitOfWorkFactory(pool)
         clock, ids = SystemClock(), UuidGenerator()
         gateway, signals = InstanceGateway(), AsyncCallSignals()
@@ -86,3 +93,13 @@ def create_app(
     ErrorHandlers(logger).register(app)
     app.include_router(api_router_v1)
     return app
+
+
+def build_claude_agent(timeout_s: float) -> ChatModel:
+    try:
+        from app.adapter.llm.claude_agent import ClaudeAgentChatAdapter
+    except ImportError:
+        return UnavailableChatModel(
+            "claude-agent-sdk is not installed; build the backend image with LLM=true"
+        )
+    return ClaudeAgentChatAdapter(timeout_s)
