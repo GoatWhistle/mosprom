@@ -526,6 +526,40 @@ Item {
             onDetach: brim.removeAttachment(index)
             onTextChanged: brim.setDraft(text)
         }
+
+        DropArea {
+            id: fileDrop
+            anchors.fill: parent
+            onEntered: drag.accepted = drag.hasUrls && !view.busy
+            onDropped: {
+                if (!drop.hasUrls)
+                    return
+                for (var i = 0; i < drop.urls.length; i++)
+                    brim.attach(drop.urls[i].toString())
+                drop.acceptProposedAction()
+                composer.focusInput()
+            }
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 8
+            visible: fileDrop.containsDrag
+            radius: 14
+            color: Qt.rgba(1, 0.54, 0.24, 0.10)
+            border.width: 2
+            border.color: c.accent
+            Text {
+                anchors.centerIn: parent
+                width: parent.width - 48
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.Wrap
+                text: view.t.drop_files
+                color: c.accentText
+                font.pixelSize: 15
+                font.bold: true
+            }
+        }
     }
 
     Rectangle {
