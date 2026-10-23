@@ -57,12 +57,18 @@ Updated: 2026-10-23, MSK
 - Current branch main; implementation merge HEAD 4b310c7. Integrated feat/backend-agent, feat/chat-redesign, feat/slicer-plugin and origin/main. Preserved current chat/protocol v2 and added the older plugin branch's import completion filtering, estimate retry/seconds fixes and optional Uranium tests.
 - 2026-10-23: «остановись вообще полностью и все что можно останови» — all Brim Compose services stopped; data preserved. No services restarted during merge.
 - 2026-10-23: «теперь все смерджи в мейн» — authorizes merging all branches and pushing main.
-- Current backend image rebuilt with the Compose image tag before stop. Previous project PUT 404 came from a stale image without that route; rebuilt endpoint remains unverified live.
-- Actual local STE Slicer was found under ~/.wine-ste. Installed plugin previously had protocol 1 versus backend 2; current installed version has not been rechecked. Do not assume repository or ZIP updates reinstall the plugin.
-- Build pitfall: bake defaults to app-backend:latest; Compose uses brim-backend:latest. Supply the Compose image tag explicitly on future builds.
+- Prior project PUT 404: stale backend image; rebuild used Compose tag.
+- Local STE Slicer: ~/.wine-ste; installed plugin now matches rebuilt QML.
+- Bake defaults to app-backend:latest; explicitly use Compose tag brim-backend:latest.
 
 ## Verification and next actions
 
 - Merge checks: plugin 155 passed, 2 optional Uranium tests skipped (checkout unavailable); backend Ruff and mypy passed, 59 unit tests passed. No services or paid LLM calls started. Storage integration tests not rerun while Compose is stopped.
-- Push main and verify remote SHA. Real STE Slicer slicing, project reopen and the newly built backend route still require a separate authorized runtime check.
-- Preserve official embedded-chat vs browser-SPA source conflict. Existing template documentation and prior speech/README checks have known stale content; do not expand this task into their cleanup.
+- Main pushed and remote SHA verified at 02d535e. Rebuilt plugin/dist/Brim-0.2.0.zip from that main: all 74 files match source, ZIP CRC valid. Plugin not installed; services remain stopped. Real STE Slicer slicing, project reopen and the newly built backend route still require a separate authorized runtime check.
+- Preserve official embedded-chat vs browser-SPA conflict; avoid unrelated template cleanup.
+
+- 2026-10-23: «просто понял очисти бд прям и подними все будто бы с нуля» — explicitly authorized database deletion and restart. Ran compose down --volumes and up -d --wait; fresh PostgreSQL migrated, backend healthy, health API ok. Verified conversations/messages/runs all 0. Plugin local cache not erased; restart slicer to discard displayed stale history. Supersedes prior stop instructions.
+
+- «нет убери вообще это окно» — removed the entire switching modal overlay from Chat.qml; rebuilt Brim-0.2.0.zip, verified CRC and packaged QML. Installed plugin unchanged.
+
+- Active: diagnose whole-slicer hang; see work/slicer-hang-diagnosis.md. Opening Brim reproduces high CPU; user interrupted diagnosis for push. Temporary instrumentation removed and diagnostic process stopped. No confirmed fix.
