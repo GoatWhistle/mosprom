@@ -3,6 +3,7 @@ import os
 import re
 import shutil
 
+from ..agent.transcript import call_arguments, call_name
 from ..execution.operations import MODEL_EXTENSIONS
 from ..protocol import constants
 from .entries_view import slice_result
@@ -14,12 +15,23 @@ PAGE_NAMES = re.compile(r"^chat_(text_)?\d+\.png$")
 RESULT_NAMES = {"3mf": "project.3mf", "gcode": "result.gcode"}
 
 
-def model_name(chat):
-    for message in chat.get("messages") or []:
+def _model_files(messages):
+    for message in messages:
         for item in message.get("brim_attachments") or []:
-            stem, extension = os.path.splitext(item.get("name") or "")
-            if extension.lower() in MODEL_EXTENSIONS and stem.strip():
-                return safe_name(stem.strip())
+            yield item.get("name") or ""
+    for message in messages:
+        for call in message.get("tool_calls") or []:
+            if call_name(call) == constants.TOOL_APPLY_CHANGES:
+                for operation in call_arguments(call).get("operations") or []:
+                    if isinstance(operation, dict) and operation.get("kind") in ("import_model", "open_3mf"):
+                        yield safe_name(str(operation.get("path") or ""))
+
+
+def model_name(chat):
+    for name in _model_files(chat.get("messages") or []):
+        stem, extension = os.path.splitext(name)
+        if extension.lower() in MODEL_EXTENSIONS and stem.strip():
+            return safe_name(stem.strip())
     return safe_name(chat.get("title") or "").strip(" .") or chat["id"][:8]
 
 

@@ -45,7 +45,7 @@ def _duration(seconds):
 def _slice_lines(payload, strings):
     result = payload.get("result") or {}
     summary = result.get("slice") or {}
-    weights = ", ".join("%s g" % item for item in summary.get("material_weight_g") or [])
+    weights = ", ".join("%s g" % item for item in summary.get("material_weight_g") or [] if item)
     lines = ["  - %s: %s" % (strings["export_print_time"], _duration(summary.get("print_time_seconds")))]
     if weights:
         lines.append("  - %s: %s" % (strings["export_material"], weights))
