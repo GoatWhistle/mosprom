@@ -6,39 +6,12 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from starlette.exceptions import HTTPException
 
-from app.domain.errors import (
-    ContractMismatch,
-    DomainError,
-    InstanceExists,
-    InvalidArtifact,
-    InvalidRequest,
-    InvalidTransition,
-    LlmNotConfigured,
-    ModelFailure,
-    NoPendingBatch,
-    NotFound,
-    PayloadTooLarge,
-    RunActive,
-    RunFinished,
-    RunNotWaiting,
-    Unauthorized,
-)
+from app.domain.errors import DomainError, InvalidRequest, ModelFailure, Unauthorized
 from app.usecase.interface import Logger
 
 STATUS_BY_ERROR: dict[type[DomainError], HTTPStatus] = {
     Unauthorized: HTTPStatus.UNAUTHORIZED,
-    NotFound: HTTPStatus.NOT_FOUND,
-    InstanceExists: HTTPStatus.CONFLICT,
-    ContractMismatch: HTTPStatus.CONFLICT,
-    InvalidTransition: HTTPStatus.CONFLICT,
-    RunActive: HTTPStatus.CONFLICT,
-    RunNotWaiting: HTTPStatus.CONFLICT,
-    RunFinished: HTTPStatus.CONFLICT,
-    NoPendingBatch: HTTPStatus.CONFLICT,
-    LlmNotConfigured: HTTPStatus.CONFLICT,
-    InvalidArtifact: HTTPStatus.UNPROCESSABLE_ENTITY,
     InvalidRequest: HTTPStatus.UNPROCESSABLE_ENTITY,
-    PayloadTooLarge: HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
     ModelFailure: HTTPStatus.SERVICE_UNAVAILABLE,
 }
 
