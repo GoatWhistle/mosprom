@@ -1,0 +1,41 @@
+import QtQuick 2.7
+
+Rectangle {
+    id: root
+    property string text: ""
+    property bool primary: false
+    property bool danger: false
+    property bool enabledButton: true
+    property var palette_: ({})
+    signal clicked()
+
+    implicitWidth: label.implicitWidth + 28
+    implicitHeight: 34
+    radius: 6
+    activeFocusOnTab: true
+    opacity: enabledButton ? 1.0 : 0.45
+    color: primary ? (area.containsMouse && enabledButton ? palette_.accentHover : palette_.accent)
+                   : (area.containsMouse && enabledButton ? palette_.selected : "transparent")
+    border.width: primary ? 0 : 1
+    border.color: activeFocus ? palette_.accent : (danger ? palette_.danger : palette_.line)
+
+    Text {
+        id: label
+        anchors.centerIn: parent
+        text: root.text
+        font.pixelSize: 13
+        font.bold: root.primary
+        color: root.primary ? "#12130f" : (root.danger ? root.palette_.danger : root.palette_.text)
+    }
+
+    MouseArea {
+        id: area
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: root.enabledButton ? Qt.PointingHandCursor : Qt.ArrowCursor
+        onClicked: if (root.enabledButton) root.clicked()
+    }
+
+    Keys.onReturnPressed: if (enabledButton) clicked()
+    Keys.onSpacePressed: if (enabledButton) clicked()
+}
