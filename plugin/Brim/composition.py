@@ -77,7 +77,8 @@ class BrimRuntime(object):
     def _build_presenter(self, runner, on_change):
         return ChatPresenter(self.settings, self.workspace, self.loop, self.llm, self.hub, runner, on_change,
                              post=lambda function: self.controller.post(function),
-                             mcp_port=lambda: self.local_mcp.port(), open_path=self.controller.open_path)
+                             mcp_port=lambda: self.local_mcp.port(),
+                             open_path=lambda path: self.controller.open_path(path))
 
     def _ui(self, handler):
         def deliver(*args):
