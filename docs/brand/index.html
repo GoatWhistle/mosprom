@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Brim Brandbook</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Handjet:wght@500;700&family=JetBrains+Mono:wght@400;500&family=Onest:wght@400;500&display=swap">
+<link rel="icon" href="symbol-small.svg" type="image/svg+xml">
+<style>
+/* Dark-first brandbook: telemetry header, corner-anchored hero, sections as full-width bands of plate tiles */
+:root {
+  --carbon: #12130f;
+  --carbon-850: #191a15;
+  --carbon-950: #0b0c09;
+  --vein: #3c3c38;
+  --bone: #e4dfda;
+  --ash: #9b968f;
+  --paper: #f6f5f2;
+  --paper-0: #ffffff;
+  --hot: #ff8a3d;
+  --hot-ink: #b83f0a;
+  --bg: var(--carbon);
+  --fg: var(--bone);
+  --mute: var(--ash);
+  --plate: var(--carbon-850);
+  --line: color-mix(in oklab, var(--bone) 12%, transparent);
+  --accent-text: var(--hot);
+  --f-display: 'Handjet', 'JetBrains Mono', ui-monospace, monospace;
+  --f-body: 'Onest', 'Segoe UI', system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) { --bg: var(--paper); --fg: var(--carbon); --mute: #615c56; --plate: var(--paper-0); --line: color-mix(in oklab, var(--carbon) 10%, transparent); --accent-text: var(--hot-ink); color-scheme: light; }
+}
+:root[data-theme="light"] { --bg: var(--paper); --fg: var(--carbon); --mute: #615c56; --plate: var(--paper-0); --line: color-mix(in oklab, var(--carbon) 10%, transparent); --accent-text: var(--hot-ink); color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 16px; line-height: 1.4; }
+.wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px 64px; display: grid; gap: 64px; }
+.tele { font-family: var(--f-mono); font-size: 12px; letter-spacing: -0.04em; text-transform: uppercase; line-height: 1.25; }
+.mute { color: var(--mute); }
+.acc { color: var(--accent-text); }
+h1, h2, h3 { margin: 0; font-weight: 500; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-size: clamp(40px, 6vw, 64px); line-height: .8; font-weight: 500; }
+h3 { font-size: 20px; line-height: 1.2; }
+p { margin: 0; max-width: 64ch; }
+code { font-family: var(--f-mono); font-size: 13px; }
+.top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
+.top img { height: 28px; }
+.pill { font-family: var(--f-mono); font-size: 12px; letter-spacing: -0.04em; text-transform: uppercase; min-height: 44px; padding: 0 18px; border-radius: 9999px; border: 1px solid var(--line); background: transparent; color: var(--fg); cursor: pointer; }
+.pill.primary { background: var(--hot); border-color: var(--hot); color: var(--carbon); }
+.pill:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+.hero { display: grid; gap: 24px; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: end; }
+.hero .tile { aspect-ratio: 4 / 3; }
+.hero-text { display: grid; gap: 16px; }
+.hero-text h1 { font-family: var(--f-display); font-size: clamp(64px, 10vw, 128px); line-height: .78; font-weight: 500; }
+@media (max-width: 860px) { .hero { grid-template-columns: minmax(0, 1fr); } }
+.section { display: grid; gap: 20px; border-top: 1px solid var(--line); padding-top: 12px; }
+.section-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 12px; }
+.grid.wide { grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); }
+.item { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.tile { position: relative; display: grid; place-items: center; aspect-ratio: 1; padding: 12%; background-color: var(--carbon-850); background-image: radial-gradient(circle, var(--vein) 1px, transparent 1.2px); background-size: 16px 16px; background-position: 8px 8px; overflow: hidden; }
+.tile.light { background-color: var(--paper); background-image: radial-gradient(circle, #d9d6d0 1px, transparent 1.2px); }
+.tile.hot { background: var(--hot); }
+.tile.photo { background: repeating-linear-gradient(135deg, #5b6b72 0 18px, #7d8a83 18px 36px, #a5927a 36px 54px); }
+.tile.wide { aspect-ratio: 2 / 1; }
+.tile:not(.row) > img { position: absolute; inset: 14%; width: 72%; height: 72%; object-fit: contain; }
+.tile.wide:not(.row) > img { inset: 18% 12%; width: 76%; height: 64%; }
+.tile.pixel img { image-rendering: pixelated; }
+.caption { display: flex; justify-content: space-between; gap: 8px; }
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); gap: 12px; }
+.swatch { display: grid; gap: 6px; }
+.swatch i { display: block; aspect-ratio: 3 / 2; border: 1px solid var(--line); }
+.type { display: grid; gap: 24px; }
+.type-row { display: grid; grid-template-columns: minmax(0, 200px) minmax(0, 1fr); gap: 16px; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
+@media (max-width: 640px) { .type-row { grid-template-columns: minmax(0, 1fr); } }
+.sample-display { font-family: var(--f-display); font-size: clamp(56px, 8vw, 80px); line-height: .78; font-weight: 500; }
+.sample-mono { font-family: var(--f-mono); font-size: 12px; letter-spacing: -0.04em; text-transform: uppercase; }
+.sample-body { font-size: 16px; }
+.sample-h { font-size: 30px; line-height: 1.13; }
+.space { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; }
+.space div { display: grid; gap: 6px; justify-items: start; }
+.space i { display: block; background: var(--hot); height: 24px; }
+.radii { display: flex; flex-wrap: wrap; gap: 16px; }
+.radii div { display: grid; gap: 6px; }
+.radii i { display: block; width: 120px; height: 56px; border: 2px solid var(--fg); }
+.demo { position: relative; aspect-ratio: 16 / 9; overflow: hidden; display: grid; align-content: center; justify-items: start; gap: 12px; padding: 8%; background: var(--carbon); color: var(--bone); border: 1px solid var(--line); }
+.demo.is-light { background: var(--paper); color: var(--carbon); }
+.demo h3 { font-size: clamp(22px, 3vw, 34px); line-height: 1.1; }
+.demo .tele { color: inherit; opacity: .7; }
+.band-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; pointer-events: none; }
+.band { flex: 1; margin-bottom: -1px; transform: translateX(-101%); }
+.band.rev { transform: translateX(101%); }
+.ring-demo { width: 60%; }
+.ring-demo .part, .ring-demo .ring { transform-box: view-box; transform-origin: center; }
+.ring-demo.play .part { animation: part 280ms cubic-bezier(.2,.8,.2,1) both; }
+.ring-demo.play .ring { animation: ring 280ms cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(120ms * var(--i)); }
+@keyframes part { from { transform: scale(.6); } }
+@keyframes ring { from { opacity: 0; transform: scale(.84); } }
+.el-rings { display: grid; place-items: center; }
+.el-rings span { grid-area: 1 / 1; border: 3px solid var(--bone); border-radius: 28%; }
+.el-rings span:nth-child(1) { width: 40%; aspect-ratio: 1; border-color: var(--hot); }
+.el-rings span:nth-child(2) { width: 28%; aspect-ratio: 1; }
+.el-rings span:nth-child(3) { width: 16%; aspect-ratio: 1; background: var(--bone); }
+.el-tele { display: grid; gap: 6px; justify-items: start; color: var(--bone); }
+.el-tele b { font-family: var(--f-display); font-size: 56px; line-height: .8; font-weight: 500; }
+.el-travel { width: 80%; height: 40%; }
+.el-travel path { stroke-dasharray: 16 10; animation: travel 1s linear infinite; }
+@keyframes travel { to { stroke-dashoffset: -26; } }
+.el-layers { display: flex; flex-direction: column-reverse; gap: 4px; width: 70%; }
+.el-layers i { display: block; height: 10px; background: var(--bone); }
+.el-layers i:last-child { background: var(--hot); width: 60%; }
+.el-code { font-family: var(--f-mono); font-size: 14px; color: var(--bone); display: grid; gap: 4px; justify-items: start; }
+.el-code span { color: var(--ash); }
+.dont { display: grid; gap: 8px; }
+.dont .tile { border: 1px solid #ff8a80; }
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; }
+th, td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--f-mono); font-size: 12px; text-transform: uppercase; letter-spacing: -0.04em; color: var(--mute); font-weight: 400; }
+@media (prefers-reduced-motion: reduce) { .el-travel path, .ring-demo.play .part, .ring-demo.play .ring { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <img src="lockup-dark.svg" alt="Brim" id="top-logo">
+    <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+      <span class="tele mute">Брендбук · 23.10.2026</span>
+      <button class="pill" type="button" id="theme-toggle">Светлая страница</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="tile"><img src="symbol-animated.svg" alt="Анимированный знак Brim: деталь и три кольца каймы"></div>
+    <div class="hero-text">
+      <span class="tele acc">Знак · кайма вокруг первого слоя</span>
+      <h1>Brim</h1>
+      <p>Brim — кайма из линий вокруг детали на первом слое: она удерживает деталь на столе. Продукт делает то же для слайсера: подбирает параметры так, чтобы печать удалась с первого раза.</p>
+      <p class="tele mute">Holds from the first layer · Держит с первого слоя</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>Логотип</h2><span class="tele mute">Знак рядом с именем, имя работает и без знака</span></div>
+    <div class="grid wide">
+      <div class="item"><div class="tile wide"><img src="lockup-dark.svg" alt="Горизонтальный локап на тёмном"></div><div class="caption tele"><span>Локап · тёмный</span><span class="mute">lockup-dark.svg</span></div></div>
+      <div class="item"><div class="tile wide light"><img src="lockup-light.svg" alt="Горизонтальный локап на светлом"></div><div class="caption tele"><span>Локап · светлый</span><span class="mute">lockup-light.svg</span></div></div>
+      <div class="item"><div class="tile wide"><img src="wordmark-dark.svg" alt="Словесный знак на тёмном"></div><div class="caption tele"><span>Имя без знака</span><span class="mute">wordmark-dark.svg</span></div></div>
+      <div class="item"><div class="tile wide light"><img src="lockup-stacked-light.svg" alt="Вертикальный локап на светлом"></div><div class="caption tele"><span>Вертикальный локап</span><span class="mute">lockup-stacked-*.svg</span></div></div>
+    </div>
+    <div class="grid">
+      <div class="item"><div class="tile"><img src="symbol-dark.svg" alt="Знак на тёмном"></div><div class="caption tele"><span>Знак · тёмный</span></div></div>
+      <div class="item"><div class="tile light"><img src="symbol-light.svg" alt="Знак на светлом"></div><div class="caption tele"><span>Знак · светлый</span></div></div>
+      <div class="item"><div class="tile hot"><img src="symbol-black.svg" alt="Чёрный знак на оранжевом"></div><div class="caption tele"><span>На цвете бренда</span></div></div>
+      <div class="item"><div class="tile photo"><img src="symbol-white.svg" alt="Белый знак на фото"></div><div class="caption tele"><span>На фото · одноцветный</span></div></div>
+      <div class="item"><div class="tile pixel"><img src="symbol-small.svg" alt="Пиксельный знак 16 на 16"></div><div class="caption tele"><span>Фавикон 16×16</span><span class="mute">symbol-small.svg</span></div></div>
+      <div class="item"><div class="tile row" style="gap:12px;grid-auto-flow:column;align-items:end"><img src="symbol-small.svg" alt="" style="width:16px;height:16px"><img src="symbol-small.svg" alt="" style="width:32px;height:32px;image-rendering:pixelated"><img src="symbol-dark.svg" alt="" style="width:48px;height:48px"><img src="symbol-dark.svg" alt="" style="width:96px;height:96px"></div><div class="caption tele"><span>16 · 32 · 48 · 96 px</span></div></div>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>Правило</th><th>Значение</th></tr></thead>
+      <tbody>
+        <tr><td>Высота имени в локапе</td><td>0,62 высоты знака, центр по высоте знака</td></tr>
+        <tr><td>Зазор знак — имя</td><td>0,25 высоты знака</td></tr>
+        <tr><td>Охранное поле</td><td>Расстояние между кольцами знака с каждой стороны</td></tr>
+        <tr><td>Минимум</td><td>Векторный знак 24 px, пиксельный 16 px, локап 96 px по ширине</td></tr>
+        <tr><td>Цвет</td><td>Только внешнее кольцо оранжевое; остальное — цвет текста фона</td></tr>
+      </tbody>
+    </table></div>
+    <div class="grid">
+      <div class="item dont"><div class="tile wide"><img src="lockup-dark.svg" alt="" style="transform:scaleX(1.5)"></div><span class="tele">Нельзя растягивать</span></div>
+      <div class="item dont"><div class="tile wide"><img src="symbol-dark.svg" alt="" style="filter:hue-rotate(160deg)"></div><span class="tele">Нельзя перекрашивать кольца</span></div>
+      <div class="item dont"><div class="tile wide"><span style="font:600 56px/1 var(--f-body);color:var(--bone)">brim</span></div><span class="tele">Нельзя набирать имя шрифтом</span></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>Цвет</h2><span class="tele mute">Один акцент: действие и идущий процесс</span></div>
+    <div class="swatches" id="swatches"></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>Шрифты</h2><span class="tele mute">Контраст гарнитурой и размером, не жирностью</span></div>
+    <div class="type">
+      <div class="type-row"><span class="tele mute">Handjet · табло</span><span class="sample-display">01:12 · 64%</span></div>
+      <div class="type-row"><span class="tele mute">Onest · заголовок 30</span><span class="sample-h">Слой 0,2 мм — модель высокая, скорость важнее деталей</span></div>
+      <div class="type-row"><span class="tele mute">Onest · текст 16</span><span class="sample-body">Brim подобрал параметры для PETG: сопло 240 °C, стол 80 °C, обдув 40 %. Поддержки нужны только под нависанием справа.</span></div>
+      <div class="type-row"><span class="tele mute">JetBrains Mono · телеметрия 12</span><span class="sample-mono">NOZZLE 240°C · BED 80°C · LAYER 142/380 · ETA 01:12</span></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>Сетка и формы</h2><span class="tele mute">База 4 px, плотно, без теней</span></div>
+    <div class="space" id="space"></div>
+    <div class="radii">
+      <div><i style="border-radius:0"></i><span class="tele mute">Панели · 0</span></div>
+      <div><i style="border-radius:6px"></i><span class="tele mute">Поля · 6</span></div>
+      <div><i style="border-radius:9999px"></i><span class="tele mute">Кнопки · таблетка</span></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pill primary" type="button">Отправить на печать</button><button class="pill" type="button">Пересчитать</button></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>Элементы</h2><span class="tele mute">Всё из языка печати</span></div>
+    <div class="grid">
+      <div class="item"><div class="tile"><div class="el-rings" style="width:100%;height:100%"><span></span><span></span><span></span></div></div><div class="caption tele"><span>Кольца каймы</span><span class="mute">выбор, уверенность</span></div></div>
+      <div class="item"><div class="tile"><div class="el-tele"><span class="tele">ETA · PRINTER-03</span><b>01:12</b><span class="tele">NOZZLE 240°C</span></div></div><div class="caption tele"><span>Телеметрия и табло</span></div></div>
+      <div class="item"><div class="tile"><svg class="el-travel" viewBox="0 0 200 80" aria-hidden="true"><path d="M10 70 Q100 -20 190 70" fill="none" stroke="#ff8a3d" stroke-width="5"/></svg></div><div class="caption tele"><span>Холостой ход</span><span class="mute">переходы</span></div></div>
+      <div class="item"><div class="tile"><div class="el-layers"><i></i><i></i><i></i><i></i><i></i><i></i></div></div><div class="caption tele"><span>Слои</span><span class="mute">прогресс</span></div></div>
+      <div class="item"><div class="tile"><div class="el-code"><span>; Brim · PETG</span>G28<span>; слой 1/380 — держит</span>M600<span>; готово</span></div></div><div class="caption tele"><span>Комментарии G-кода</span></div></div>
+      <div class="item"><div class="tile"><img src="symbol-animated.svg" alt=""></div><div class="caption tele"><span>Загрузка</span><span class="mute">кольца в цикле</span></div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>Движение</h2><span class="tele mute">Только transform и opacity</span></div>
+    <div class="grid wide">
+      <div class="item">
+        <div class="demo" id="sweep-demo"><span class="tele">Тема</span><h3>Печать слоями</h3><span class="tele">8 полос · снизу вверх · зигзаг</span></div>
+        <div class="caption"><span class="tele mute">Смена темы</span><button class="pill" type="button" id="sweep-run">Сменить тему</button></div>
+      </div>
+      <div class="item">
+        <div class="demo"><span class="tele" id="scramble-sub">Язык</span><h3 id="scramble-title">Рабочая область</h3><span class="tele" id="scramble-btn">Проверить снова</span></div>
+        <div class="caption"><span class="tele mute">Смена языка</span><button class="pill" type="button" id="scramble-run">RU / EN</button></div>
+      </div>
+      <div class="item">
+        <div class="demo" style="justify-items:center"><svg class="ring-demo" id="ring-demo" viewBox="0 0 164 164" aria-hidden="true"></svg></div>
+        <div class="caption"><span class="tele mute">Загрузка страницы · G28</span><button class="pill" type="button" id="ring-run">Повторить</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>Голос</h2><span class="tele mute">Технолог у принтера</span></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Brim такой</th><th>Brim никогда не</th><th>Пример</th></tr></thead>
+      <tbody>
+        <tr><td>Точный</td><td>Многословный</td><td>«Слой 0,2 мм: модель высокая, а скорость важнее мелких деталей».</td></tr>
+        <tr><td>Спокойный</td><td>Восторженный</td><td>«Печать сорвалась на 34-м слое. Поднимаю температуру стола на 5 °C и перезапускаю».</td></tr>
+        <tr><td>Мастеровой</td><td>Канцелярский</td><td>«Layer 0.2 mm: the model is tall and speed matters more than fine detail».</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <footer class="top tele mute"><span>Исходники: docs/brand · Правила: docs/visual-system.md</span><span>Стиль-источник: yinger.dev</span></footer>
+</div>
+
+<script>
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+const root = document.documentElement
+const toggle = document.getElementById('theme-toggle')
+const topLogo = document.getElementById('top-logo')
+function isLight() { return root.dataset.theme ? root.dataset.theme === 'light' : matchMedia('(prefers-color-scheme: light)').matches }
+function syncTheme() { const light = isLight(); toggle.textContent = light ? 'Тёмная страница' : 'Светлая страница'; topLogo.src = light ? 'lockup-light.svg' : 'lockup-dark.svg' }
+toggle.addEventListener('click', () => { root.dataset.theme = isLight() ? 'dark' : 'light'; syncTheme() })
+syncTheme()
+
+const SWATCHES = [
+  ['#12130f', 'Carbon 900', 'Фон тёмной темы, текст светлой'],
+  ['#191a15', 'Carbon 850', 'Панели в тёмной теме'],
+  ['#3c3c38', 'Carbon 700', 'Линии и сетка стола'],
+  ['#9b968f', 'Ash 400', 'Приглушённый текст на тёмном'],
+  ['#e4dfda', 'Bone 100', 'Основной текст тёмной темы'],
+  ['#f6f5f2', 'Paper 50', 'Фон светлой темы'],
+  ['#ff8a3d', 'Hot 400', 'Действие, процесс, внешнее кольцо'],
+  ['#b83f0a', 'Hot 700', 'Акцентный текст на светлом'],
+  ['#8fd6a8', 'Green 300', 'Печатает, готово'],
+  ['#f0cf6a', 'Yellow 300', 'Нужен оператор'],
+  ['#ff8a80', 'Red 300', 'Ошибка']
+]
+document.getElementById('swatches').innerHTML = SWATCHES.map(([hex, name, role]) => `<div class="swatch"><i style="background:${hex}"></i><span class="tele">${name} · ${hex}</span><span class="mute" style="font-size:14px">${role}</span></div>`).join('')
+document.getElementById('space').innerHTML = [4, 8, 12, 16, 24, 32, 48, 64].map(n => `<div><i style="width:${n}px"></i><span class="tele mute">${n}</span></div>`).join('')
+
+const sweepDemo = document.getElementById('sweep-demo')
+let sweeping = false
+document.getElementById('sweep-run').addEventListener('click', async () => {
+  if (sweeping) return
+  const toLight = !sweepDemo.classList.contains('is-light')
+  if (reduce || typeof sweepDemo.animate !== 'function') { sweepDemo.classList.toggle('is-light'); return }
+  sweeping = true
+  const wrap = document.createElement('div')
+  wrap.className = 'band-wrap'
+  const color = toLight ? '#f6f5f2' : '#12130f'
+  const bands = Array.from({ length: 8 }, (_, i) => {
+    const b = document.createElement('div')
+    const rev = i % 2 === 1
+    b.className = rev ? 'band' : 'band rev'
+    b.style.background = color
+    b.style.boxShadow = `${rev ? 3 : -3}px 0 0 0 #ff8a3d`
+    wrap.append(b)
+    return b
+  })
+  sweepDemo.append(wrap)
+  await Promise.all(bands.map((b, i) => b.animate({ transform: [b.classList.contains('rev') ? 'translateX(101%)' : 'translateX(-101%)', 'translateX(0)'] }, { duration: 280, delay: 40 * (7 - i), easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'both' }).finished))
+  sweepDemo.classList.toggle('is-light', toLight)
+  await wrap.animate({ opacity: [1, 0] }, { duration: 200, easing: 'cubic-bezier(0.23, 1, 0.32, 1)', fill: 'both' }).finished
+  wrap.remove()
+  sweeping = false
+})
+
+const GLYPHS = 'G01XYZEF;#%.2345'
+const TEXTS = { ru: ['Язык', 'Рабочая область', 'Проверить снова'], en: ['Language', 'Workspace', 'Check again'] }
+let lang = 'ru', scrambleFrame = 0
+document.getElementById('scramble-run').addEventListener('click', () => {
+  lang = lang === 'ru' ? 'en' : 'ru'
+  const nodes = ['scramble-sub', 'scramble-title', 'scramble-btn'].map(id => document.getElementById(id))
+  const finals = TEXTS[lang]
+  if (reduce) { nodes.forEach((n, i) => { n.textContent = finals[i] }); return }
+  cancelAnimationFrame(scrambleFrame)
+  const start = performance.now()
+  let frame = 0
+  const tick = now => {
+    const p = Math.min((now - start) / 520, 1)
+    frame += 1
+    if (frame % 2 === 0 || p === 1) nodes.forEach((n, i) => {
+      const text = finals[i], shown = Math.floor(text.length * p)
+      n.textContent = [...text].map((c, k) => k < shown || c === ' ' ? c : GLYPHS[Math.floor(Math.random() * GLYPHS.length)]).join('')
+    })
+    if (p < 1) scrambleFrame = requestAnimationFrame(tick)
+  }
+  scrambleFrame = requestAnimationFrame(tick)
+})
+
+const NS = 'http://www.w3.org/2000/svg'
+const ringDemo = document.getElementById('ring-demo')
+fetch('symbol-dark.svg').then(r => r.text()).then(svg => {
+  const doc = new DOMParser().parseFromString(svg, 'image/svg+xml')
+  const [base, accent] = doc.querySelectorAll('path')
+  const subpaths = d => d.match(/M[^M]*/g)
+  const b = subpaths(base.getAttribute('d'))
+  const a = subpaths(accent.getAttribute('d'))
+  const add = (d, fill, cls, i) => { const p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); p.setAttribute('fill', fill); p.setAttribute('fill-rule', 'evenodd'); p.setAttribute('class', cls); if (i) p.style.setProperty('--i', i); ringDemo.append(p) }
+  add(b[4], '#e4dfda', 'part')
+  add(b[2] + b[3], '#e4dfda', 'ring', 1)
+  add(b[0] + b[1], '#e4dfda', 'ring', 2)
+  add(a[0] + a[1], '#ff8a3d', 'ring', 3)
+  replay()
+}).catch(() => { ringDemo.outerHTML = '<img src="symbol-dark.svg" alt="" style="width:60%">' })
+function replay() { ringDemo.classList.remove('play'); void ringDemo.getBoundingClientRect(); ringDemo.classList.add('play') }
+document.getElementById('ring-run').addEventListener('click', replay)
+</script>
+</html>
