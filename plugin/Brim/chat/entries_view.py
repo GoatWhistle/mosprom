@@ -30,7 +30,7 @@ def _detail(name, message):
     return None
 
 
-def _result(message):
+def slice_result(message):
     payload = _payload(message) or {}
     result = payload.get("result") or {}
     files = result.get("files") or {}
@@ -80,7 +80,7 @@ def build_entries(messages, running):
                 reply = results.get(call.get("id"))
                 if entry["kind"] == "tool" and entry["server"] == LOCAL_SERVER and entry["tool"] == constants.TOOL_SLICE \
                         and reply is not None and reply.get("brim_status") == "ok":
-                    result = _result(reply)
+                    result = slice_result(reply)
                     if result is not None:
                         entries.append({"kind": "result", "key": key + "-result", "result": result})
     return entries

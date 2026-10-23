@@ -1,6 +1,7 @@
 from ..agent.conversation import Conversation
 from ..ui.strings import strings_for
 from .autosave import WorkspaceAutosave
+from .exporter import ChatExporter
 from .files import ChatFiles
 from .messaging import ChatMessaging
 from .preferences import ChatPreferences
@@ -29,6 +30,8 @@ class ChatPresenter(object):
                                         self._post, self._notice, self._strings, self._changed)
         self._switching = ProjectSwitching(self.state, workspace, self._submit, self._notice, self._strings,
                                            self._select, self._messaging.stop_then)
+        self._exporter = ChatExporter(self.state, settings, self._store, self._submit, self._notice, self._strings,
+                                      self.open_path)
         self._autosave = WorkspaceAutosave(self.state, workspace, self._submit, self._notice, self._strings,
                                            self._post, autosave_delay)
 
@@ -205,6 +208,12 @@ class ChatPresenter(object):
     def open_path(self, path):
         if path and self._open_path is not None:
             self._open_path(path)
+
+    def export(self, root, render_pages, request_capture):
+        self._exporter.export(root, render_pages, request_capture)
+
+    def capture_done(self, pages, error):
+        self._exporter.capture_done(pages, error)
 
     def apply_settings(self, llm_url, llm_model, llm_key, language, theme):
         return self._preferences.apply(llm_url, llm_model, llm_key, language, theme)

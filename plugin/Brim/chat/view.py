@@ -33,6 +33,7 @@ def chat_view(state, settings, mcp_port, notice):
         "notice": state.notice,
         "attachments": list(state.attachments),
         "busy": state.busy,
+        "exporting": state.exporting,
         "draft": state.draft,
         "draft_rev": state.draft_rev,
         "switching": state.switching,

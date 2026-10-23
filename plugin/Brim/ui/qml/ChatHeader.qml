@@ -10,6 +10,7 @@ Rectangle {
     signal menu()
     signal create()
     signal settings()
+    signal exportRequested()
     signal modeChosen(string mode)
     signal close()
 
@@ -135,6 +136,17 @@ Rectangle {
             glyph: "plus"
             palette_: root.c
             onClicked: root.create()
+        }
+        IconButton {
+            glyph: "export"
+            palette_: root.c
+            enabledButton: root.view.entries.length > 0 && !root.view.run_active && !root.view.exporting
+            onClicked: root.exportRequested()
+            HintBubble {
+                shown: parent.hovered
+                text: root.view.t.export_hint
+                c: root.c
+            }
         }
         IconButton {
             glyph: "gear"

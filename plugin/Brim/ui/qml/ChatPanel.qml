@@ -89,6 +89,26 @@ Item {
         }
     }
 
+    FileDialog {
+        id: exportDialog
+        title: view.t.export_choose
+        selectFolder: true
+        folder: brim.exportRoot !== "" ? brim.exportRoot : shortcuts.documents
+        onAccepted: brim.exportChat(fileUrl.toString())
+    }
+
+    TimelineCapture {
+        id: capture
+        list: timeline
+        frame: main
+        onFinished: brim.captureDone(pages, error)
+    }
+
+    Connections {
+        target: brim
+        onCaptureRequested: capture.start(path)
+    }
+
     ProjectList {
         id: sidebar
         width: panel.narrow ? 0 : 248
@@ -135,6 +155,7 @@ Item {
             onCreate: brim.newChat()
             onSettings: panel.settingsOpen = true
             onModeChosen: brim.setMode(mode)
+            onExportRequested: exportDialog.open()
             closable: panel.closable
             onClose: panel.closeRequested()
         }
@@ -269,7 +290,7 @@ Item {
         }
 
         BrimButton {
-            visible: timeline.unread
+            visible: timeline.unread && !capture.active
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: status.top
             anchors.bottomMargin: 8

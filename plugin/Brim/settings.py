@@ -14,6 +14,7 @@ DEFAULTS = {
     "theme": "dark",
     "mcp_port": 0,
     "panel_width": 0,
+    "export_root": "",
 }
 SERVER_NAME = re.compile(r"^[A-Za-z0-9_-]{1,24}$")
 
@@ -143,3 +144,9 @@ class PluginSettings(object):
 
     def set_panel_width(self, value):
         self._store.set("panel_width", max(0, int(value)))
+
+    def export_root(self):
+        return str(self._store.get("export_root") or "")
+
+    def set_export_root(self, value):
+        self._store.set("export_root", str(value or ""))

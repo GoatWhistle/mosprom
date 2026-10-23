@@ -18,6 +18,7 @@ class ChatState(object):
         self.notice = None
         self.attachments = []
         self.busy = False
+        self.exporting = False
         self.drafts = {}
         self.draft = ""
         self.draft_rev = 0

@@ -3,6 +3,7 @@ import json
 from PyQt5.QtCore import QObject, QUrl, pyqtProperty, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QDesktopServices, QGuiApplication
 
+from .export_pages import render_pages
 from .runner import ThreadRunner
 
 
@@ -14,6 +15,7 @@ def local_path(value):
 class ChatController(QObject):
     viewChanged = pyqtSignal()
     panelWidthChanged = pyqtSignal()
+    captureRequested = pyqtSignal(str, arguments=["path"])
     _invoke = pyqtSignal(object)
 
     def __init__(self, build_presenter, settings=None, parent=None):
@@ -54,6 +56,19 @@ class ChatController(QObject):
         if self._settings is not None:
             self._settings.set_panel_width(value)
             self.panelWidthChanged.emit()
+
+    @pyqtProperty(str, notify=viewChanged)
+    def exportRoot(self):
+        root = self._settings.export_root() if self._settings is not None else ""
+        return QUrl.fromLocalFile(root).toString() if root else ""
+
+    @pyqtSlot(str)
+    def exportChat(self, folder):
+        self._presenter.export(local_path(folder), render_pages, self.captureRequested.emit)
+
+    @pyqtSlot(int, str)
+    def captureDone(self, pages, error):
+        self._presenter.capture_done(pages, error)
 
     @property
     def presenter(self):
