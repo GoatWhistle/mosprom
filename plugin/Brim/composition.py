@@ -25,6 +25,8 @@ from .slicer.settings_ops import SettingsOperations
 from .slicer.slicing import SlicingService
 from .slicer.state import StateReader
 from .ui.controller import ChatController
+from .workspace.service import WorkspaceService
+from .workspace.store import WorkspaceStore
 
 
 def preferences_of(application):
@@ -68,6 +70,7 @@ class BrimRuntime(object):
                                 self.executor.execute_mcp(name, arguments, request_id))
         gate = McpAuthorizationGate(self.executor, self.authorized)
         self.local_mcp = LocalMcpServer(McpDispatcher(tools, gate.handle), port=self.settings.mcp_port())
+        self.workspace = WorkspaceService(self.port, WorkspaceStore(os.path.join(self.cache_dir, "workspaces")))
         self.controller = ChatController(self._build_presenter)
         self.bridge = BridgeConnection(
             connection, self._hello, self.ledger, self.executor, trusted, self._snapshot,
@@ -79,6 +82,7 @@ class BrimRuntime(object):
         )
         self.presenter.attach_bridge(self.bridge)
         self.port.add_change_listener(self.bridge.schedule_snapshot)
+        self.port.add_change_listener(self._ui(lambda: self.presenter.on_scene_changed()))
         self._started = False
 
     @property
@@ -87,7 +91,8 @@ class BrimRuntime(object):
 
     def _build_presenter(self, runner, on_change):
         return ChatPresenter(self.http, self.settings, runner, on_change,
-                             mcp_port=lambda: self.local_mcp.port(), cache_dir=self.cache_dir)
+                             mcp_port=lambda: self.local_mcp.port(), cache_dir=self.cache_dir,
+                             workspace=self.workspace, post=lambda function: self.controller.post(function))
 
     def _ui(self, handler):
         def deliver(*args):
@@ -134,6 +139,10 @@ class BrimRuntime(object):
         if not self._started:
             return
         self._started = False
+        try:
+            self.presenter.flush_workspace()
+        except Exception:
+            pass
         self.bridge.stop()
         self.local_mcp.stop()
         self.controller.shutdown()

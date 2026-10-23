@@ -61,6 +61,15 @@ class SceneOperations(object):
 
         return self._main.call(run, guard=guard)
 
+    def count(self):
+        return self._main.call(lambda: len(list(self._access.objects())))
+
+    def clear(self):
+        ids = self._main.call(lambda: [self._access.id_of(node) for node in self._access.objects()])
+        if ids:
+            self.delete({"object_ids": ids})
+        return len(ids)
+
     def duplicate(self, op, guard=None):
         known = self._main.call(self._all_ids)
         count = op.get("count", 1)

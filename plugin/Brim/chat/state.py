@@ -4,6 +4,7 @@ from .history import restore_runtime
 
 ACTIVE_STATES = ("interviewing", "agent_working", "awaiting_user", "awaiting_confirmation",
                  "executing_tool", "slicing", "saving")
+WORKING_STATES = ("interviewing", "agent_working", "executing_tool", "slicing", "saving")
 TERMINAL_STATES = ("completed", "failed", "aborted")
 MAX_ENTRIES = 500
 MAX_SEEN_EVENTS = 2000
@@ -26,6 +27,15 @@ class ChatState(object):
         self.notice = None
         self.attachments = []
         self.busy = False
+        self.drafts = {}
+        self.draft = ""
+        self.draft_rev = 0
+        self.switching = None
+        self.switch_prompt = None
+        self.switch_retry = None
+        self.workspace_blocked = False
+        self.save_state = None
+        self.workspace_status = {}
         self._seen = set()
         self._seen_order = []
 
@@ -53,7 +63,27 @@ class ChatState(object):
     def run_active(self):
         return self.run_state in ACTIVE_STATES
 
+    def run_working(self):
+        return self.run_state in WORKING_STATES
+
+    def set_draft(self, text):
+        self.draft = text or ""
+
+    def clear_draft(self):
+        self.draft = ""
+        self.draft_rev += 1
+
     def select_conversation(self, conversation_id, mode):
+        carried = None
+        if self.conversation_id is None:
+            carried = {"text": self.draft, "attachments": self.attachments}
+        else:
+            self.drafts[self.conversation_id] = {"text": self.draft, "attachments": self.attachments}
+        stored = self.drafts.pop(conversation_id, None) or carried or {}
+        self.draft = stored.get("text", "")
+        self.attachments = list(stored.get("attachments", []))
+        self.draft_rev += 1
+        self.save_state = None
         self.conversation_id = conversation_id
         self.mode = mode or "ask"
         self.entries = []
@@ -63,7 +93,6 @@ class ChatState(object):
         self.pending = None
         self.result = None
         self._slice_result = None
-        self.attachments = []
         self._seen = set()
         self._seen_order = []
 
@@ -104,6 +133,7 @@ class ChatState(object):
         self._slice_result = None
         self.progress = None
         self.attachments = []
+        self.clear_draft()
 
     def apply_chat_event(self, frame):
         if frame.get("conversation_id") != self.conversation_id:
@@ -201,21 +231,3 @@ class ChatState(object):
     def mark_stopped(self):
         self.pending = None
         self.progress = None
-
-    def snapshot(self):
-        return {
-            "conversations": list(self.conversations),
-            "conversation_id": self.conversation_id,
-            "mode": self.mode,
-            "entries": [dict(item) for item in self.entries],
-            "run_id": self.run_id,
-            "run_state": self.run_state,
-            "run_active": self.run_active(),
-            "progress": self.progress,
-            "pending": self.pending,
-            "result": self.result,
-            "connection": self.connection,
-            "notice": self.notice,
-            "attachments": list(self.attachments),
-            "busy": self.busy,
-        }

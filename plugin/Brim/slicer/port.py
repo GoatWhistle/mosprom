@@ -4,6 +4,7 @@ import uuid
 from ..execution.errors import OperationError
 from ..protocol import constants
 from . import frames
+from .project_archive import verify_workspace
 
 
 class SlicerPort(object):
@@ -21,6 +22,7 @@ class SlicerPort(object):
         self._version = 1
         self._lock = threading.Lock()
         self._listeners = []
+        self._locked = False
         self._handlers = {
             "select_mode": settings_ops.select_mode,
             "select_profile": settings_ops.select_profile,
@@ -92,7 +94,29 @@ class SlicerPort(object):
     def end_batch(self):
         self._slicing.end_batch()
 
+    def lock_changes(self, locked):
+        self._locked = bool(locked)
+
+    def _ensure_unlocked(self):
+        if self._locked:
+            raise OperationError(constants.ERR_NOT_AVAILABLE, "the project is being switched")
+
+    def scene_is_empty(self):
+        return self._scene_ops.count() == 0
+
+    def save_workspace(self, path):
+        self._slicing.write_project(path)
+        verify_workspace(path)
+
+    def load_workspace(self, path):
+        verify_workspace(path)
+        self._scene_ops.open_3mf({"path": path, "import_as": "restore_project"})
+
+    def clear_workspace(self):
+        return self._scene_ops.clear()
+
     def apply_operation(self, op, expected_version=None, check=None):
+        self._ensure_unlocked()
         handler = self._handlers.get(op["kind"])
         if handler is None:
             raise OperationError(constants.ERR_INVALID_ARGUMENTS, "unknown operation kind %s" % op["kind"])
@@ -135,6 +159,7 @@ class SlicerPort(object):
         return {"vertices": vertices, "triangles": triangles}
 
     def slice(self, report, check=None):
+        self._ensure_unlocked()
         return self._slicing.slice(report, check)
 
     def export_artifacts(self, directory, check=None):

@@ -66,6 +66,30 @@ class ChatController(QObject):
     def openChat(self, conversation_id):
         self._presenter.open_conversation(conversation_id)
 
+    @pyqtSlot()
+    def newChatFromScene(self):
+        self._presenter.new_conversation(from_scene=True)
+
+    @pyqtSlot(str)
+    def setDraft(self, text):
+        self._presenter.set_draft(text)
+
+    @pyqtSlot()
+    def cancelSwitch(self):
+        self._presenter.cancel_switch()
+
+    @pyqtSlot()
+    def stopAndSwitch(self):
+        self._presenter.stop_and_switch()
+
+    @pyqtSlot()
+    def retrySwitch(self):
+        self._presenter.retry_switch()
+
+    @pyqtSlot()
+    def recoverWorkspace(self):
+        self._presenter.recover_workspace()
+
     @pyqtSlot(str)
     def setMode(self, mode):
         self._presenter.set_mode(mode)

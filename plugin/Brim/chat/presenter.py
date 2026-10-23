@@ -5,9 +5,13 @@ from .view import chat_view
 from .files import ChatFiles
 from .history import ChatHistory, conversation_row
 from .preferences import ChatPreferences
+from .autosave import WorkspaceAutosave
+from .switching import ProjectSwitching
+from .messaging import ChatMessaging
 
 class ChatPresenter(object):
-    def __init__(self, http, settings, runner, on_change, bridge=None, mcp_port=None, cache_dir=None):
+    def __init__(self, http, settings, runner, on_change, bridge=None, mcp_port=None, cache_dir=None,
+                 workspace=None, post=None, autosave_delay=3.0):
         self._http = http
         self._settings = settings
         self._runner = runner
@@ -20,6 +24,13 @@ class ChatPresenter(object):
         self._preferences = ChatPreferences(settings, http, runner, self._submit, self._changed, lambda: self._bridge)
         self._files = ChatFiles(self.state, http, self._submit, self._notice, self._strings)
         self._history = ChatHistory(self.state, http, self._submit)
+        self._messaging = ChatMessaging(self.state, http, settings, self._submit, self._notice, self._strings,
+                                        lambda: self._bridge)
+        self._workspace = workspace
+        self._switching = ProjectSwitching(self.state, workspace, http, self._submit, self._notice,
+                                           self._strings, self._history, self._messaging.stop_then)
+        self._autosave = WorkspaceAutosave(self.state, workspace, self._submit, self._notice, self._strings,
+                                           post or (lambda function: function()), autosave_delay)
 
     def attach_bridge(self, bridge):
         self._bridge = bridge
@@ -40,7 +51,7 @@ class ChatPresenter(object):
         else:
             self._notice("%s: %s" % (type(error).__name__, error))
 
-    def _submit(self, work, done=None, busy=False):
+    def _submit(self, work, done=None, busy=False, on_error=None):
         if busy:
             self.state.busy = True
             self._changed()
@@ -49,7 +60,7 @@ class ChatPresenter(object):
             if busy:
                 self.state.busy = False
             if error is not None:
-                self._fail(error)
+                (on_error or self._fail)(error)
             elif done is not None:
                 done(value)
             self._changed()
@@ -64,7 +75,35 @@ class ChatPresenter(object):
             return
         self._started = True
         self._push_llm()
+        self._restore_workspace()
         self.refresh_conversations(select_latest=True)
+
+    def _restore_workspace(self):
+        if self._workspace is None:
+            return
+        store = self._workspace.store
+        self.state.workspace_status = store.statuses()
+        active = store.active()
+        if active is None or store.status(active) == "none":
+            return
+        self.state.select_conversation(active, None)
+        self.state.switching = "opening"
+
+        def work():
+            return self._workspace.restore_active()
+
+        def done(_):
+            self.state.switching = None
+            self.state.save_state = "saved"
+            self._workspace.lock(False)
+
+        def failed(error):
+            self.state.switching = None
+            self.state.workspace_blocked = True
+            self._notice("%s (%s)" % (self._strings()["switch_open_blocked"], error))
+
+        self._workspace.lock(True)
+        self._submit(work, done, on_error=failed)
 
     def _push_llm(self):
         self._preferences.push_llm()
@@ -72,8 +111,11 @@ class ChatPresenter(object):
     def refresh_conversations(self, select_latest=False):
         self._history.refresh(select_latest)
 
-    def new_conversation(self):
+    def new_conversation(self, from_scene=False):
         mode = self.state.mode
+        if self._switching.enabled():
+            self._switching.request(create_mode=mode, adopt=from_scene)
+            return
 
         def work():
             return self._http.create_conversation_with(mode)
@@ -85,7 +127,31 @@ class ChatPresenter(object):
         self._submit(work, done, busy=True)
 
     def open_conversation(self, conversation_id):
+        if self._switching.enabled() and conversation_id != self.state.conversation_id:
+            self._switching.request(target_id=conversation_id)
+            return
         self._history.open(conversation_id)
+
+    def cancel_switch(self):
+        self._switching.cancel_prompt()
+
+    def stop_and_switch(self):
+        self._switching.stop_and_switch()
+
+    def retry_switch(self):
+        self._switching.retry()
+
+    def recover_workspace(self):
+        self._switching.recover()
+
+    def set_draft(self, text):
+        self.state.set_draft(text)
+
+    def on_scene_changed(self):
+        self._autosave.changed()
+
+    def flush_workspace(self):
+        self._autosave.flush()
 
     def reload_history(self):
         self._history.reload()
@@ -120,91 +186,13 @@ class ChatPresenter(object):
         self._runner.submit(self._with_auth(work), finished)
 
     def send(self, text):
-        text = (text or "").strip()
-        pending = self.state.pending
-        if pending is not None and pending["type"] == "confirmation":
-            if text:
-                self.confirm("clarify", text)
-            else:
-                self._notice(self._strings()["clarify_hint"])
-            return
-        if not text and not self.state.attachments:
-            return
-        if self.state.run_active() and self.state.run_state != "awaiting_user" and (pending is None or pending["type"] != "question"):
-            self._notice(self._strings()["busy_run"])
-            return
-        if not self._settings.llm_configured():
-            self._notice(self._strings()["llm_missing"])
-            return
-        if self.state.conversation_id is None:
-            self._create_then_send(text)
-            return
-        self._post_message(self.state.conversation_id, text)
-
-    def _create_then_send(self, text):
-        mode = self.state.mode
-
-        def work():
-            return self._http.create_conversation_with(mode)
-
-        def done(created):
-            kept = list(self.state.attachments)
-            self.state.select_conversation(created["id"], created.get("mode"))
-            self.state.attachments = kept
-            self.state.conversations.insert(0, conversation_row(created))
-            self._post_message(created["id"], text)
-
-        self._submit(work, done, busy=True)
-
-    def _post_message(self, conversation_id, text):
-        attachments = list(self.state.attachments)
-        ids = [item["id"] for item in attachments]
-        mode = self.state.mode
-
-        def work():
-            return self._http.send_message(conversation_id, text, ids, mode)
-
-        def done(reply):
-            self.state.add_sent_message(reply.get("message_id"), reply.get("run_id"), text,
-                                        [item["name"] for item in attachments])
-
-        self._submit(work, done, busy=True)
+        self._messaging.send(text)
 
     def confirm(self, decision, text=None):
-        run_id = self.state.run_id
-        pending = self.state.pending
-        if run_id is None or pending is None or pending["type"] != "confirmation":
-            return
-        if decision == "clarify" and not (text or "").strip():
-            self._notice(self._strings()["clarify_hint"])
-            return
-
-        def work():
-            return self._http.confirm(run_id, decision, text)
-
-        def done(_):
-            if self.state.pending is not None and self.state.pending.get("batch_id") == pending.get("batch_id"):
-                self.state.resolve_confirmation(decision)
-
-        self._submit(work, done, busy=True)
+        self._messaging.confirm(decision, text)
 
     def stop(self):
-        run_id = self.state.run_id
-        if run_id is None or not self.state.run_active():
-            return
-        bridge = self._bridge
-
-        def work():
-            reply = self._http.stop_run(run_id)
-            return reply
-
-        def done(_):
-            self.state.mark_stopped()
-            self.state.run_state = "aborted"
-            if bridge is not None:
-                bridge.cancel_run(run_id)
-
-        self._submit(work, done, busy=True)
+        self._messaging.stop()
 
     def save_artifact(self, kind, destination):
         self._files.save(kind, destination)

@@ -96,6 +96,9 @@ class SlicingService(object):
         verify_project(project_path)
         return {"gcode": gcode_path, "3mf": project_path}
 
+    def write_project(self, path):
+        self._main.call(self._write_project, path)
+
     def _write_gcode(self, path):
         writer = self._h.plugin("GCodeWriter")
         stream = io.StringIO()

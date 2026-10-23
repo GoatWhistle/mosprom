@@ -23,3 +23,13 @@ def verify_project(path):
                 raise ValueError("project has no printer settings")
     except (OSError, ValueError, KeyError, zipfile.BadZipFile, ET.ParseError) as error:
         raise OperationError(constants.ERR_OPERATION_FAILED, "invalid 3MF project: %s" % error)
+
+
+def verify_workspace(path):
+    try:
+        with zipfile.ZipFile(path, "r") as archive:
+            if archive.testzip() is not None:
+                raise ValueError("invalid ZIP checksum")
+            ET.fromstring(archive.read("3D/3dmodel.model"))
+    except (OSError, ValueError, KeyError, zipfile.BadZipFile, ET.ParseError) as error:
+        raise OperationError(constants.ERR_OPERATION_FAILED, "invalid workspace file: %s" % error)
