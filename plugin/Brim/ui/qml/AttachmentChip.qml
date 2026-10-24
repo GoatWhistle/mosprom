@@ -33,7 +33,7 @@ Rectangle {
             text: root.extension()
             font.pixelSize: 10
             font.bold: true
-            color: "#12130f"
+            color: root.c.actionText
         }
     }
     BrimText {

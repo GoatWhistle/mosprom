@@ -4,8 +4,8 @@ Item {
     id: root
     property int markSize: 28
     property bool dark: true
-    property color base: dark ? "#e4dfda" : "#12130f"
-    property color accent: "#ff8a3d"
+    property color base: dark ? "#e3e8eb" : "#14181b"
+    property color accent: "#0277bd"
     property bool intro: false
     property bool reduced: false
 

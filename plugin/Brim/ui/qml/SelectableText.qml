@@ -10,8 +10,8 @@ TextEdit {
     textFormat: TextEdit.PlainText
     font.pixelSize: 14
     color: textColor
-    selectionColor: "#ff8a3d"
-    selectedTextColor: "#12130f"
+    selectionColor: "#0277bd"
+    selectedTextColor: "#ffffff"
     onLinkActivated: Qt.openUrlExternally(link)
 
     MouseArea {

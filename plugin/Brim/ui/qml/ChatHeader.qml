@@ -116,7 +116,7 @@ Rectangle {
                 reduced: root.reduced
                 font.pixelSize: 12
                 font.bold: root.view.mode === "auto"
-                color: root.view.mode === "auto" ? "#12130f" : root.c.text
+                color: root.view.mode === "auto" ? root.c.actionText : root.c.text
             }
             ScrambleText {
                 id: askLabel
@@ -127,7 +127,7 @@ Rectangle {
                 reduced: root.reduced
                 font.pixelSize: 12
                 font.bold: root.view.mode === "ask"
-                color: root.view.mode === "ask" ? "#12130f" : root.c.text
+                color: root.view.mode === "ask" ? root.c.actionText : root.c.text
             }
             MouseArea {
                 anchors.fill: parent

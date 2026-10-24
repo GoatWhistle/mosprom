@@ -27,7 +27,7 @@ Rectangle {
         anchors.centerIn: parent
         width: 18
         height: 18
-        property color stroke: root.primary ? "#12130f" : root.palette_.text
+        property color stroke: root.primary ? root.palette_.actionText : root.palette_.text
         onStrokeChanged: requestPaint()
         onPaint: {
             var g = getContext("2d")

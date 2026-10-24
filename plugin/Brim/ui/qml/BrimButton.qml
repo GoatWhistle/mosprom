@@ -31,7 +31,7 @@ Rectangle {
         reduced: root.reduced
         font.pixelSize: 13
         font.bold: root.primary
-        color: root.primary ? "#12130f" : (root.danger ? root.palette_.danger : root.palette_.text)
+        color: root.primary ? root.palette_.actionText : (root.danger ? root.palette_.danger : root.palette_.text)
     }
 
     MouseArea {

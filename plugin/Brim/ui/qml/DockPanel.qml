@@ -49,8 +49,8 @@ Item {
             y: 10
             width: 18
             height: 18
-            base: "#12130f"
-            accent: "#12130f"
+            base: panel.c.actionText
+            accent: panel.c.actionText
         }
         BrandWordmark {
             anchors.horizontalCenter: parent.horizontalCenter
@@ -58,7 +58,7 @@ Item {
             y: 52
             height: 11
             rotation: -90
-            dark: false
+            dark: true
         }
         MouseArea {
             id: tabArea

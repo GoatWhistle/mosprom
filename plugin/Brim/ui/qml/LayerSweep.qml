@@ -2,13 +2,13 @@ import QtQuick 2.7
 
 Item {
     id: root
-    property color nozzle: "#ff8a3d"
+    property color nozzle: "#0277bd"
     property int layers: 8
     property int layerDuration: 280
     property int stagger: 40
     property int fadeDuration: 200
     property bool reduced: false
-    property color surface: "#12130f"
+    property color surface: "#14181b"
     property var pending: null
 
     visible: false

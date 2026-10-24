@@ -2,8 +2,8 @@ import QtQuick 2.7
 
 Item {
     id: root
-    property color color: "#ff8a3d"
-    property color track: "#33ff8a3d"
+    property color color: "#0277bd"
+    property color track: "#330277bd"
     property bool running: true
     property int period: 1600
 

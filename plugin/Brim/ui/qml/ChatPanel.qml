@@ -26,16 +26,8 @@ Item {
     property string language: view.language
     property int langEpoch: 0
     onLanguageChanged: langEpoch++
-    onWantDarkChanged: sweep.run(wantDark ? "#12130f" : "#f6f5f2", function () { panel.dark = panel.wantDark })
-    property var c: dark ? {
-        bg: "#12130f", panel: "#191a15", selected: "#22231d", hover: "#1d1e18", userBg: "#3a2a1c", userText: "#fbeee3", line: "#3c3c38", text: "#e4dfda",
-        muted: "#9b968f", accent: "#ff8a3d", accentHover: "#ffa565", accentText: "#ff8a3d",
-        danger: "#ff7a6b", ok: "#7fcf8a"
-    } : {
-        bg: "#f6f5f2", panel: "#ffffff", selected: "#ecebe7", hover: "#f1f0ec", userBg: "#ffe7d4", userText: "#2a1606", line: "#d8d4cd", text: "#12130f",
-        muted: "#615c56", accent: "#ff8a3d", accentHover: "#f2752a", accentText: "#b83f0a",
-        danger: "#b3261e", ok: "#2e7d32"
-    }
+    onWantDarkChanged: sweep.run(wantDark ? theme.darkPalette.bg : theme.lightPalette.bg, function () { panel.dark = panel.wantDark })
+    property var c: dark ? theme.darkPalette : theme.lightPalette
 
     Theme {
         id: theme

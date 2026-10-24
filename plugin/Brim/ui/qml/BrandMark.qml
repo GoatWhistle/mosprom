@@ -2,8 +2,8 @@ import QtQuick 2.7
 
 Item {
     id: root
-    property color base: "#e4dfda"
-    property color accent: "#ff8a3d"
+    property color base: "#e3e8eb"
+    property color accent: "#0277bd"
     property bool intro: false
     property bool looping: false
     property bool reduced: false

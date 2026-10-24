@@ -63,7 +63,7 @@ Item {
                     color: root.c.text
                     font.pixelSize: 14
                     selectionColor: root.c.accent
-                    selectedTextColor: "#12130f"
+                    selectedTextColor: root.c.actionText
                     activeFocusOnTab: true
                     focus: true
                     Keys.onPressed: {
