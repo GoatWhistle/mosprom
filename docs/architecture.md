@@ -5,7 +5,7 @@
 
 ## Что реализовано?
 
-Решение — [ADR 0002](adr/0002-plugin-agent-openai-mcp-host.md).
+Решение — [ADR 0002](adr/0002-plugin-agent-openai-mcp-host.md); скиллы, документы и справочники — [ADR 0003](adr/0003-agent-skills-documents-knowledge.md).
 
 ```
 Плагин STE Slicer (Python 3.5, PyQt5)
