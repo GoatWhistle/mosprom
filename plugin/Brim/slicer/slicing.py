@@ -9,7 +9,7 @@ from .engine_log import EngineLog
 from .project_archive import verify_project
 from .qt_wrappers import direct_qt_calls
 
-SLICE_TIMEOUT = 900.0
+SLICE_TIMEOUT = 2700.0
 FATAL_GRACE = 20.0
 ERROR_CHECK_TIMEOUT = 180.0
 ERROR_CHECK_PAUSE = 0.5
