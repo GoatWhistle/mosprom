@@ -1,5 +1,5 @@
 import os
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -15,15 +15,21 @@ from app.usecase.completion import CompletionService
 from app.usecase.interface import Logger, RequestMirror
 from app.usecase.interface.llm import ChatModel
 
+type MirrorFactory = Callable[[Settings, Logger], RequestMirror]
 
-def create_app(settings: Settings | None = None, model: ChatModel | None = None) -> FastAPI:
+
+def create_app(
+    settings: Settings | None = None,
+    model: ChatModel | None = None,
+    mirror_factory: MirrorFactory | None = None,
+) -> FastAPI:
     config = settings or load_settings(os.environ)
     logger = StdlibLogger("app")
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         chat_model = model or build_claude_agent(config.llm_timeout_s)
-        mirror = build_mirror(config, logger)
+        mirror = (mirror_factory or build_mirror)(config, logger)
         app.state.completions = CompletionService(chat_model, mirror)
         try:
             yield

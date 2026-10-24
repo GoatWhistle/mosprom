@@ -2,6 +2,7 @@ import asyncio
 import json
 
 import httpx
+import pytest
 
 from app.adapter.llm.openai_mirror import OpenAiMirror
 from app.domain.jsonvalue import JsonObject
@@ -49,17 +50,32 @@ async def test_sends_body_with_mirror_model() -> None:
     assert [(event, fields["status"]) for event, fields in logger.events] == [("mirror_sent", 200)]
 
 
-async def test_transport_error_is_logged_not_raised() -> None:
+@pytest.mark.parametrize(
+    "error", [httpx.ConnectError("down"), httpx.ReadTimeout("slow"), RuntimeError("bug")]
+)
+async def test_any_failure_is_logged_not_raised(error: Exception) -> None:
     def handle(request: httpx.Request) -> httpx.Response:
-        raise httpx.ConnectError("down", request=request)
+        raise error
 
     logger = RecordingLogger()
     mirror = _mirror(httpx.MockTransport(handle), logger)
     mirror.submit({"messages": []})
     await mirror.aclose()
 
-    assert logger.events == [("mirror_failed", {"model": "qwen", "error": "ConnectError"})]
+    assert logger.events == [("mirror_failed", {"model": "qwen", "error": type(error).__name__})]
     assert "secret" not in repr(logger.events)
+
+
+@pytest.mark.parametrize("status", [402, 429, 500, 503])
+async def test_error_status_is_logged_as_rejected(status: int) -> None:
+    logger = RecordingLogger()
+    mirror = _mirror(httpx.MockTransport(lambda request: httpx.Response(status)), logger)
+    mirror.submit({"messages": []})
+    await mirror.aclose()
+
+    assert [(event, fields["status"]) for event, fields in logger.events] == [
+        ("mirror_rejected", status)
+    ]
 
 
 async def test_close_cancels_requests_after_drain() -> None:

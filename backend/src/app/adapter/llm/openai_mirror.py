@@ -30,7 +30,11 @@ class OpenAiMirror:
         self._tasks: set[asyncio.Task[None]] = set()
 
     def submit(self, body: JsonObject) -> None:
-        task = asyncio.create_task(self._send({**body, "model": self._model, "stream": False}))
+        try:
+            task = asyncio.create_task(self._send({**body, "model": self._model, "stream": False}))
+        except Exception as exc:  # noqa: BLE001 - mirror must never break the reply
+            self._logger.warning("mirror_failed", model=self._model, error=type(exc).__name__)
+            return
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
 
@@ -46,14 +50,20 @@ class OpenAiMirror:
         started = time.monotonic()
         try:
             response = await self._client.post("chat/completions", json=body)
-        except httpx.HTTPError as exc:
+        except Exception as exc:  # noqa: BLE001 - mirror must never break the reply
             self._logger.warning("mirror_failed", model=self._model, error=type(exc).__name__)
             return
+        elapsed_ms = round((time.monotonic() - started) * 1000)
+        if response.is_error:
+            self._logger.warning(
+                "mirror_rejected",
+                model=self._model,
+                status=response.status_code,
+                elapsed_ms=elapsed_ms,
+            )
+            return
         self._logger.info(
-            "mirror_sent",
-            model=self._model,
-            status=response.status_code,
-            elapsed_ms=round((time.monotonic() - started) * 1000),
+            "mirror_sent", model=self._model, status=response.status_code, elapsed_ms=elapsed_ms
         )
 
 
