@@ -92,7 +92,7 @@ Updated: 2026-10-24, MSK
 ## Verification and next actions
 
 - Plugin unit tests 155 passed, 2 skipped (3.13); figure and journal checked by a scratch script; vermin
-  3.5 ok. Not on the stand: figure union in STE, real print photos. docs/limitations.md is still a template.
+  3.5 ok. Not on the stand: figure union in STE, real print photos. Template docs pages removed 2026-10-24.
 - Next: decide on figure print time (N4), then merge into main.
 - Open: B6, B14–B19 in the bugs file; ZIP size limit unknown (figurine G-code 298 MB, Wilo 201 MB).
   `fix/rerun-gear-figurine` merged into main (fast-forward); main not pushed.

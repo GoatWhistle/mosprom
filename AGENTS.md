@@ -29,7 +29,7 @@ Existing Compose services are template infrastructure; plugin packaging remains 
 | Current state, instructions, unresolved questions | The three `context/` files, at session start |
 | Domain vocabulary | `docs/glossary.md`; this is the `GLOSSARY.md` named by skills |
 | Durable decisions and uncommented code explanations | `docs/adr/`, `docs/design-decisions.md` |
-| Product documentation and measured claims | `docs/README.md`, `docs/evidence.md` |
+| Product documentation and measured claims | `docs/README.md`, `docs/analytics.md` |
 | Internal working artifacts | `work/README.md`, by pointer |
 | Backend / defense rules | `backend/AGENTS.md` / `presentation/AGENTS.md` |
 
@@ -95,7 +95,7 @@ Originals and verbatim quotes are preserved; derived views may be updated with t
 
 - `skills/` is the source for both agents. `.claude/skills/<name>` and `.agents/skills/<name>` are
   relative symlinks. Resolve resources from the canonical source, not an alias. Catalog: `skills/README.md`.
-- Defense commands run in `presentation/`, unless specified. Web frontend workflows are inactive.
+- Defense material lives in `presentation/`. Web frontend workflows are inactive.
   Repository paths are relative to its root; resources inside a skill are relative to that skill.
 - Run `bash .claude/scripts/setup.sh` once per clone, before the first commit. It activates Git hooks
   and syncs aliases. After adding/removing/renaming skills, run `.claude/scripts/sync-agents.sh`.
@@ -114,8 +114,7 @@ Originals and verbatim quotes are preserved; derived views may be updated with t
   commits to subjects only, fixes attribution and tags, removes internal paths and verifies blobs.
 - `bash .claude/scripts/scrub-history.sh [source [output]]` uses the same engine to create a cleaned
   bare copy; source history stays unchanged. Review the copy before manually publishing it.
-- Deck: `cd presentation && npm run build`
-  and `npm run speech:check`. Backend: `cd backend && uv run ruff check . && uv run mypy . &&
+- Deck: plain Markdown in `presentation/slides/slides.md`, no build. Backend: `cd backend && uv run ruff check . && uv run mypy . &&
   uv run pytest tests/unit`. Plugin: `cd plugin && PYTHONPATH=. python3 -B -m unittest discover -s tests -t .`.
   The pre-commit hook runs backend unit tests when `backend/` is staged.
 - Verify the changed scenario, update its docs and inspect visible changes at 375px/1440px, both
