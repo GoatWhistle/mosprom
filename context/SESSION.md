@@ -53,6 +53,12 @@ Updated: 2026-10-23, MSK
   only a Claude proxy) referenced for implementation.
 - 2026-10-23: «продолжи без тестов, можешь их больше не писать».
 - 2026-10-24: «задеплой 0.3.0 на виртуалку и прогони сценарий».
+- 2026-10-24: consultation transcript pasted (beginner chat bot; photo of printed part → defects →
+  parameter changes; calibration test parts); «Я бы сделал типа скилов: калибровка-новичок … продвинутый
+  инженер …»; «+ тогда нужна выгрузка переписки»; PNG «да, оба варината»; plan misty-wishing-hummingbird
+  approved with «делай».
+- 2026-10-23: «Давай попробуем оба варината в разных ветках и я выберу который понравится
+  и учитывай это ~/.claude/plans/spicy-tinkering-floyd.md» — plan updated with embedding notes.
 
 ## Current state
 
@@ -68,7 +74,22 @@ Updated: 2026-10-23, MSK
   Slicer start: `schtasks /run /tn BrimSlicer`; UI driven via interactive scheduled tasks
   (screenshots, clicks, SendKeys). Stand chat id `stand0300scenario000000000000001`.
 
+- 2026-10-24: user chose dock + motion; main fast-forwarded to 94ed90d (plugin 0.3.2, not pushed).
+  `feat/chat-stage` 7ee662a kept on request (worktree ../mosprom-hack-stage). Stand runs dock 0.3.2
+  (0.3.0 backup %TEMP%\Brim-0.3.0-backup); kill CuraEngine with STESlicer on restart. Plan
+  spicy-tinkering-floyd steps 1 and 5 pending. Left sidebar: slicer Ctrl+E collapse, unverified.
+
+- 2026-10-24: branch `feat/chat-export` (5a18084, from 94ed90d): chat export to `<root>/<model>/`
+  (project.3mf, result.gcode, chat.md, UI chat_NN.png; text PNG removed on user request), plugin 0.3.3 zip built.
+  Offscreen PyQt5 run (Qt 5.15) verified RU/EN, dark/light. Stand 2026-10-24: 0.3.3 deployed (0.3.2 backup
+  %TEMP%\Brim-0.3.2-backup; cfg panel_width 700, export_root Desktop\results); gear chat exported to
+  Desktop\results\gear: 3 UI + 2 text PNG, chat.md, 3MF, G-code; native folder dialog works.
+  Redeployed 8d31b8e (rejection card shows only the user's comment) and re-exported gear; verified.
+
 ## Verification and next actions
+
+- Next: transcript → brief/QA.md; Novice/Engineer modes;
+  material catalog; seven-model runs.
 
 - Stand run from chat window passed: ask mode cards (accept, reject with comment), auto mode, import,
   transform, slice, result card, open folder; 50 min / 3.6 g gear. Fixed on stand: composition
@@ -76,3 +97,7 @@ Updated: 2026-10-23, MSK
 - Plugin unit tests 155 pass on Python 3.14; Python 3.5 Docker run not repeated. Backend checks pass.
 - Not verified on stand: question card, file-dialog attachment, external MCP, render_scene, chat
   switching, organizers' LLM. Merge branch on request. User asked to stop writing tests.
+- 2026-10-24: branch `feat/chat-markdown-drop` committed 8cf00a6..6c3682c (timeline fix, Markdown,
+  file drop, docs, 0.3.4); not merged/pushed. Stand: 0.3.4 deployed (0.3.3 backup %TEMP%\Brim-0.3.3-backup);
+  Markdown list and restored history at end verified on screenshot. Drag-and-drop not exercised on stand.
+  First 0.3.4 start stalled after boot (no OpenGL init, no window); restart OK, cause unknown.
