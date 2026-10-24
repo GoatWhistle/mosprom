@@ -82,8 +82,12 @@ class MaterialMatcher(object):
             raise OperationError(constants.ERR_INVALID_ARGUMENTS, "requirements must be a non-empty object")
         unknown = [name for name in requirements.get("resist") or [] if name not in RESISTANCES]
         state = self._read_state() or {}
-        candidates, unmatched, covered = [], [], set()
+        candidates, unmatched, covered, seen = [], [], set(), {}
         for material in state.get("available_materials") or []:
+            if material.get("material_id") in seen:
+                seen[material.get("material_id")].append(material.get("extruder"))
+                continue
+            extruders = seen[material.get("material_id")] = [material.get("extruder")]
             family = self.family_of(material)
             facts = material.get("facts") or {}
             if family is None:
@@ -91,7 +95,7 @@ class MaterialMatcher(object):
                 continue
             covered.add(family["id"])
             passes, fails = self.evaluate(family, requirements)
-            candidates.append({"material_id": material.get("material_id"), "extruder": material.get("extruder"),
+            candidates.append({"material_id": material.get("material_id"), "extruders": extruders,
                                "name": facts.get("name"), "brand": facts.get("brand"), "family": family["id"],
                                "passes": passes, "fails": fails, "notes": family["notes"],
                                "typical": dict((key, family[key]) for key in ("max_service_c", "min_service_c", "density",

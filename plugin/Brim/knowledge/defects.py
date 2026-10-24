@@ -8,6 +8,7 @@ from .search import score
 DEFECTS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "defects.json")
 MAX_RESULTS = 3
 RELATIVE_CUTOFF = 0.5
+ACTIVE_EXTRUDER = 0
 
 
 def load_defects(path=DEFECTS_PATH):
@@ -39,13 +40,14 @@ class DefectGuide(object):
         unknown = []
         return {"defects": [self._with_values(item, unknown) for item in found], "unknown_keys": sorted(set(unknown)),
                 "known_defects": [] if found else self.ids(),
+                "values_from": "extruder %d stack (falls back to global values)" % ACTIVE_EXTRUDER,
                 "note": "Steps are typical starting increments, not measured optima; change one or two settings per print."}
 
     def _with_values(self, defect, unknown):
         settings = []
         for item in defect["settings"]:
             try:
-                facts = self._facts(item["key"], None) or {}
+                facts = self._facts(item["key"], ACTIVE_EXTRUDER) or {}
             except Exception:
                 facts = {}
             if not facts.get("known", facts.get("value") is not None):

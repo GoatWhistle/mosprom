@@ -10,7 +10,7 @@
         {"key": "retraction_amount", "direction": "increase", "step": 0.5, "unit": "mm", "note": "Bowden 4-7 mm, direct drive 0.5-2 mm."},
         {"key": "retraction_speed", "direction": "increase", "step": 5, "unit": "mm/s"},
         {"key": "material_print_temperature", "direction": "decrease", "step": 5, "unit": "°C", "note": "Stay inside the material range."},
-        {"key": "travel_speed", "direction": "increase", "step": 20, "unit": "mm/s"},
+        {"key": "speed_travel", "direction": "increase", "step": 20, "unit": "mm/s"},
         {"key": "retraction_combing", "direction": "set", "value": "noskin", "note": "Travel inside the part instead of over gaps."},
         {"key": "travel_avoid_other_parts", "direction": "enable"}
       ],
@@ -159,7 +159,7 @@
       "symptoms": "The part is suddenly offset in X or Y from one layer on.",
       "causes": ["skipped steps from too high speed or acceleration", "nozzle hits curled parts"],
       "settings": [
-        {"key": "travel_speed", "direction": "decrease", "step": 20, "unit": "mm/s"},
+        {"key": "speed_travel", "direction": "decrease", "step": 20, "unit": "mm/s"},
         {"key": "acceleration_enabled", "direction": "enable"},
         {"key": "retraction_hop_enabled", "direction": "enable", "note": "Lifts the nozzle over printed parts."}
       ],
