@@ -24,7 +24,12 @@ class ChatController(QObject):
         self._runner = ThreadRunner(self.post)
         self._presenter = build_presenter(self._runner, self._publish)
         self._last = None
+        self._listeners = []
         self._cache = self._presenter.view()
+
+    def add_view_listener(self, listener):
+        self._listeners.append(listener)
+        listener(self._cache)
 
     def post(self, function):
         self._invoke.emit(function)
@@ -41,6 +46,8 @@ class ChatController(QObject):
         self._last = encoded
         self._cache = view
         self.viewChanged.emit()
+        for listener in self._listeners:
+            listener(view)
 
     @pyqtProperty("QVariantMap", notify=viewChanged)
     def view(self):

@@ -1,6 +1,7 @@
 import os
 
 from PyQt5.QtCore import QMetaObject, QTimer, QUrl
+from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtQml import QQmlComponent, QQmlContext
 
 from UM.Extension import Extension
@@ -33,6 +34,7 @@ class BrimExtension(Extension):
         strings = strings_for(language)
         self.setMenuName("Brim")
         self.addMenuItem(strings["menu_open"], self.openChat)
+        self.addMenuItem(strings["menu_browser"], self.openInBrowser)
         self.addMenuItem(strings["menu_settings"], self.openSettings)
         ready = getattr(application, "engineCreatedSignal", None)
         if ready is not None and self._runtime is not None:
@@ -126,3 +128,15 @@ class BrimExtension(Extension):
         window = self._target()
         if window is not None:
             QMetaObject.invokeMethod(window, "openSettings")
+
+    def openInBrowser(self):
+        if self._runtime is None:
+            Logger.log("e", "Brim is unavailable: %s" % self._failure)
+            return
+        self._start()
+        url = self._runtime.web.url()
+        if url is None:
+            Logger.log("e", "Brim browser chat server is not running")
+            return
+        Logger.log("i", "Brim browser chat: http://127.0.0.1:%d/" % self._runtime.web.port())
+        QDesktopServices.openUrl(QUrl(url))

@@ -8,6 +8,8 @@ from .agent.llm_client import LlmClient
 from .agent.loop import AgentLoop
 from .agent.mcp_client import McpHttpClient
 from .agent.skills import SkillCatalog
+from .browser.bridge import WebBridge
+from .browser.server import WebChatServer
 from .knowledge.defects import DefectGuide
 from .knowledge.materials import MaterialMatcher
 from .chat.presenter import ChatPresenter
@@ -30,6 +32,8 @@ from .slicer.state import StateReader
 from .ui.controller import ChatController
 from .workspace.service import WorkspaceService
 from .workspace.store import WorkspaceStore
+
+WEB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
 
 
 def preferences_of(application):
@@ -70,6 +74,8 @@ class BrimRuntime(object):
         self.loop = AgentLoop(self.llm, self.hub, policy, SceneContext(self.port, skills=self.skills), self.executor.cancel)
         self.controller = ChatController(self._build_presenter, self.settings)
         self.port.add_change_listener(self._ui(lambda: self.presenter.on_scene_changed()))
+        self.bridge = WebBridge(self.controller, self.cache_dir, os.path.join(self.cache_dir, "uploads"))
+        self.web = WebChatServer(self.bridge, WEB_DIR)
         self._started = False
 
     @property
@@ -101,6 +107,8 @@ class BrimRuntime(object):
         self.settings.set_mcp_port(port)
         self._write_mcp_info(port)
         self.controller.start()
+        self.controller.add_view_listener(self.bridge.publish)
+        self.web.start()
 
     def _write_mcp_info(self, port):
         path = os.path.join(self.cache_dir, "mcp.json")
@@ -120,4 +128,5 @@ class BrimRuntime(object):
         except Exception:
             pass
         self.local_mcp.stop()
+        self.web.stop()
         self.controller.shutdown()
