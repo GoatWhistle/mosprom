@@ -1,65 +1,50 @@
 # Backend HTTP contract
 
-Read before changing routes, HTTP schemas, errors or authentication. Layer placement follows
-[ARCHITECTURE.md](ARCHITECTURE.md).
+Read before changing routes, request mapping, errors or authentication. Public reference:
+`docs/api.md`. Layer ownership follows [ARCHITECTURE.md](ARCHITECTURE.md).
 
-## Request path
+## Implemented routes
 
-The controller validates request shape, obtains the authenticated actor from trusted server state,
-maps input into a use case command and calls the use case. It maps the result or known business
-failure into an explicit HTTP response. Business rules and access decisions execute in the use case
-and domain even when the same action arrives through a worker or script.
+| Route | Contract |
+|---|---|
+| `POST /v1/chat/completions` | Bearer OAuth token, JSON body mapped by `CompletionService`, one complete JSON response |
+| `GET /v1/models` | Public list containing the fixed model `opus` |
+| `GET /api/v1/health` | Public process liveness, without paid upstream calls |
+| `/openapi.json`, `/docs` | Generated FastAPI schema and Swagger |
 
-- Keep Pydantic request/response schemas in `controller/`; use explicit response fields.
-- Treat actor identity and permissions as server-owned. A submitted user ID or claimed role does
-  not grant access.
-- Check visibility before returning protected records; filter list and detail queries consistently.
-  Establish the project's 403/404 policy and test it for every applicable action.
-- Validate format, required fields and basic bounds at the HTTP edge. Business invariants remain
-  authoritative in the core and cannot depend on Pydantic validation having run.
-- Pagination, ordering, timestamp/timezone and identifier conventions are fixed for the project
-  and recorded in product `docs/api.md`; new routes follow those conventions.
+The requested model name is currently ignored: `MODEL = "opus"`. Streaming, token usage accounting
+and general OpenAI parameter compatibility are not implemented. Additional generation parameters
+must not be documented as supported without code and tests.
+
+Messages support system/user/assistant/tool, text and base64 data URL images. Remote image URLs are
+rejected. Tool definitions use function name/description/parameters; tool calls carry arguments as
+JSON text in responses. Full behavior lives in `usecase/completion.py` and adapter transcript code.
+
+## Authentication and data flow
+
+The Bearer token is passed only to Claude. There are no application users, sessions or stored chat
+records. Never log the token or body. The optional mirror uses its own configured key and receives
+a copy of the validated body, with model replaced and stream disabled. Its result cannot control
+the main answer. Preserve isolation tests when changing this path.
 
 ## Errors
 
-Use one error envelope, including validation errors:
+Return `{code, message}` consistently through `controller/errors.py`:
 
-```json
-{
-  "code": "invalid_state_transition",
-  "message": "The requested transition is unavailable"
-}
-```
+- 401: missing/empty Bearer token.
+- 422: invalid JSON body, roles, messages, tools or image encoding.
+- 503: SDK absent, upstream failure/timeout or malformed model output.
+- 500: unexpected or unmapped server error.
 
-`code` is a stable machine-readable `snake_case` identifier. `message` is safe English diagnostic
-text; the frontend displays its own localized dictionary entry for the code. Domain/usecase
-failures know no HTTP status; controller error mapping assigns it.
+Keep internal exception details out of 5xx responses. Provider diagnostics go through the Logger
+port with safe fields. Do not convert provider failure into a successful synthetic chat response.
 
-- Define statuses and error codes for each scenario in the generated contract and product docs.
-- Convert known failures explicitly. Unexpected failures remain server errors and are logged safely;
-  they are not reclassified as successful or user-caused results.
-- Responses and logs never contain credentials, provider tokens, SQL traces or sensitive request
-  bodies. Error mapping does not reveal records the actor cannot access.
-- A failed mutation preserves state or rolls back its transaction. Partial success is explicit in
-  the endpoint contract when the product requires it.
+## Validation and completion
 
-## OpenAPI and frontend types
+Controller code owns HTTP extraction; CompletionService validates the generic JSON shape and maps
+it to domain values. The current OpenAPI body is generic JSON, not a full Chat Completions schema.
+If explicit schemas are introduced, keep them in controller and preserve domain independence.
 
-- Generate OpenAPI from the implemented FastAPI routes and explicit schemas; serve `/openapi.json`.
-- Document request, success and error schemas in route configuration. Do not hand-edit generated
-  schemas or add code comments/docstrings to supply descriptions.
-- Expose only implemented endpoints or a documented, honest unavailable response. A successful
-  response comes from actual logic and storage.
-- Regenerate frontend types with `cd frontend && npm run api:types` from the repository root whenever
-  the public contract changes. Update consumers and `docs/api.md` in the same change.
-- A breaking rollout follows: consumers accept both forms, backend changes, old form is removed.
-  A coordinated first implementation may establish a single contract before any consumer ships.
-
-## Health and configuration
-
-- Implement `GET /api/v1/health` for the Compose healthcheck. Report the actual health policy;
-  document whether it represents process liveness or dependency readiness.
-- Configuration is validated at startup. Required capabilities fail with a safe, actionable error;
-  optional paid providers use the configured deterministic implementation when no key is present.
-- Construct clients and use cases in the composition root. Routers receive use cases through
-  registered factories or providers, without creating database connections or SDK clients themselves.
+After changing a contract, update `docs/api.md`, plugin consumers and affected tests together.
+There is no standalone frontend or generated TypeScript client to rebuild. Done means the documented
+request, success and error examples match implemented behavior and the relevant checks pass.

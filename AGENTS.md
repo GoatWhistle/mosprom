@@ -1,11 +1,11 @@
 # Brim — assistant for configuring FDM 3D/5D printing in STE Slicer
 
 Otkroy Mosprom hackathon, additive manufacturing track. Submission: October 25, 10:00 MSK
-(PDF p. 10; year 2026 inferred from event context). Product positioning and P0 await user discussion.
-User-selected target: a STE Slicer plugin with embedded chat, Python 3.5-compatible code and PyQt5.
-The website specifies a browser SPA; the PDF says embedded chat. Keep this source conflict explicit;
-read `brief/requirements.md` and `brief/TECHNICAL.md` before planning implementation.
-Existing Compose services are template infrastructure; plugin packaging remains undecided.
+(PDF p. 10; year 2026 inferred from event context). Brim 0.5.2 implements a STE Slicer plugin with embedded chat and a browser SPA, using Python
+3.5-compatible code and PyQt5. The website specifies a browser SPA; the PDF says embedded chat.
+Both shells exist, but keep the source conflict explicit; read `brief/requirements.md` and
+`brief/TECHNICAL.md` before planning implementation. The plugin zip is built by `plugin/build.py`;
+Compose runs only the optional Claude proxy. See `docs/evidence.md` for stand verification limits.
 
 ## Start a session
 
@@ -29,7 +29,7 @@ Existing Compose services are template infrastructure; plugin packaging remains 
 | Current state, instructions, unresolved questions | The three `context/` files, at session start |
 | Domain vocabulary | `docs/glossary.md`; this is the `GLOSSARY.md` named by skills |
 | Durable decisions and uncommented code explanations | `docs/adr/`, `docs/design-decisions.md` |
-| Product documentation and measured claims | `docs/README.md`, `docs/analytics.md` |
+| Product documentation and measured claims | `docs/README.md`, `docs/evidence.md`, `docs/analytics.md` |
 | Internal working artifacts | `work/README.md`, by pointer |
 | Backend / defense rules | `backend/AGENTS.md` / `presentation/AGENTS.md` |
 

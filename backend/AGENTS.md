@@ -56,31 +56,15 @@ database (SQLite or PostgreSQL 16) before the first repository; no ORM, only
 SQL through the driver; SQL migrations applied by dbmate in a one-shot Compose service; dataclass DTOs
 at repository ports; Unit of Work for transactions.
 
-The template contains backend instructions, `pyproject.toml` with `uv.lock`, the `LanguageModel`
-and `Embeddings` ports in `usecase/interface.py` with their types in `domain/inference.py`, and
-`adapter/llm/claude_agent.py` and `adapter/llm/codex_agent.py` implementing `LanguageModel` through
-`claude-agent-sdk` and `openai-codex`. The `DecisionModel` port (types in `domain/decision.py`)
-covers typed-decision models: `adapter/decision/system_one.py` speaks the `/v1/systemone` contract
-of TypeSafe Jev, `laya-serve` and the OpenJev decider; `adapter/decision/lexical.py` is the offline
-fallback. The `Logger` port takes an event name and `LogValue` fields; `adapter/log/stdlib.py`
-implements it over `logging`. Modules outside `adapter/log/`, `main.py` included, do not import
-`logging`; the import check enforces it.
-Other implementations go to `adapter/llm/`, `adapter/embeddings/`, `adapter/decision/` and
-`adapter/log/`; empty layer folders keep `.gitkeep`.
+The current backend ports are `ChatModel`, `RequestMirror` and `Logger` under `usecase/interface/`.
+`CompletionService` parses OpenAI-shaped JSON into domain chat types and renders the result.
+`ClaudeAgentChatAdapter` uses Claude Agent SDK; `UnavailableChatModel` reports a clear error when
+that optional dependency is absent. There is no offline generation fallback in the current proxy.
+The mirror is optional and cannot affect the main response. Logging goes through `Logger`;
+`adapter/log/stdlib.py` owns the standard logging dependency.
 
-`main.py` exposes `create_app()` (run as `uvicorn app.main:create_app --factory`). It reads
-`Settings` from `settings.py` (`DECISION_MODEL`, `LANGUAGE_MODEL`, `DECISION_MODEL_*`), builds
-a `StdlibLogger` passed to `ErrorHandlers` and `Providers` in the lifespan, keeps them on
-`app.state.providers` and closes them at shutdown. Wire a
-new use case there from `Providers` and pass it to its router; extend `build_providers` when adding
-a port implementation. `controller/errors.py` owns the error envelope and `STATUS_BY_ERROR`;
-`controller/router.py` holds `api_router_v1` with the `/api/v1` prefix; feature routers carry no
-prefix and are included there, and `main.py` mounts only `api_router_v1`. `controller/health/` is the
-Compose healthcheck. `docker-bake.hcl` builds `backend/Dockerfile`; the `backend` Compose service
-only runs the built image. `claude-agent-sdk` and `openai-codex` form the `llm` dependency group: installed by
-default locally, in the image only with `LLM=true` (`LLM=true docker buildx bake`), so
-`main.py` imports the LLM adapters inside `build_language_model`. Add new dependencies with
-`uv add`; the Dockerfile installs strictly from `uv.lock`. When bootstrapping a project, add migrations, the storage service and the real first
-scenario together. Remove a folder's `.gitkeep` when it gains source files. Follow
-the dependency rules from the first implementation; validation commands apply once those tools
-and files exist.
+`create_app()` reads settings, registers `/api/v1/health` and the `/v1` router, and creates the
+completion service and clients in lifespan. Both model and mirror close on shutdown. The image
+installs the committed lock; `claude-agent-sdk` belongs to the `llm` group, installed locally by
+default and in Docker only with `LLM=true`. Keep `COMPOSE_PROJECT_NAME` and `TAG` aligned between
+Bake and Compose. Use the current commands in TESTING.md; no integration directory exists today.

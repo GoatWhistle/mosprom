@@ -71,28 +71,20 @@ Updated: 2026-10-24, MSK
   качество, все найденные баги фиксируй в md»; gear STL «скачай заного из ТЗ заказчика … пусть папка соотвествует».
 - 2026-10-24: plan brim-calibration-figure-replicated-ritchie (one calibration figure, attempt journal,
   novice loop): no new unit tests, local check only, no stand; «делай в отдельном worktree».
+- 2026-10-24: «допиши всю документацию проекта».
+
+- 2026-10-24: «запушь это дело».
 
 ## Current state
 
-- main 2026-10-24 (not pushed; worktrees spa/calibration/qwen-mirror removed) merges `feat/calibration-figure` (calibration_figure, calibration_journal,
-  novice loop, B21/B22), `feat/qwen-mirror` (backend mirrors chat requests to organizer qwen) and
-  `feat/browser-spa` (browser SPA per website §3.2: `plugin/Brim/browser/`, `plugin/Brim/web/`, menu
-  «Открыть в браузере»); plugin 0.5.2. `feat/chat-stage` stays unmerged (rejected variant).
-- Stand: plugin 0.5.2 = this main's plugin (backups %TEMP%\Brim-0.5.1-backup, -0.5.0-, -0.4.1-). Browser run
-  2026-10-24 passed in Edge: STL upload via file dialog, question answer, auto run (gear 0 h 53 min, 3.3 g),
-  result card, G-code download, recover button. Calibration figure run passed in chat 6d5a17e0…; N4 open:
-  3 h 12 min on Fine. Stand scripts must be UTF-8 with BOM (PS 5). Old browser tab after slicer restart
-  says "no connection" forever (new port). Backend rebuilt from main 40df7da (LLM=true, override compose.stand.yml in session scratchpad, rollback
-  image brim-backend:before-40df7da); live call from the VM 6 s. Mirror off: MIRROR_API_KEY not in .env.
-- Exports in stand `Desktop\results\<model>\`, copy `~/mosprom-results/2026-10-24/`. Run bugs:
-  [work/jury-run-bugs.md](../work/jury-run-bugs.md). Stand: Task BrimSlicer starts in the STE folder;
-  5D licence activated 2026-10-24 (10 days); BrimType runs steps from brim-steps.txt. Older history:
-  work/session-log.md.
+- main: integrate documentation onto origin/main a212a10 (four newer commits); Brim 0.5.2 code unchanged.
+  User authorized commit/push. Details: [refresh](../work/documentation-refresh.md).
+- Incoming analytics, real hero screenshot and Markdown slides preserved. Removed presentation
+  engine stays removed; filled product docs retained in place of deleted placeholder pages.
 
 ## Verification and next actions
 
-- Plugin unit tests 155 passed, 2 skipped (3.13); figure and journal checked by a scratch script; vermin
-  3.5 ok. Not on the stand: figure union in STE, real print photos. Template docs pages removed 2026-10-24.
-- Next: decide on figure print time (N4), then merge into main.
-- Open: B6, B14–B19 in the bugs file; ZIP size limit unknown (figurine G-code 298 MB, Wilo 201 MB).
-  `fix/rerun-gear-figurine` merged into main (fast-forward); main not pushed.
+- Plugin: 153 passed, 2 skipped; backend Ruff/mypy pass, 67 tests pass. ZIP integrity passed.
+  Links/context budget checked; no paid calls or live STE. Prior speech errors concern removed engine.
+- Push main, verify remote SHA. Later: final ZIP/stand exports, physical/photo tests and organizer-LLM
+  full run. Open engine/UI issues: work/jury-run-bugs.md. Local checkpoint notes preserved.
