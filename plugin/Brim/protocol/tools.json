@@ -244,7 +244,7 @@
     },
     {
       "name": "render_scene",
-      "description": "Render an additional image of the scene from a chosen view.",
+      "description": "Render an additional isometric image of the scene.",
       "input_schema": {
         "type": "object",
         "required": [
@@ -254,13 +254,7 @@
           "view": {
             "type": "string",
             "enum": [
-              "iso",
-              "front",
-              "back",
-              "left",
-              "right",
-              "top",
-              "bottom"
+              "iso"
             ]
           }
         }
