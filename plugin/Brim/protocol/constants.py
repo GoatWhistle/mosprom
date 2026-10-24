@@ -25,5 +25,6 @@ TOOL_LOOKUP_DEFECT = "lookup_defect"
 TOOL_MATCH_MATERIALS = "match_materials"
 TOOL_CALCULATE = "calculate"
 TOOL_GENERATE_CALIBRATION = "generate_calibration_model"
+TOOL_CALIBRATION_JOURNAL = "calibration_journal"
 
 PRINT_MODES = ("classic", "cylindrical", "cylindrical_full")

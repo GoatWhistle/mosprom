@@ -490,7 +490,7 @@
     },
     {
       "name": "generate_calibration_model",
-      "description": "Generate a calibration test part as STL in the chat folder and return its path for apply_changes import_model. Kinds: cube(size_mm) for dimensions and first layer; overhang_test(angles_deg, height_mm) for overhang limits; bridge_test(lengths_mm, height_mm) for bridging; stringing_towers(distance_mm, height_mm) for retraction; hole_tolerance(diameters_mm, thickness_mm) for hole accuracy and horizontal expansion.",
+      "description": "Generate a calibration test part as STL in the chat folder and return its path for apply_changes import_model. Kinds: calibration_figure (no params) is the default beginner figure: one fixed part 70x50x27 mm with zones for first layer, overhangs, bridge, stringing towers, holes, thin wall, small spire and top surface; it returns zones with the face to photograph, what to look for, setting_keys and defect_ids, and face labels A-D marked by 1-4 dots. Use the other kinds only to refine one zone around a found threshold: cube(size_mm) for dimensions and first layer; overhang_test(angles_deg, height_mm) for overhang limits; bridge_test(lengths_mm, height_mm) for bridging; stringing_towers(distance_mm, height_mm) for retraction; hole_tolerance(diameters_mm, thickness_mm) for hole accuracy and horizontal expansion.",
       "input_schema": {
         "type": "object",
         "required": [
@@ -501,6 +501,7 @@
             "type": "string",
             "enum": [
               "bridge_test",
+              "calibration_figure",
               "cube",
               "hole_tolerance",
               "overhang_test",
@@ -515,6 +516,118 @@
       },
       "annotations": {
         "readOnlyHint": true,
+        "destructiveHint": false
+      }
+    },
+    {
+      "name": "calibration_journal",
+      "description": "Calibration attempt journal kept in the chat folder. record: save one printed attempt with the geometry (kind and params passed to generate_calibration_model), per-zone observations from the photos, the planned setting changes and the lesson; call it before apply_changes so printed_with captures the settings this attempt was printed with. New photos in the chat are attached automatically. It does not change settings. read: all attempts and a comparison of the latest attempt with the previous one of the same geometry: zones fixed, persisting and new, and the settings changed between them.",
+      "input_schema": {
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "record",
+              "read"
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "description": "record: the generate_calibration_model kind that was printed."
+          },
+          "params": {
+            "type": "object",
+            "description": "record: the params passed to generate_calibration_model; omit for calibration_figure."
+          },
+          "figure_path": {
+            "type": "string",
+            "description": "record: path of the printed STL."
+          },
+          "observations": {
+            "type": "array",
+            "description": "record: one row per inspected zone.",
+            "items": {
+              "type": "object",
+              "required": [
+                "zone",
+                "verdict"
+              ],
+              "properties": {
+                "zone": {
+                  "type": "string",
+                  "description": "Zone id from the zones list, e.g. overhangs."
+                },
+                "verdict": {
+                  "type": "string",
+                  "enum": [
+                    "ok",
+                    "defect"
+                  ]
+                },
+                "defect_id": {
+                  "type": "string",
+                  "enum": [
+                    "stringing",
+                    "zits_blobs",
+                    "wall_gaps",
+                    "under_extrusion",
+                    "over_extrusion",
+                    "first_layer_squish",
+                    "poor_adhesion",
+                    "warping",
+                    "layer_separation",
+                    "overhang_sag",
+                    "rough_surface",
+                    "layer_shift",
+                    "dimension_error",
+                    "moisture",
+                    "top_surface_holes"
+                  ]
+                },
+                "note": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "changes": {
+            "type": "array",
+            "description": "record: planned setting changes to apply next with apply_changes.",
+            "items": {
+              "type": "object",
+              "required": [
+                "key",
+                "after"
+              ],
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "extruder": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "after": {
+                  "description": "New value in the unit reported by search_settings."
+                },
+                "reason": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "lesson": {
+            "type": "string",
+            "description": "record: one sentence the user learned from this attempt."
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": false,
         "destructiveHint": false
       }
     }

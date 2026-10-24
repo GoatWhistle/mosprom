@@ -4,6 +4,7 @@ import uuid
 
 from ..execution.errors import OperationError
 from ..protocol import constants
+from .figure import calibration_figure, checked_zones
 from .mesh import bounds, box, circle, prism, square_with_hole, write_stl
 
 DEFAULT_ANGLES = [30, 40, 50, 60, 70]
@@ -89,16 +90,20 @@ def hole_tolerance(params):
 
 
 KINDS = {"cube": cube, "overhang_test": overhang_test, "bridge_test": bridge_test,
-         "stringing_towers": stringing_towers, "hole_tolerance": hole_tolerance}
+         "stringing_towers": stringing_towers, "hole_tolerance": hole_tolerance,
+         "calibration_figure": calibration_figure}
 
 
-def generate(kind, params, directory):
+def generate(kind, params, directory, facts=None):
     builder = KINDS.get(kind)
     if builder is None:
         raise OperationError(constants.ERR_INVALID_ARGUMENTS, "unknown kind %s; kinds: %s" % (kind, ", ".join(sorted(KINDS))))
     if directory is None:
         raise OperationError(constants.ERR_NOT_AVAILABLE, "no chat is open to store the model")
     triangles, details = builder(params if isinstance(params, dict) else {})
+    if "zones" in details:
+        zones, unknown = checked_zones(details["zones"], facts)
+        details = dict(details, zones=zones, unknown_keys=unknown)
     os.makedirs(directory, exist_ok=True)
     path = os.path.join(directory, "calibration-%s-%s.stl" % (kind, uuid.uuid4().hex[:8]))
     write_stl(path, triangles, "brim %s" % kind)
