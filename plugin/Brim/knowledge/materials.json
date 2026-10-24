@@ -1,0 +1,437 @@
+{
+  "basis": "Typical values for unfilled filament grades compiled from manufacturer technical data sheets; max_service_c is a conservative continuous-use temperature below the heat deflection temperature at 0.45 MPa. Verify with the datasheet of the exact filament before relying on a value.",
+  "ratings": [
+    "poor",
+    "fair",
+    "good",
+    "excellent"
+  ],
+  "families": [
+    {
+      "id": "pla",
+      "aliases": [
+        "pla"
+      ],
+      "max_service_c": 50,
+      "min_service_c": 0,
+      "density": 1.24,
+      "flexible": false,
+      "moisture": "moderate",
+      "conductive": false,
+      "low_friction": false,
+      "creep": "poor",
+      "resistance": {
+        "oil": "good",
+        "fuel": "fair",
+        "alkali": "poor",
+        "acid": "fair",
+        "ipa": "fair",
+        "water_hot": "poor",
+        "uv": "fair",
+        "ozone": "good"
+      },
+      "notes": "Easy to print, stiff, brittle under impact, softens near 55-60 °C."
+    },
+    {
+      "id": "petg",
+      "aliases": [
+        "petg",
+        "pet",
+        "cpe",
+        "copolyester"
+      ],
+      "max_service_c": 65,
+      "min_service_c": -20,
+      "density": 1.27,
+      "flexible": false,
+      "moisture": "moderate",
+      "conductive": false,
+      "low_friction": false,
+      "creep": "fair",
+      "resistance": {
+        "oil": "good",
+        "fuel": "fair",
+        "alkali": "fair",
+        "acid": "good",
+        "ipa": "good",
+        "water_hot": "fair",
+        "uv": "fair",
+        "ozone": "good"
+      },
+      "notes": "Tough, good layer adhesion, food-contact grades exist."
+    },
+    {
+      "id": "abs",
+      "aliases": [
+        "abs"
+      ],
+      "max_service_c": 85,
+      "min_service_c": -20,
+      "density": 1.04,
+      "flexible": false,
+      "moisture": "low",
+      "conductive": false,
+      "low_friction": false,
+      "creep": "fair",
+      "resistance": {
+        "oil": "fair",
+        "fuel": "poor",
+        "alkali": "good",
+        "acid": "fair",
+        "ipa": "fair",
+        "water_hot": "fair",
+        "uv": "poor",
+        "ozone": "fair"
+      },
+      "notes": "Needs an enclosure; warps; yellows and embrittles in sunlight."
+    },
+    {
+      "id": "asa",
+      "aliases": [
+        "asa"
+      ],
+      "max_service_c": 85,
+      "min_service_c": -20,
+      "density": 1.07,
+      "flexible": false,
+      "moisture": "low",
+      "conductive": false,
+      "low_friction": false,
+      "creep": "fair",
+      "resistance": {
+        "oil": "fair",
+        "fuel": "poor",
+        "alkali": "good",
+        "acid": "fair",
+        "ipa": "fair",
+        "water_hot": "fair",
+        "uv": "excellent",
+        "ozone": "good"
+      },
+      "notes": "ABS-like with strong UV and weather resistance."
+    },
+    {
+      "id": "pc",
+      "aliases": [
+        "pc",
+        "polycarbonate"
+      ],
+      "max_service_c": 115,
+      "min_service_c": -40,
+      "density": 1.2,
+      "flexible": false,
+      "moisture": "moderate",
+      "conductive": false,
+      "low_friction": false,
+      "creep": "good",
+      "resistance": {
+        "oil": "fair",
+        "fuel": "poor",
+        "alkali": "poor",
+        "acid": "fair",
+        "ipa": "fair",
+        "water_hot": "fair",
+        "uv": "fair",
+        "ozone": "good"
+      },
+      "notes": "High heat and impact strength; hydrolyses in hot alkali; high print temperature."
+    },
+    {
+      "id": "pa",
+      "aliases": [
+        "pa",
+        "nylon",
+        "pa6",
+        "pa12",
+        "pa66",
+        "polyamide"
+      ],
+      "max_service_c": 90,
+      "min_service_c": -40,
+      "density": 1.08,
+      "flexible": false,
+      "moisture": "high",
+      "conductive": false,
+      "low_friction": true,
+      "creep": "fair",
+      "resistance": {
+        "oil": "excellent",
+        "fuel": "excellent",
+        "alkali": "good",
+        "acid": "poor",
+        "ipa": "good",
+        "water_hot": "fair",
+        "uv": "fair",
+        "ozone": "good"
+      },
+      "notes": "Tough, wear resistant, self-lubricating; must be dried; PA12 absorbs less water than PA6."
+    },
+    {
+      "id": "pa_cf",
+      "aliases": [
+        "pa-cf",
+        "pa cf",
+        "pacf",
+        "pa12-cf",
+        "pa6-cf",
+        "nylon-cf",
+        "nylon cf"
+      ],
+      "max_service_c": 120,
+      "min_service_c": -40,
+      "density": 1.15,
+      "flexible": false,
+      "moisture": "moderate",
+      "conductive": true,
+      "low_friction": true,
+      "creep": "good",
+      "resistance": {
+        "oil": "excellent",
+        "fuel": "excellent",
+        "alkali": "good",
+        "acid": "poor",
+        "ipa": "good",
+        "water_hot": "fair",
+        "uv": "good",
+        "ozone": "good"
+      },
+      "notes": "Stiff and creep resistant; carbon filler is abrasive and electrically conductive."
+    },
+    {
+      "id": "tpu",
+      "aliases": [
+        "tpu",
+        "tpe",
+        "flex",
+        "flexible"
+      ],
+      "max_service_c": 80,
+      "min_service_c": -40,
+      "density": 1.21,
+      "flexible": true,
+      "moisture": "moderate",
+      "conductive": false,
+      "low_friction": false,
+      "creep": "fair",
+      "resistance": {
+        "oil": "good",
+        "fuel": "good",
+        "alkali": "fair",
+        "acid": "fair",
+        "ipa": "fair",
+        "water_hot": "fair",
+        "uv": "fair",
+        "ozone": "excellent"
+      },
+      "notes": "Elastic, abrasion resistant; print slowly with little retraction."
+    },
+    {
+      "id": "pp",
+      "aliases": [
+        "pp",
+        "polypropylene"
+      ],
+      "max_service_c": 90,
+      "min_service_c": -10,
+      "density": 0.9,
+      "flexible": false,
+      "moisture": "very_low",
+      "conductive": false,
+      "low_friction": true,
+      "creep": "fair",
+      "resistance": {
+        "oil": "good",
+        "fuel": "fair",
+        "alkali": "excellent",
+        "acid": "excellent",
+        "ipa": "excellent",
+        "water_hot": "excellent",
+        "uv": "poor",
+        "ozone": "fair"
+      },
+      "notes": "Chemically inert, light, fatigue resistant; hard to stick to the bed; warps."
+    },
+    {
+      "id": "tpe_styrenic",
+      "aliases": [
+        "sbs",
+        "sebs"
+      ],
+      "max_service_c": 60,
+      "min_service_c": -40,
+      "density": 0.95,
+      "flexible": true,
+      "moisture": "very_low",
+      "conductive": false,
+      "low_friction": false,
+      "creep": "poor",
+      "resistance": {
+        "oil": "poor",
+        "fuel": "poor",
+        "alkali": "excellent",
+        "acid": "good",
+        "ipa": "fair",
+        "water_hot": "good",
+        "uv": "fair",
+        "ozone": "good"
+      },
+      "notes": "Soft styrenic elastomer; SEBS ages better than SBS; swells in oils and fuels."
+    },
+    {
+      "id": "tpv",
+      "aliases": [
+        "tpv",
+        "tpv80"
+      ],
+      "max_service_c": 100,
+      "min_service_c": -40,
+      "density": 0.97,
+      "flexible": true,
+      "moisture": "very_low",
+      "conductive": false,
+      "low_friction": false,
+      "creep": "fair",
+      "resistance": {
+        "oil": "fair",
+        "fuel": "poor",
+        "alkali": "excellent",
+        "acid": "good",
+        "ipa": "good",
+        "water_hot": "good",
+        "uv": "good",
+        "ozone": "excellent"
+      },
+      "notes": "EPDM/PP vulcanizate: rubber-like, weather and ozone resistant, moderate oil resistance."
+    },
+    {
+      "id": "pom",
+      "aliases": [
+        "pom",
+        "acetal",
+        "delrin"
+      ],
+      "max_service_c": 100,
+      "min_service_c": -40,
+      "density": 1.41,
+      "flexible": false,
+      "moisture": "very_low",
+      "conductive": false,
+      "low_friction": true,
+      "creep": "good",
+      "resistance": {
+        "oil": "excellent",
+        "fuel": "excellent",
+        "alkali": "good",
+        "acid": "poor",
+        "ipa": "excellent",
+        "water_hot": "good",
+        "uv": "poor",
+        "ozone": "fair"
+      },
+      "notes": "Low friction and wear; difficult bed adhesion; not for acids."
+    },
+    {
+      "id": "peek",
+      "aliases": [
+        "peek",
+        "pekk"
+      ],
+      "max_service_c": 240,
+      "min_service_c": -50,
+      "density": 1.3,
+      "flexible": false,
+      "moisture": "very_low",
+      "conductive": false,
+      "low_friction": true,
+      "creep": "excellent",
+      "resistance": {
+        "oil": "excellent",
+        "fuel": "excellent",
+        "alkali": "excellent",
+        "acid": "good",
+        "ipa": "excellent",
+        "water_hot": "excellent",
+        "uv": "fair",
+        "ozone": "excellent"
+      },
+      "notes": "High-temperature engineering polymer; needs a heated chamber and a high-temperature hotend."
+    },
+    {
+      "id": "pei",
+      "aliases": [
+        "pei",
+        "ultem"
+      ],
+      "max_service_c": 180,
+      "min_service_c": -50,
+      "density": 1.27,
+      "flexible": false,
+      "moisture": "moderate",
+      "conductive": false,
+      "low_friction": false,
+      "creep": "excellent",
+      "resistance": {
+        "oil": "excellent",
+        "fuel": "good",
+        "alkali": "fair",
+        "acid": "good",
+        "ipa": "good",
+        "water_hot": "good",
+        "uv": "good",
+        "ozone": "excellent"
+      },
+      "notes": "Flame retardant high-temperature polymer; heated chamber required."
+    },
+    {
+      "id": "hips",
+      "aliases": [
+        "hips"
+      ],
+      "max_service_c": 75,
+      "min_service_c": -20,
+      "density": 1.04,
+      "flexible": false,
+      "moisture": "low",
+      "conductive": false,
+      "low_friction": false,
+      "creep": "fair",
+      "resistance": {
+        "oil": "fair",
+        "fuel": "poor",
+        "alkali": "good",
+        "acid": "fair",
+        "ipa": "fair",
+        "water_hot": "fair",
+        "uv": "poor",
+        "ozone": "fair"
+      },
+      "notes": "Mostly a support material for ABS (dissolves in limonene)."
+    },
+    {
+      "id": "pva",
+      "aliases": [
+        "pva",
+        "bvoh"
+      ],
+      "max_service_c": 50,
+      "min_service_c": 0,
+      "density": 1.23,
+      "flexible": false,
+      "moisture": "very_high",
+      "conductive": false,
+      "low_friction": false,
+      "creep": "poor",
+      "resistance": {
+        "oil": "fair",
+        "fuel": "fair",
+        "alkali": "poor",
+        "acid": "poor",
+        "ipa": "fair",
+        "water_hot": "poor",
+        "uv": "poor",
+        "ozone": "fair"
+      },
+      "notes": "Water-soluble support material; not for functional parts."
+    }
+  ]
+}

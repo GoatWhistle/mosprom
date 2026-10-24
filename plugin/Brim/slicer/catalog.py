@@ -67,9 +67,6 @@ class Catalog(object):
         for item in [stack] + [stack.extruders[key] for key in sorted(stack.extruders.keys())]:
             for key in sorted(item.userChanges.getAllKeys())[:MAX_VALUES]:
                 overrides["%s:%s" % (item.getId(), key)] = _value(item, key)
-        values = {}
-        for key in sorted(stack.getAllKeys())[:MAX_VALUES]:
-            values[key] = _value(stack, key)
         return {
             "active_quality_type": manager.activeQualityType,
             "active_profile_name": manager.activeQualityOrQualityChangesName,
@@ -77,8 +74,6 @@ class Catalog(object):
             "available_quality_types": sorted(key for key, group in groups.items() if group.is_available),
             "custom_profiles": sorted(custom.keys()),
             "user_overrides": overrides,
-            "values": values,
-            "truncated": len(stack.getAllKeys()) > MAX_VALUES,
         }
 
     def inspect_material(self, material_id):

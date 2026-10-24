@@ -1,7 +1,7 @@
 import json
 
 from PyQt5.QtCore import QObject, QUrl, pyqtProperty, pyqtSignal, pyqtSlot
-from PyQt5.QtGui import QGuiApplication
+from PyQt5.QtGui import QDesktopServices, QGuiApplication
 
 from .runner import ThreadRunner
 
@@ -13,15 +13,23 @@ def local_path(value):
 
 class ChatController(QObject):
     viewChanged = pyqtSignal()
+    panelWidthChanged = pyqtSignal()
+    captureRequested = pyqtSignal(str, arguments=["path"])
     _invoke = pyqtSignal(object)
 
-    def __init__(self, build_presenter, parent=None):
+    def __init__(self, build_presenter, settings=None, parent=None):
         QObject.__init__(self, parent)
+        self._settings = settings
         self._invoke.connect(self._run_invoked)
         self._runner = ThreadRunner(self.post)
         self._presenter = build_presenter(self._runner, self._publish)
         self._last = None
+        self._listeners = []
         self._cache = self._presenter.view()
+
+    def add_view_listener(self, listener):
+        self._listeners.append(listener)
+        listener(self._cache)
 
     def post(self, function):
         self._invoke.emit(function)
@@ -38,14 +46,42 @@ class ChatController(QObject):
         self._last = encoded
         self._cache = view
         self.viewChanged.emit()
+        for listener in self._listeners:
+            listener(view)
 
     @pyqtProperty("QVariantMap", notify=viewChanged)
     def view(self):
         return self._cache
 
+    @pyqtProperty(int, notify=panelWidthChanged)
+    def panelWidth(self):
+        return self._settings.panel_width() if self._settings is not None else 0
+
+    @pyqtSlot(int)
+    def setPanelWidth(self, value):
+        if self._settings is not None:
+            self._settings.set_panel_width(value)
+            self.panelWidthChanged.emit()
+
+    @pyqtProperty(str, notify=viewChanged)
+    def exportRoot(self):
+        root = self._settings.export_root() if self._settings is not None else ""
+        return QUrl.fromLocalFile(root).toString() if root else ""
+
+    @pyqtSlot(str)
+    def exportChat(self, folder):
+        self._presenter.export(local_path(folder), self.captureRequested.emit)
+
+    @pyqtSlot(int, str)
+    def captureDone(self, pages, error):
+        self._presenter.capture_done(pages, error)
+
     @property
     def presenter(self):
         return self._presenter
+
+    def open_path(self, path):
+        QDesktopServices.openUrl(QUrl.fromLocalFile(path))
 
     def start(self):
         self._presenter.start()
@@ -95,6 +131,10 @@ class ChatController(QObject):
         self._presenter.set_mode(mode)
 
     @pyqtSlot(str)
+    def setSkill(self, name):
+        self._presenter.set_skill(name)
+
+    @pyqtSlot(str)
     def attach(self, url):
         self._presenter.attach(local_path(url))
 
@@ -110,17 +150,33 @@ class ChatController(QObject):
     def stop(self):
         self._presenter.stop()
 
-    @pyqtSlot(str, str)
-    def saveArtifact(self, kind, url):
-        self._presenter.save_artifact(kind, local_path(url))
+    @pyqtSlot()
+    def openFolder(self):
+        self._presenter.open_folder()
 
-    @pyqtSlot(str, str, str, str, str, str, result=bool)
-    def applySettings(self, backend, llm_url, model, key, language, theme):
-        return self._presenter.apply_settings(backend, llm_url, model, key, language, theme)
+    @pyqtSlot(str)
+    def openPath(self, path):
+        self._presenter.open_path(path)
+
+    @pyqtSlot(str, str, str, str, str, result=bool)
+    def applySettings(self, llm_url, model, key, language, theme):
+        return self._presenter.apply_settings(llm_url, model, key, language, theme)
+
+    @pyqtSlot(str, str, str, result=bool)
+    def addServer(self, name, url, header):
+        return self._presenter.add_server(name, url, header)
+
+    @pyqtSlot(str, bool)
+    def toggleServer(self, name, enabled):
+        self._presenter.toggle_server(name, enabled)
+
+    @pyqtSlot(str)
+    def removeServer(self, name):
+        self._presenter.remove_server(name)
 
     @pyqtSlot()
-    def checkBackend(self):
-        self._presenter.check_backend()
+    def checkConnection(self):
+        self._presenter.check_connection()
 
     @pyqtSlot()
     def dismissNotice(self):

@@ -1,6 +1,6 @@
 # Session state
 
-Updated: 2026-10-23, MSK
+Updated: 2026-10-24, MSK
 
 ## Explicit user instructions
 
@@ -49,31 +49,50 @@ Updated: 2026-10-23, MSK
 
 - 2026-10-23: «нужно чтобы каждый новый чат был подвязан к одному рабочему пространству (файлу) чтоли, как то так брат ; нужно чтобы я мог менять чаты и как бы из за этого менялись файлы . понял задачу?»
 - 2026-10-23: «план именно задачи для исправления чатика сделай братан».
+- 2026-10-23: plan `misty-honking-crescent.md` (agent in plugin as OpenAI client + MCP host; backend
+  only a Claude proxy) referenced for implementation.
+- 2026-10-23: «продолжи без тестов, можешь их больше не писать».
+- 2026-10-24: «задеплой 0.3.0 на виртуалку и прогони сценарий».
+- 2026-10-24: consultation transcript pasted (beginner chat bot; photo of printed part → defects →
+  parameter changes; calibration test parts); «Я бы сделал типа скилов: калибровка-новичок … продвинутый
+  инженер …»; «+ тогда нужна выгрузка переписки»; PNG «да, оба варината»; plan misty-wishing-hummingbird
+  approved with «делай».
+- 2026-10-23: «Давай попробуем оба варината в разных ветках и я выберу который понравится
+  и учитывай это ~/.claude/plans/spicy-tinkering-floyd.md» — plan updated with embedding notes.
+
+- 2026-10-24: «Давай подумаем над скилами и добавим в базовые тулы работу с docx, xlsx, csv крч с
+  файлами чтобы агент их мог прочесть нормально»; skills: novice, engineer, material, defects;
+  agent picks + manual pin; formats DOCX/XLSX/CSV/TXT/MD/JSON/PDF.
+
+- 2026-10-24: «твоя задача запустить новый бэк из main ветки и там новые изменения вроде уже лежат на вм,
+  но ты все равно перевроверь ты должен создать 7 чатов и через brim всё прогнать и сохранить, также сам
+  перепроверяй качество, все найденные баги фиксируй в md»
+- 2026-10-24: «надо переделать 2 чата зановго и через brim всё прогнать и сохранить, также сам перепроверяй
+  качество, все найденные баги фиксируй в md»; gear STL «скачай заного из ТЗ заказчика … пусть папка соотвествует».
+- 2026-10-24: plan brim-calibration-figure-replicated-ritchie (one calibration figure, attempt journal,
+  novice loop): no new unit tests, local check only, no stand; «делай в отдельном worktree».
 
 ## Current state
 
-- 2026-10-23: «@work/chat-improvement-plan.md в другой ветке чатик сделай красивый» — branch feat/chat-redesign: QML redesign plus plugin workspaces (3MF per chat, switching with lock/rollback, autosave, per-chat drafts, truthful status, grouped actions, result in timeline). 151 plugin tests pass; QML previewed dark/light/RU/EN. Backend: project link/version/active chat in PostgreSQL, client_message_id idempotency, result project_version. 155 plugin + 89 backend tests pass. Nothing run in real STE Slicer (no Wine here).
-
-- Current branch main; implementation merge HEAD 4b310c7. Integrated feat/backend-agent, feat/chat-redesign, feat/slicer-plugin and origin/main. Preserved current chat/protocol v2 and added the older plugin branch's import completion filtering, estimate retry/seconds fixes and optional Uranium tests.
-- 2026-10-23: «остановись вообще полностью и все что можно останови» — all Brim Compose services stopped; data preserved. No services restarted during merge.
-- 2026-10-23: «теперь все смерджи в мейн» — authorizes merging all branches and pushing main.
-- Prior project PUT 404: stale backend image; rebuild used Compose tag.
-- Local STE Slicer: ~/.wine-ste; installed plugin now matches rebuilt QML.
-- Bake defaults to app-backend:latest; explicitly use Compose tag brim-backend:latest.
+- main 2026-10-24 (not pushed; worktrees spa/calibration/qwen-mirror removed) merges `feat/calibration-figure` (calibration_figure, calibration_journal,
+  novice loop, B21/B22), `feat/qwen-mirror` (backend mirrors chat requests to organizer qwen) and
+  `feat/browser-spa` (browser SPA per website §3.2: `plugin/Brim/browser/`, `plugin/Brim/web/`, menu
+  «Открыть в браузере»); plugin 0.5.2. `feat/chat-stage` stays unmerged (rejected variant).
+- Stand: plugin 0.5.2 = this main's plugin (backups %TEMP%\Brim-0.5.1-backup, -0.5.0-, -0.4.1-). Browser run
+  2026-10-24 passed in Edge: STL upload via file dialog, question answer, auto run (gear 0 h 53 min, 3.3 g),
+  result card, G-code download, recover button. Calibration figure run passed in chat 6d5a17e0…; N4 open:
+  3 h 12 min on Fine. Stand scripts must be UTF-8 with BOM (PS 5). Old browser tab after slicer restart
+  says "no connection" forever (new port). Backend rebuilt from main 40df7da (LLM=true, override compose.stand.yml in session scratchpad, rollback
+  image brim-backend:before-40df7da); live call from the VM 6 s. Mirror off: MIRROR_API_KEY not in .env.
+- Exports in stand `Desktop\results\<model>\`, copy `~/mosprom-results/2026-10-24/`. Run bugs:
+  [work/jury-run-bugs.md](../work/jury-run-bugs.md). Stand: Task BrimSlicer starts in the STE folder;
+  5D licence activated 2026-10-24 (10 days); BrimType runs steps from brim-steps.txt. Older history:
+  work/session-log.md.
 
 ## Verification and next actions
 
-- Merge checks: plugin 155 passed, 2 optional Uranium tests skipped (checkout unavailable); backend Ruff and mypy passed, 59 unit tests passed. No services or paid LLM calls started. Storage integration tests not rerun while Compose is stopped.
-- Main pushed and remote SHA verified at 02d535e. Rebuilt plugin/dist/Brim-0.2.0.zip from that main: all 74 files match source, ZIP CRC valid. Plugin not installed; services remain stopped. Real STE Slicer slicing, project reopen and the newly built backend route still require a separate authorized runtime check.
-- Preserve official embedded-chat vs browser-SPA conflict; avoid unrelated template cleanup.
-
-- 2026-10-23: «просто понял очисти бд прям и подними все будто бы с нуля» — explicitly authorized database deletion and restart. Ran compose down --volumes and up -d --wait; fresh PostgreSQL migrated, backend healthy, health API ok. Verified conversations/messages/runs all 0. Plugin local cache not erased; restart slicer to discard displayed stale history. Supersedes prior stop instructions.
-
-- «нет убери вообще это окно» — removed the entire switching modal overlay from Chat.qml; rebuilt Brim-0.2.0.zip, verified CRC and packaged QML. Installed plugin unchanged.
-
-- Active: diagnose whole-slicer hang; see work/slicer-hang-diagnosis.md. Opening Brim reproduces high CPU; user interrupted diagnosis for push. Temporary instrumentation removed and diagnostic process stopped. No confirmed fix.
-
-- 2026-10-23: «ssh user@192.168.1.190 там винда поставь этот проект туда». Win10 VM: STE Slicer 7.10.12 installed silently; Brim-0.2.0 in %APPDATA%\steslicer\7.10\plugins; brim/backend_url=http://192.168.1.137:8000 (cfg must stay UTF-8 without BOM). Backend Compose on devbox docker host 192.168.1.137 via untracked override (migrations baked into image, port 0.0.0.0:8000); plugin registered, WS open. Slicing/LLM not tested.
-- 2026-10-23: «зайди в логи, там почему то ошибки какие то вылазиют». Branch fix/attachment-filename-header (uncommitted): Content-Disposition now RFC 6266 filename* (Cyrillic names gave 500 latin-1 on attachment/artifact download); ToolRow anchor null-guard. Backend redeployed, failing request now 200.
-- 2026-10-23: «Крч разбирайся на твоих правках». Chat hang root cause: ListView delegate create/destroy churn + onContentHeightChanged positionViewAtEnd. Fix in Chat.qml (cacheBuffer, bounded settle scroll); reproduced and verified on Qt 5.10 Docker harness and on Windows (chat opens at end, CPU 0%). Clean branch build installed on Windows; running slicer still has temporary auto-open build until restart. See work/slicer-hang-diagnosis.md. Uncommitted.
-- 2026-10-23: «я нажал применить когда агент сказал импортировать и щас всё зависло». Branch fix/ste-qt-thread-writers (uncommitted): STE call_on_qt_thread lacks main-thread check → 3MF/G-code writers deadlocked on Qt thread; plugin unwraps for the write (slicer/qt_wrappers.py). Attachment name from filename*, Windows-safe; backend ASCII fallback uses `_`. Verified on Windows: save_workspace worker 1.12 s and main 0.06 s. G-code export on stand unverified. Backend redeployed, clean plugin installed, slicer restarted. 409 run_active fix proposed, not implemented.
+- Plugin unit tests 155 passed, 2 skipped (3.13); figure and journal checked by a scratch script; vermin
+  3.5 ok. Not on the stand: figure union in STE, real print photos. docs/limitations.md is still a template.
+- Next: decide on figure print time (N4), then merge into main.
+- Open: B6, B14–B19 in the bugs file; ZIP size limit unknown (figurine G-code 298 MB, Wilo 201 MB).
+  `fix/rerun-gear-figurine` merged into main (fast-forward); main not pushed.

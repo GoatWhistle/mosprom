@@ -11,9 +11,12 @@ def load_tools(path=None):
     tools = []
     for item in items:
         schema = item.get("inputSchema", item.get("input_schema", item.get("parameters")))
-        tools.append({
+        tool = {
             "name": item["name"],
             "description": item.get("description", ""),
             "inputSchema": schema or {"type": "object", "properties": {}},
-        })
+        }
+        if item.get("annotations"):
+            tool["annotations"] = item["annotations"]
+        tools.append(tool)
     return tools

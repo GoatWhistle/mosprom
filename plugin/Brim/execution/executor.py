@@ -1,164 +1,134 @@
 import json
+import os
 import threading
 
-from ..protocol import constants, frames
+from ..calibration.journal import run_journal
+from ..calibration.models import generate
+from ..documents.reader import read_document
+from ..engineering.calculations import calculate
+from ..protocol import constants
 from . import geometry
 from .errors import OperationError, OutcomeUnknown
 from .operations import validate_operations
 
 
+def error_object(code, message):
+    return {"code": code, "message": message}
+
+
+def state_summary(state):
+    printer = state.get("printer") or {}
+    return {"mode": state.get("mode"), "profile": state.get("profile"), "overrides": state.get("overrides"),
+            "materials": [{"extruder": item.get("index"), "material_id": item.get("material_id")}
+                          for item in printer.get("extruders") or []],
+            "objects": [{"id": item.get("id"), "name": item.get("name")} for item in state.get("objects") or []]}
+
+
 class ToolExecutor(object):
-    def __init__(self, port, ledger, attachments, artifacts):
+    def __init__(self, port, output_dir, files_dir=None, skills=None, defects=None, materials=None):
         self._port = port
-        self._ledger = ledger
-        self._attachments = attachments
-        self._artifacts = artifacts
-        self._cancelled = set()
-        self._lock = threading.Lock()
+        self._output_dir = output_dir
+        self._files_dir = files_dir or (lambda: None)
+        self._skills = skills
+        self._defects = defects
+        self._materials = materials
+        self._cancel = threading.Event()
         self._execution = threading.Lock()
-        self._slicing_run = None
         self._tools = {
             constants.TOOL_APPLY_CHANGES: self._apply_changes,
             constants.TOOL_SEARCH_SETTINGS: self._search_settings,
             constants.TOOL_INSPECT_PROFILE: self._inspect_profile,
             constants.TOOL_INSPECT_MATERIAL: self._inspect_material,
+            constants.TOOL_INSPECT_SCENE: self._inspect_scene,
             constants.TOOL_ANALYZE_GEOMETRY: self._analyze_geometry,
             constants.TOOL_RENDER_SCENE: self._render_scene,
             constants.TOOL_SLICE: self._slice,
+            constants.TOOL_READ_DOCUMENT: self._read_document,
+            constants.TOOL_LOAD_SKILL: self._load_skill,
+            constants.TOOL_LOOKUP_DEFECT: self._lookup_defect,
+            constants.TOOL_MATCH_MATERIALS: self._match_materials,
+            constants.TOOL_CALCULATE: self._calculate,
+            constants.TOOL_GENERATE_CALIBRATION: self._generate_calibration,
+            constants.TOOL_CALIBRATION_JOURNAL: self._calibration_journal,
         }
 
-    def cancel_run(self, run_id):
-        with self._lock:
-            self._cancelled.add(run_id)
-            active = self._slicing_run == run_id
-        if active:
-            self._port.cancel_slice()
+    def cancel(self):
+        self._cancel.set()
+        self._port.cancel_slice()
 
-    def _is_cancelled(self, run_id):
-        with self._lock:
-            return run_id in self._cancelled
-
-    def execute_call(self, call, report=None):
+    def execute(self, name, arguments, report=None):
         with self._execution:
-            return self._execute_call(call, report)
+            self._cancel.clear()
+            return self._run(name, arguments or {}, report)
 
-    def _execute_call(self, call, report=None):
-        call_id = call.get("call_id")
-        run_id = call.get("run_id")
-        fingerprint = self._fingerprint(call.get("tool"), call.get("arguments"))
-        known = self._ledger.fingerprint(call_id)
-        if known is not None and known != fingerprint:
-            return self._failure_frame(call_id, run_id, constants.ERR_CALL_CONFLICT,
-                                       "call_id was already used with different content")
-        stored = self._ledger.result_frame(call_id)
-        if stored is not None:
-            return stored
-        if self._ledger.state(call_id) is not None:
-            return self._failure_frame(call_id, run_id, constants.ERR_IN_PROGRESS, "call is still running")
-        expected_epoch = call.get("expected_scene_epoch", "")
-        expected = call.get("expected_scene_version")
-        current = self._port.scene_version()
-        if expected_epoch != self._port.scene_epoch() or (expected is not None and expected != current):
-            error = frames.error_object(constants.ERR_STALE_SCENE, "scene changed: expected %s, actual %s" % (expected, current))
-            return frames.tool_result_frame(call_id, run_id, False, current, {"state": self._port.read_state()}, error, [], scene_epoch=self._port.scene_epoch())
-        if not self._ledger.begin(call_id, run_id, current, fingerprint, self._port.scene_epoch()):
-            return self._ledger.result_frame(call_id) or self._failure_frame(
-                call_id, run_id, constants.ERR_IN_PROGRESS, "call is still running")
-        self._expected_version = current
-        outcome = self._run(call.get("tool"), call.get("arguments") or {}, call_id, run_id, report)
-        frame = frames.tool_result_frame(call_id, run_id, outcome["ok"], outcome["scene_version"],
-                                         outcome.get("result"), outcome.get("error"), outcome.get("applied"))
-        frame["scene_epoch"] = self._port.scene_epoch()
-        self._ledger.finish(call_id, frame)
-        return frame
-
-    def execute_mcp(self, name, arguments, request_id):
-        with self._execution:
-            return self._execute_mcp(name, arguments, request_id)
-
-    def _execute_mcp(self, name, arguments, request_id):
-        call_id = "mcp-%s" % frames.new_id()
-        self._ledger.begin(call_id, None, self._port.scene_version())
-        self._expected_version = self._port.scene_version()
-        outcome = self._run(name, arguments, call_id, None, None)
-        self._ledger.finish(call_id, frames.tool_result_frame(call_id, None, outcome["ok"], outcome["scene_version"],
-                                                              outcome.get("result"), outcome.get("error"), outcome.get("applied")))
-        return outcome
-
-    def _fingerprint(self, tool, arguments):
-        return json.dumps([tool, arguments or {}], sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-
-    def _failure_frame(self, call_id, run_id, code, message):
-        return frames.tool_result_frame(call_id, run_id, False, self._port.scene_version(), {},
-                                        frames.error_object(code, message), [], scene_epoch=self._port.scene_epoch())
-
-    def _run(self, tool, arguments, call_id, run_id, report):
+    def _run(self, tool, arguments, report):
         handler = self._tools.get(tool)
         applied = []
+        images = []
         try:
             if handler is None:
                 raise OperationError(constants.ERR_UNKNOWN_TOOL, "tool %s is not executed by the plugin" % tool)
-            self._check_cancelled(run_id)
-            result = handler(arguments, call_id, run_id, report, applied)
-            version = result["scene_version"] if tool == constants.TOOL_SLICE else self._port.scene_version()
-            return {"ok": True, "result": result, "error": None, "applied": applied,
-                    "scene_version": version}
+            result = handler(arguments, report, applied, images)
+            return {"ok": True, "result": result, "error": None, "applied": applied, "images": images}
         except OperationError as error:
-            result = dict(error.details)
-            return {"ok": False, "result": result, "error": frames.error_object(error.code, error.message),
-                    "applied": applied, "scene_version": self._port.scene_version()}
+            return {"ok": False, "result": dict(error.details), "error": error_object(error.code, error.message),
+                    "applied": applied, "images": images}
         except Exception as error:
-            return {"ok": False, "result": {}, "applied": applied, "scene_version": self._port.scene_version(),
-                    "error": frames.error_object(constants.ERR_OUTCOME_UNKNOWN, "unexpected failure: %s" % error)}
+            return {"ok": False, "result": {}, "applied": applied, "images": images,
+                    "error": error_object(constants.ERR_OUTCOME_UNKNOWN, "unexpected failure: %s" % error)}
 
-    def _apply_changes(self, arguments, call_id, run_id, report, applied):
+    def _check_cancelled(self):
+        if self._cancel.is_set():
+            raise OperationError(constants.ERR_CANCELLED, "stopped by the user")
+
+    def _apply_changes(self, arguments, report, applied, images):
         operations = arguments.get("operations")
         problems = validate_operations(operations)
         if problems:
             raise OperationError(constants.ERR_INVALID_ARGUMENTS, "invalid operations", {"problems": problems})
+        before = state_summary(self._port.read_state())
         self._port.begin_batch()
         try:
             for index, op in enumerate(operations):
-                if self._is_cancelled(run_id):
-                    raise OperationError(constants.ERR_CANCELLED, "run cancelled", {"stopped_at": index})
-                result = self._apply_operation(op, run_id)
-                self._expected_version = self._port.scene_version()
+                if self._cancel.is_set():
+                    raise OperationError(constants.ERR_CANCELLED, "stopped by the user", {"stopped_at": index})
+                result = self._port.apply_operation(op, check=self._check_cancelled)
                 applied.append({"index": index, "kind": op["kind"], "result": result})
                 if report:
                     report("apply_changes", (index + 1) / float(len(operations)))
         except OperationError as error:
             error.details = dict(error.details, failed_index=len(applied), failed_kind=operations[len(applied)]["kind"],
-                                 state=self._port.read_state())
+                                 state=self._port.read_state(), before=before)
             raise
         except Exception as error:
             raise OutcomeUnknown("operation %d (%s) ended unexpectedly: %s" % (
                 len(applied), operations[len(applied)]["kind"], error),
-                {"failed_index": len(applied), "state": self._port.read_state()})
+                {"failed_index": len(applied), "state": self._port.read_state(), "before": before})
         finally:
             self._port.end_batch()
-        return {"state": self._port.read_state()}
+        return {"before": before, "state": self._port.read_state()}
 
-    def _apply_operation(self, op, run_id):
-        if op["kind"] in ("import_model", "open_3mf") and not op.get("path"):
-            op = dict(op, path=self._attachments.fetch(op["attachment_id"], op.get("name")))
-        return self._port.apply_operation(op, self._expected_version, lambda: self._check_cancelled(run_id))
-
-    def _search_settings(self, arguments, call_id, run_id, report, applied):
+    def _search_settings(self, arguments, report, applied, images):
         query = arguments.get("query")
         if not isinstance(query, str) or not query.strip():
             raise OperationError(constants.ERR_INVALID_ARGUMENTS, "query required")
         return {"matches": self._port.search_settings(query.strip())}
 
-    def _inspect_profile(self, arguments, call_id, run_id, report, applied):
+    def _inspect_profile(self, arguments, report, applied, images):
         return self._port.inspect_profile()
 
-    def _inspect_material(self, arguments, call_id, run_id, report, applied):
+    def _inspect_material(self, arguments, report, applied, images):
         return self._port.inspect_material(arguments.get("material_id"))
 
-    def _render_scene(self, arguments, call_id, run_id, report, applied):
-        return self._port.render_scene(arguments.get("view") or "iso")
+    def _inspect_scene(self, arguments, report, applied, images):
+        return {"scene_version": self._port.scene_version(), "state": self._port.read_state()}
 
-    def _analyze_geometry(self, arguments, call_id, run_id, report, applied):
+    def _render_scene(self, arguments, report, applied, images):
+        result = dict(self._port.render_scene(arguments.get("view") or "iso"))
+        images.append({"mime_type": "image/png", "data": result.pop("png")})
+        return result
+
+    def _analyze_geometry(self, arguments, report, applied, images):
         ids = arguments.get("object_ids")
         if not isinstance(ids, list) or not ids:
             raise OperationError(constants.ERR_INVALID_ARGUMENTS, "object_ids must be a non-empty list")
@@ -176,36 +146,72 @@ class ToolExecutor(object):
                 raise OperationError(constants.ERR_INVALID_ARGUMENTS, str(error))
         return {"objects": results}
 
-    def _check_cancelled(self, run_id):
-        if self._is_cancelled(run_id):
-            raise OperationError(constants.ERR_CANCELLED, "run cancelled")
+    def _attachment_path(self, path):
+        directory = self._files_dir()
+        if directory is None:
+            raise OperationError(constants.ERR_NOT_AVAILABLE, "no chat is open")
+        if not isinstance(path, str) or not path:
+            raise OperationError(constants.ERR_INVALID_ARGUMENTS, "path required")
+        root = os.path.realpath(directory)
+        target = os.path.realpath(path if os.path.isabs(path) else os.path.join(root, path))
+        if os.path.commonpath([root, target]) != root or not os.path.isfile(target):
+            raise OperationError(constants.ERR_INVALID_ARGUMENTS, "path must be an attachment of the current chat")
+        return target
 
-    def _slice(self, arguments, call_id, run_id, report, applied):
-        version = self._expected_version
-        epoch = self._port.scene_epoch()
+    def _read_document(self, arguments, report, applied, images):
+        result, embedded = read_document(self._attachment_path(arguments.get("path")), arguments.get("start", 0),
+                                         arguments.get("max_chars"), arguments.get("sheet"), arguments.get("rows"),
+                                         arguments.get("pages"))
+        images.extend({"mime_type": item["mime_type"], "data": item["data"]} for item in embedded)
+        return result
+
+    def _load_skill(self, arguments, report, applied, images):
+        name = arguments.get("name")
+        body = self._skills.body(name) if self._skills is not None else None
+        if body is None:
+            known = ", ".join(self._skills.names()) if self._skills is not None else ""
+            raise OperationError(constants.ERR_INVALID_ARGUMENTS, "unknown skill %s; skills: %s" % (name, known))
+        return {"name": name, "instructions": body}
+
+    def _lookup_defect(self, arguments, report, applied, images):
+        if self._defects is None:
+            raise OperationError(constants.ERR_NOT_AVAILABLE, "the defect guide is not loaded")
+        return self._defects.lookup(arguments.get("query"), arguments.get("defect_id"))
+
+    def _match_materials(self, arguments, report, applied, images):
+        if self._materials is None:
+            raise OperationError(constants.ERR_NOT_AVAILABLE, "the material table is not loaded")
+        return self._materials.match(arguments.get("requirements"))
+
+    def _calculate(self, arguments, report, applied, images):
+        return calculate(arguments.get("formula"), arguments.get("inputs"))
+
+    def _generate_calibration(self, arguments, report, applied, images):
+        return generate(arguments.get("kind"), arguments.get("params") or {}, self._files_dir(), self._port.setting_facts)
+
+    def _calibration_journal(self, arguments, report, applied, images):
+        return run_journal(arguments, self._files_dir(), self._port.setting_facts)
+
+    def _fingerprint(self):
+        state = dict(self._port.read_state())
+        for volatile in ("slice_state", "errors"):
+            state.pop(volatile, None)
+        return json.dumps(state, sort_keys=True, default=str)
+
+    def _slice(self, arguments, report, applied, images):
+        directory = self._output_dir()
+        if directory is None:
+            raise OperationError(constants.ERR_NOT_AVAILABLE, "no chat is open to store the result")
+        version = self._port.scene_version()
+        before = self._fingerprint()
 
         def check():
-            self._check_cancelled(run_id)
-            if (self._port.scene_epoch(), self._port.scene_version()) != (epoch, version):
-                raise OperationError(constants.ERR_STALE_RESULT, "scene changed; result discarded")
+            self._check_cancelled()
+            if self._fingerprint() != before:
+                raise OperationError(constants.ERR_STALE_RESULT, "the scene changed while slicing; result discarded")
 
         check()
-        artifact_set = self._artifacts.reusable(version)
-        if artifact_set is None:
-            with self._lock:
-                if run_id in self._cancelled:
-                    raise OperationError(constants.ERR_CANCELLED, "run cancelled")
-                self._slicing_run = run_id
-            try:
-                summary = self._port.slice(report or (lambda stage, fraction: None), check)
-            finally:
-                with self._lock:
-                    self._slicing_run = None
-            check()
-            files = self._port.export_artifacts(self._artifacts.directory(), check)
-            check()
-            artifact_set = self._artifacts.register(version, files, epoch, summary)
-        uploaded = self._artifacts.upload(run_id, artifact_set, report, check)
+        summary = self._port.slice(report or (lambda stage, fraction: None), check)
         check()
-        return {"slice": artifact_set.summary, "artifacts": uploaded,
-                "scene_epoch": epoch, "scene_version": version}
+        files = self._port.export_artifacts(directory, check)
+        return {"slice": summary, "files": files, "scene_version": version}

@@ -12,6 +12,10 @@ Column {
     spacing: 4
     onInitialChanged: text.text = initial
 
+    function reset() {
+        text.text = ""
+    }
+
     Text {
         text: root.label
         color: root.c.muted

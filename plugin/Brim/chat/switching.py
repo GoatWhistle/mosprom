@@ -1,24 +1,18 @@
 from ..workspace.service import WorkspaceError
-from .history import conversation_row
 
 
 class ProjectSwitching(object):
-    def __init__(self, state, workspace, sync, http, submit, notice, strings, history, stop_run):
+    def __init__(self, state, workspace, submit, notice, strings, select, stop_turn):
         self._state = state
         self._workspace = workspace
-        self._sync = sync
-        self._http = http
         self._submit = submit
         self._notice = notice
         self._strings = strings
-        self._history = history
-        self._stop_run = stop_run
+        self._select = select
+        self._stop_turn = stop_turn
 
     def _changed(self):
         self._notice(self._state.notice)
-
-    def enabled(self):
-        return self._workspace is not None
 
     def request(self, target_id=None, create_mode=None, adopt=False):
         state = self._state
@@ -31,7 +25,7 @@ class ProjectSwitching(object):
         if target_id is not None and target_id == state.conversation_id:
             return
         request = {"target": target_id, "create": create_mode, "adopt": adopt}
-        if state.run_working():
+        if state.running:
             state.switch_prompt = request
             self._changed()
             return
@@ -46,7 +40,7 @@ class ProjectSwitching(object):
         if request is None:
             return
         self._state.switch_prompt = None
-        self._stop_run(lambda: self._begin(request))
+        self._stop_turn(lambda: self._begin(request))
 
     def retry(self):
         request = self._state.switch_retry
@@ -63,10 +57,11 @@ class ProjectSwitching(object):
         self._workspace.lock(True)
 
         def work():
-            if current is not None:
-                self._sync.save(current, False)
+            return self._workspace.save(current) if current is not None else None
 
-        def done(_):
+        def done(status):
+            if current is not None:
+                state.workspace_status[current] = status
             self._open(request, current)
 
         def failed(error):
@@ -78,25 +73,18 @@ class ProjectSwitching(object):
     def _open(self, request, current):
         state = self._state
         state.switching = "opening"
-        mode = state.mode
+        store = self._workspace.store
 
         def work():
             target = request["target"]
-            created = None
             if request["create"] is not None:
-                created = self._http.create_conversation_with(request["create"] or mode)
-                target = created["id"]
+                target = store.create(request["create"])["id"]
             if request["adopt"]:
-                self._sync.save(target, True)
-                self._workspace.store.set_active(target)
+                self._workspace.save(target)
             else:
                 self._open_or_restore(current, target)
-                self._sync.activate(target)
-            return target, created
-
-        def done(result):
-            target, created = result
-            self._finish(target, created)
+            store.set_active(target)
+            return target
 
         def failed(error):
             if isinstance(error, WorkspaceError) and error.restored is False:
@@ -108,7 +96,7 @@ class ProjectSwitching(object):
                 else self._strings()["switch_new_failed"]
             self._abort(request, text, error)
 
-        self._submit(work, done, on_error=failed)
+        self._submit(work, self._finish, on_error=failed)
         self._changed()
 
     def _open_or_restore(self, current, target):
@@ -117,21 +105,15 @@ class ProjectSwitching(object):
         except WorkspaceError as failure:
             failure.restored = self._workspace.restore(current)
             raise
-        self._workspace.store.set_active(target)
 
-    def _finish(self, target, created):
+    def _finish(self, target):
         state = self._state
-        if created is not None:
-            state.select_conversation(created["id"], created.get("mode"))
-            state.conversations.insert(0, conversation_row(created))
-        else:
-            self._history.open(target)
+        self._select(target)
         state.workspace_status = self._workspace.store.statuses()
         state.save_state = "saved"
         state.switching = None
+        state.notice = None
         self._workspace.lock(False)
-        if self._sync.link_failed:
-            state.notice = self._strings()["project_link_failed"]
         self._changed()
 
     def _abort(self, request, text, error):
@@ -154,6 +136,7 @@ class ProjectSwitching(object):
         def done(_):
             state.workspace_blocked = False
             state.switching = None
+            state.notice = None
             self._workspace.lock(False)
 
         def failed(error):

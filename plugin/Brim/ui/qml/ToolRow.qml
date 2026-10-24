@@ -5,14 +5,16 @@ Rectangle {
     property var entry: ({})
     property var t: ({})
     property var c: ({})
-    property string statusKey: entry.status === "ok" ? "tool_ok" : (entry.status === "failed" ? "tool_failed" : "tool_running")
-    property bool running: entry.status !== "ok" && entry.status !== "failed"
+    property bool failed: entry.status === "failed" || entry.status === "rejected"
+    property string statusKey: "tool_" + entry.status
+    property bool running: entry.status === "running"
+    property bool ok: entry.status === "ok"
 
     width: parent ? parent.width : 300
     height: column.height + 12
     radius: 10
-    color: entry.status === "failed" ? Qt.rgba(1, 0.45, 0.4, 0.08) : "transparent"
-    border.width: entry.status === "failed" ? 1 : 0
+    color: failed ? Qt.rgba(1, 0.45, 0.4, 0.08) : "transparent"
+    border.width: failed ? 1 : 0
     border.color: c.danger
 
     Column {
@@ -24,24 +26,55 @@ Rectangle {
 
         Row {
             spacing: 8
-            Rectangle {
-                id: dot
-                width: 7
-                height: 7
-                radius: 4
+            Item {
+                width: 12
+                height: 12
                 anchors.verticalCenter: parent ? parent.verticalCenter : undefined
-                color: root.entry.status === "failed" ? root.c.danger : (root.entry.status === "ok" ? root.c.ok : root.c.accent)
-                SequentialAnimation on opacity {
+                Spinner {
+                    anchors.fill: parent
+                    visible: root.running
                     running: root.running
-                    loops: Animation.Infinite
-                    NumberAnimation { to: 0.3; duration: 600 }
-                    NumberAnimation { to: 1.0; duration: 600 }
+                    color: root.c.accent
+                    track: Qt.rgba(0.5, 0.5, 0.5, 0.25)
+                }
+                Text {
+                    id: mark
+                    anchors.centerIn: parent
+                    visible: !root.running
+                    text: root.failed ? "✕" : (root.ok ? "✓" : "•")
+                    color: root.failed ? root.c.danger : (root.ok ? root.c.ok : root.c.muted)
+                    font.pixelSize: 12
+                    font.bold: true
                 }
             }
             Text {
-                text: (root.t["tool_" + root.entry.tool] || root.entry.tool) + " · " + (root.t[root.statusKey] || "")
-                color: root.entry.status === "failed" ? root.c.danger : root.c.muted
+                text: (root.entry.server && root.entry.server !== "brim" ? root.entry.server + " · " : "")
+                      + (root.entry.server === "brim" ? (root.t["tool_" + root.entry.tool] || root.entry.tool) : root.entry.tool)
+                      + " · " + (root.t[root.statusKey] || root.entry.status)
+                color: root.failed ? root.c.danger : root.c.muted
                 font.pixelSize: 12
+            }
+        }
+        Item {
+            x: 20
+            width: parent.width - 20
+            height: root.running ? 3 : 0
+            visible: root.running
+            clip: true
+            Row {
+                id: dashes
+                spacing: 6
+                Repeater {
+                    model: Math.ceil(dashes.parent.width / 14) + 2
+                    Rectangle { width: 8; height: 3; radius: 1.5; color: root.c.accent; opacity: 0.7 }
+                }
+                NumberAnimation on x {
+                    running: root.running
+                    loops: Animation.Infinite
+                    from: -14
+                    to: 0
+                    duration: 450
+                }
             }
         }
         SelectableText {
@@ -49,16 +82,8 @@ Rectangle {
             width: parent.width - 15
             visible: !!root.entry.detail
             text: root.entry.detail || ""
-            textColor: root.c.muted
+            textColor: root.failed ? root.c.danger : root.c.muted
             font.pixelSize: 11
-        }
-        SelectableText {
-            x: 15
-            width: parent.width - 15
-            visible: !!root.entry.error
-            text: root.entry.error || ""
-            textColor: root.c.danger
-            font.pixelSize: 12
         }
     }
 }

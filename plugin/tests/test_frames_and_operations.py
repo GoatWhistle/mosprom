@@ -6,7 +6,6 @@ import unittest
 from tests import support
 from Brim.execution.operations import validate_operations
 from Brim.slicer import frames
-from Brim.protocol import frames as wire
 
 
 class CoordinateTests(unittest.TestCase):
@@ -51,7 +50,7 @@ class OperationTests(unittest.TestCase):
             {"kind": "select_material", "material_id": "petg", "extruder": 0},
             {"kind": "set_global_setting", "key": "layer_height", "value": 0.2},
             self.valid_transform(rotation_deg=[0, 90, 0], rotation_center="bbox_center", scale=[1, 1, 2]),
-            {"kind": "open_3mf", "attachment_id": "a", "import_as": "import_geometry"},
+            {"kind": "open_3mf", "path": "/tmp/a.3mf", "import_as": "import_geometry"},
             {"kind": "arrange"},
             {"kind": "delete", "object_ids": ["obj-1"]},
         ]
@@ -67,7 +66,7 @@ class OperationTests(unittest.TestCase):
         self.assertTrue(validate_operations([self.valid_transform(rotation_deg=[0, 0, 1])]))
         self.assertTrue(validate_operations([{"kind": "transform", "object_id": "a", "frame": "scene"}]))
         self.assertTrue(validate_operations([self.valid_transform(frame="build")]))
-        self.assertTrue(validate_operations([{"kind": "open_3mf", "attachment_id": "a", "import_as": "x"}]))
+        self.assertTrue(validate_operations([{"kind": "open_3mf", "path": "/tmp/a.3mf", "import_as": "x"}]))
 
     def test_every_schema_operation_kind_has_a_check(self):
         from Brim.execution.operations import CHECKS
@@ -79,24 +78,14 @@ class OperationTests(unittest.TestCase):
             self.assertIn('"%s"' % kind, text)
 
 
-class FrameTests(unittest.TestCase):
-    def test_encode_decode(self):
-        frame = wire.hello_frame("i", "7.10", ["classic"], {"name": "p"})
-        self.assertEqual(wire.decode_frame(wire.encode_frame(frame)), frame)
-
-    def test_decode_rejects_bad_input(self):
-        for bad in ("{", "[]", '{"id": "x"}', '{"type": "a"}', '{"type": 1, "id": "x"}'):
-            with self.assertRaises(wire.FrameError):
-                wire.decode_frame(bad)
-
-
 class ContractTests(unittest.TestCase):
-    def test_tools_match_backend_source(self):
-        backend = os.path.join(support.PLUGIN_ROOT, "..", "backend", "src", "app", "domain", "tools.json")
-        if not os.path.exists(backend):
-            self.skipTest("backend source is not next to the plugin")
-        with open(backend, "rb") as left, open(os.path.join(support.PLUGIN_ROOT, "Brim", "protocol", "tools.json"), "rb") as right:
-            self.assertEqual(left.read(), right.read())
+    def test_ask_user_is_not_an_mcp_tool(self):
+        from Brim.protocol.tools import load_tools
+
+        names = [tool["name"] for tool in load_tools()]
+        self.assertNotIn("ask_user", names)
+        self.assertIn("inspect_scene", names)
+        self.assertTrue(all("annotations" in tool for tool in load_tools()))
 
     def test_python35_syntax(self):
         import re
@@ -119,7 +108,7 @@ class ContractTests(unittest.TestCase):
                     for match in pattern.finditer(source):
                         line = source[:match.start()].count("\n") + 1
                         text = source.splitlines()[line - 1]
-                        if label == "variable annotation" and ("def " in text or "lambda" in text or text.strip().startswith(("if", "for", "elif", "else", "while", "class", "with", "try", "except"))):
+                        if label == "variable annotation" and ("def " in text or "lambda" in text or text.strip().startswith(("if", "for", "elif", "else", "while", "class", "with", "try", "except", "finally"))):
                             continue
                         self.fail("%s in %s:%d: %s" % (label, path, line, text))
 

@@ -1,23 +1,43 @@
+from ..agent.hub import LOCAL_SERVER
 from ..ui.strings import strings_for
-from .entries_view import agent_status, group_entries, with_result
+from .activity import activity_view
+from .entries_view import agent_status, build_entries, group_entries, question_of, with_transient
 
 
-def snapshot_of(state):
-    return {
+def _servers(settings, status):
+    rows = [dict({"name": LOCAL_SERVER, "url": "", "enabled": True, "pinned": True},
+                 **(status.get(LOCAL_SERVER) or {"state": "unknown", "tools": 0, "error": None}))]
+    for server in settings.mcp_servers():
+        known = status.get(server["name"]) or {"state": "off" if not server["enabled"] else "unknown",
+                                               "tools": 0, "error": None}
+        rows.append(dict({"name": server["name"], "url": server["url"], "enabled": server["enabled"], "pinned": False},
+                         **known))
+    return rows
+
+
+def chat_view(state, settings, mcp_port, notice, skills=()):
+    strings = strings_for(settings.language())
+    entries = build_entries(state.messages, state.running)
+    question = None if state.running else question_of(state.messages)
+    snapshot = {
         "conversations": list(state.conversations),
         "conversation_id": state.conversation_id,
         "mode": state.mode,
-        "entries": [dict(item) for item in state.entries],
-        "run_id": state.run_id,
-        "run_state": state.run_state,
-        "run_active": state.run_active(),
+        "skill": state.skill or "",
+        "skill_options": ([{"name": "", "title": strings["skill_auto"]}] if skills else [])
+        + [{"name": item.get("name"), "title": item.get("title_" + settings.language()) or item.get("name")}
+           for item in skills],
+        "entries": entries,
+        "running": state.running,
+        "stopping": state.stopping,
+        "confirmation": state.confirmation,
+        "question": question,
+        "errors": list(state.errors),
         "progress": state.progress,
-        "pending": state.pending,
-        "result": state.result,
-        "connection": state.connection,
         "notice": state.notice,
         "attachments": list(state.attachments),
         "busy": state.busy,
+        "exporting": state.exporting,
         "draft": state.draft,
         "draft_rev": state.draft_rev,
         "switching": state.switching,
@@ -25,23 +45,16 @@ def snapshot_of(state):
         "can_retry_switch": state.switch_retry is not None,
         "workspace_blocked": state.workspace_blocked,
         "save_state": state.save_state,
-        "project_version": state.project_version,
         "workspace_status": dict(state.workspace_status),
+        "phase": state.phase,
     }
-
-
-def chat_view(state, settings, mcp_port, notice):
-    snapshot = snapshot_of(state)
-    strings = strings_for(settings.language())
-    llm = settings.llm()
     kind, text = agent_status(snapshot, strings, settings.llm_configured())
+    llm = settings.llm()
     save = snapshot["save_state"]
-    snapshot["entries"] = group_entries(with_result(snapshot["entries"], snapshot["result"]))
-    result = snapshot["result"]
-    stale = bool(result) and result.get("project_version") is not None \
-        and snapshot["project_version"] > result["project_version"]
+    snapshot["entries"] = group_entries(with_transient(entries, state.errors, state.confirmation))
     snapshot.update({
-        "result_stale": stale,
+        "run_active": state.running,
+        "activity": activity_view(state, strings),
         "status_kind": kind,
         "status_text": text,
         "save_text": strings["save_%s" % save] if save else "",
@@ -49,11 +62,11 @@ def chat_view(state, settings, mcp_port, notice):
         "language": settings.language(),
         "theme": settings.theme(),
         "settings": {
-            "backend_url": settings.backend_url(),
             "llm_base_url": llm["base_url"],
             "llm_model": llm["model"],
             "llm_key_saved": bool(llm["api_key"]),
         },
+        "servers": _servers(settings, state.servers),
         "settings_notice": notice,
         "mcp_port": mcp_port() if callable(mcp_port) else mcp_port,
     })

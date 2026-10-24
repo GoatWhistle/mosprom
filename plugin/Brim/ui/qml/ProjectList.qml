@@ -42,7 +42,7 @@ Rectangle {
             width: parent.width
             text: root.view.t.new_from_scene
             palette_: root.c
-            enabledButton: !root.view.busy && root.view.switching === null
+            enabledButton: !root.view.busy && !root.view.switching
             onClicked: root.createFromScene()
         }
         Text {
@@ -103,7 +103,7 @@ Rectangle {
                         font.pixelSize: 11
                         color: current && root.view.status_kind === "busy" ? root.c.accentText : root.c.muted
                         text: current ? (root.view.run_active ? root.view.status_text : root.view.save_text)
-                                      : (root.view.workspace_status[modelData.id] === undefined || root.view.workspace_status[modelData.id] === "none" ? root.view.t.no_project : "")
+                                      : modelData.updated_at.substring(0, 16).replace("T", " ")
                     }
                 }
                 MouseArea {

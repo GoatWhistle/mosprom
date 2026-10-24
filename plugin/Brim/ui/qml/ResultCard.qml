@@ -5,8 +5,7 @@ Rectangle {
     property var result: ({})
     property var t: ({})
     property var c: ({})
-    property bool stale: false
-    signal save(string kind)
+    signal open(string path)
 
     height: column.height + 28
     radius: 14
@@ -44,14 +43,6 @@ Rectangle {
             font.bold: true
             font.pixelSize: 13
         }
-        Text {
-            visible: root.stale
-            width: parent.width
-            wrapMode: Text.Wrap
-            text: root.t.result_stale || ""
-            color: root.c.danger
-            font.pixelSize: 12
-        }
         Row {
             spacing: 10
             Repeater {
@@ -84,19 +75,24 @@ Rectangle {
                 }
             }
         }
+        Repeater {
+            model: ["gcode", "3mf"]
+            delegate: SelectableText {
+                width: column.width
+                visible: !!(root.result.files || {})[modelData]
+                text: (root.result.files || {})[modelData] || ""
+                textColor: root.c.muted
+                font.pixelSize: 11
+            }
+        }
         Flow {
             width: parent.width
             spacing: 8
             BrimButton {
-                text: root.t.save_gcode || ""
+                text: root.t.open_folder || ""
                 primary: true
                 palette_: root.c
-                onClicked: root.save("gcode")
-            }
-            BrimButton {
-                text: root.t.save_3mf || ""
-                palette_: root.c
-                onClicked: root.save("3mf")
+                onClicked: root.open(root.result.folder || "")
             }
         }
     }

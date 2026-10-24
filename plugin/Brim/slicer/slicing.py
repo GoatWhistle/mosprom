@@ -5,12 +5,26 @@ import time
 
 from ..execution.errors import OperationError
 from ..protocol import constants
+from .engine_log import EngineLog
 from .project_archive import verify_project
 from .qt_wrappers import direct_qt_calls
 
-SLICE_TIMEOUT = 900.0
+SLICE_TIMEOUT = 2700.0
+FATAL_GRACE = 20.0
+ERROR_CHECK_TIMEOUT = 180.0
+ERROR_CHECK_PAUSE = 0.5
 ESTIMATE_RETRIES = 10
 ESTIMATE_PAUSE = 0.5
+
+
+def _by_extruder(values, positions):
+    values = [round(float(item), 2) for item in values]
+    if not positions or len(positions) != len(values) or sorted(positions) != list(range(len(values))):
+        return values
+    ordered = [0.0] * len(values)
+    for position, value in zip(positions, values):
+        ordered[position] = value
+    return ordered
 
 
 class SlicingService(object):
@@ -19,6 +33,8 @@ class SlicingService(object):
         self._main = main
         self._state = state
         self._cancel = threading.Event()
+        log_path = getattr(host, "log_path", None)
+        self._log = EngineLog(log_path() if callable(log_path) else None)
 
     def cancel(self):
         self._cancel.set()
@@ -59,26 +75,35 @@ class SlicingService(object):
         def on_progress(fraction):
             report("slicing", float(fraction))
 
+        self._wait_error_check()
         backend = self._main.call(self._h.backend)
+        self._log.mark()
         self._main.call(backend.backendStateChange.connect, on_state)
         self._main.call(backend.processingProgress.connect, on_progress)
         try:
             self._main.call(backend.forceSlice, guard=check)
             finished = False
             elapsed = 0.0
+            fatal_at = None
             while not finished and elapsed < SLICE_TIMEOUT and not self._cancel.is_set():
                 finished = done.wait(1.0)
                 elapsed += 1.0
+                if fatal_at is None and int(elapsed) % 5 == 0 and self._log.fatal():
+                    fatal_at = elapsed
+                if fatal_at is not None and elapsed - fatal_at >= FATAL_GRACE:
+                    break
         finally:
             self._main.call(backend.backendStateChange.disconnect, on_state)
             self._main.call(backend.processingProgress.disconnect, on_progress)
         if self._cancel.is_set():
             raise OperationError(constants.ERR_CANCELLED, "slicing was cancelled")
         if not finished:
-            raise OperationError(constants.ERR_SLICE_FAILED, "slicing did not finish within %.0f s" % SLICE_TIMEOUT)
+            self._main.call(self._stop)
+            raise OperationError(constants.ERR_SLICE_FAILED, "slicing stopped without a result after %.0f s" % elapsed,
+                                 {"engine_log": self._log.errors()})
         if result["state"] == error_state:
             raise OperationError(constants.ERR_SLICE_FAILED, "the slicer engine reported an error",
-                                 {"slicer_errors": list(self._state.errors)})
+                                 {"slicer_errors": list(self._state.errors), "engine_log": self._log.errors()})
         summary = self._main.call(self._summary)
         for _ in range(ESTIMATE_RETRIES):
             if summary.get("print_time_seconds") is not None:
@@ -86,6 +111,19 @@ class SlicingService(object):
             time.sleep(ESTIMATE_PAUSE)
             summary = self._main.call(self._summary)
         return summary
+
+    def _wait_error_check(self):
+        waited = 0.0
+        while waited < ERROR_CHECK_TIMEOUT and not self._cancel.is_set():
+            if not self._main.call(self._error_check_pending):
+                return
+            time.sleep(ERROR_CHECK_PAUSE)
+            waited += ERROR_CHECK_PAUSE
+
+    def _error_check_pending(self):
+        getter = getattr(self._h.application, "getMachineErrorChecker", None)
+        checker = getter() if callable(getter) else None
+        return bool(getattr(checker, "needToWaitForResult", False))
 
     def _summary(self):
         info = self._h.application.getPrintInformation()
@@ -95,11 +133,22 @@ class SlicingService(object):
         seconds = None
         if duration is not None and duration.valid:
             seconds = int(duration.days * 86400 + duration.hours * 3600 + duration.minutes * 60 + duration.seconds)
+        positions = self._estimate_positions(info)
         return {
             "print_time_seconds": seconds,
-            "material_weight_g": [round(float(item), 2) for item in info.materialWeights],
-            "material_length_m": [round(float(item), 2) for item in info.materialLengths],
+            "material_weight_g": _by_extruder(info.materialWeights, positions),
+            "material_length_m": _by_extruder(info.materialLengths, positions),
         }
+
+    def _estimate_positions(self, info):
+        stack = self._h.global_stack()
+        if stack is None:
+            return None
+        amounts = getattr(info, "_material_amounts", None)
+        positions = [int(key) for key in stack.extruders]
+        if amounts is not None:
+            positions = [item for item in positions if item < len(amounts)]
+        return positions
 
     def export(self, directory, check=None):
         gcode_path = os.path.join(directory, "result.gcode")

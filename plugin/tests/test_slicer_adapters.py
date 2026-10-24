@@ -128,7 +128,7 @@ class PortWatchTests(unittest.TestCase):
         host, _ = fake_host()
         manager = host.machine_manager.return_value
         del manager.extruderChanged
-        port = SlicerPort(host, None, None, mock.MagicMock(), mock.MagicMock(), None, None, None, None)
+        port = SlicerPort(host, None, None, mock.MagicMock(), mock.MagicMock(), None, None, None, None, mock.MagicMock())
         self.assertEqual(port.watch(), ["extruderChanged"])
 
     def test_scene_change_bumps_version_for_sliceable_nodes_only(self):
@@ -143,7 +143,7 @@ class PortWatchTests(unittest.TestCase):
 
         host.SceneNode = Node
         host.scene.return_value.getRoot.return_value = object()
-        port = SlicerPort(host, None, None, mock.MagicMock(), mock.MagicMock(), None, None, None, None)
+        port = SlicerPort(host, None, None, mock.MagicMock(), mock.MagicMock(), None, None, None, None, mock.MagicMock())
         calls = []
         port.add_change_listener(lambda: calls.append(1))
         before = port.scene_version()

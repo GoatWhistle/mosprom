@@ -7,6 +7,7 @@ Rectangle {
     property bool primary: false
     property bool enabledButton: true
     property string tip: ""
+    readonly property bool hovered: area.containsMouse
     signal clicked()
 
     width: 34
@@ -64,10 +65,17 @@ Rectangle {
                     g.moveTo(9 + Math.cos(a) * 5.5, 9 + Math.sin(a) * 5.5)
                     g.lineTo(9 + Math.cos(a) * 7.5, 9 + Math.sin(a) * 7.5)
                 }
+            } else if (root.glyph === "close") {
+                g.moveTo(4, 4); g.lineTo(14, 14)
+                g.moveTo(14, 4); g.lineTo(4, 14)
             } else if (root.glyph === "stop") {
                 g.rect(4, 4, 10, 10)
             } else if (root.glyph === "down") {
                 g.moveTo(4, 7); g.lineTo(9, 12); g.lineTo(14, 7)
+            } else if (root.glyph === "export") {
+                g.moveTo(9, 11); g.lineTo(9, 2.5)
+                g.moveTo(5.5, 6); g.lineTo(9, 2.5); g.lineTo(12.5, 6)
+                g.moveTo(3, 10); g.lineTo(3, 15); g.lineTo(15, 15); g.lineTo(15, 10)
             } else if (root.glyph === "file") {
                 g.moveTo(5, 2.5); g.lineTo(11, 2.5); g.lineTo(14, 5.5); g.lineTo(14, 15.5)
                 g.lineTo(5, 15.5); g.closePath()

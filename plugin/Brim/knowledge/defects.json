@@ -1,0 +1,203 @@
+{
+  "defects": [
+    {
+      "id": "stringing",
+      "names": ["паутина", "нити", "волосы", "сопли", "тянется пластик", "stringing", "oozing", "hairs"],
+      "symptoms": "Thin threads between separate parts or features where the nozzle travels.",
+      "causes": ["insufficient retraction", "nozzle too hot", "slow travel", "travel crosses open space", "wet filament"],
+      "settings": [
+        {"key": "retraction_enable", "direction": "enable", "note": "Retraction must be on."},
+        {"key": "retraction_amount", "direction": "increase", "step": 0.5, "unit": "mm", "note": "Bowden 4-7 mm, direct drive 0.5-2 mm."},
+        {"key": "retraction_speed", "direction": "increase", "step": 5, "unit": "mm/s"},
+        {"key": "material_print_temperature", "direction": "decrease", "step": 5, "unit": "°C", "note": "Stay inside the material range."},
+        {"key": "speed_travel", "direction": "increase", "step": 20, "unit": "mm/s"},
+        {"key": "retraction_combing", "direction": "set", "value": "noskin", "note": "Travel inside the part instead of over gaps."},
+        {"key": "travel_avoid_other_parts", "direction": "enable"}
+      ],
+      "not_settings": ["Dry the filament if it pops or the strings stay after tuning."]
+    },
+    {
+      "id": "zits_blobs",
+      "names": ["точки на стенке", "пупырышки", "прыщи", "шарики", "наплывы", "капли", "zits", "blobs", "pimples"],
+      "symptoms": "Small bumps or blobs on the outer wall, often where a layer starts or after travel.",
+      "causes": ["oozing at layer start and end", "too much retraction prime", "seam placement", "pressure in the nozzle at stops"],
+      "settings": [
+        {"key": "z_seam_type", "direction": "set", "value": "sharpest_corner", "note": "Hide the start points in a corner, or 'back' to align them."},
+        {"key": "retraction_extra_prime_amount", "direction": "decrease", "step": 0.05, "unit": "mm³"},
+        {"key": "coasting_enable", "direction": "enable", "note": "Stops extrusion shortly before the end of a wall."},
+        {"key": "wall_0_wipe_dist", "direction": "increase", "step": 0.2, "unit": "mm"},
+        {"key": "retraction_min_travel", "direction": "decrease", "step": 0.5, "unit": "mm"},
+        {"key": "material_print_temperature", "direction": "decrease", "step": 5, "unit": "°C"}
+      ],
+      "not_settings": ["Wet filament also creates bubbles and blobs."]
+    },
+    {
+      "id": "wall_gaps",
+      "names": ["дырки в стенке", "дыры во внешней стенке", "щели между стенками", "пропуски", "holes in walls", "gaps in walls"],
+      "symptoms": "Holes or gaps in outer walls, walls not bonded to each other or to the skin.",
+      "causes": ["under-extrusion", "too few walls", "wall line width mismatch", "speed too high for the hotend"],
+      "settings": [
+        {"key": "material_flow", "direction": "increase", "step": 3, "unit": "%"},
+        {"key": "wall_line_count", "direction": "increase", "step": 1},
+        {"key": "speed_wall_0", "direction": "decrease", "step": 5, "unit": "mm/s"},
+        {"key": "fill_outline_gaps", "direction": "enable"},
+        {"key": "infill_overlap", "direction": "increase", "step": 5, "unit": "%"},
+        {"key": "material_print_temperature", "direction": "increase", "step": 5, "unit": "°C"}
+      ],
+      "not_settings": ["Check for a partial clog and the filament diameter in the material profile."]
+    },
+    {
+      "id": "under_extrusion",
+      "names": ["недоэкструзия", "недолив", "тонкие линии", "провалы", "дырявые слои", "under-extrusion", "underextrusion"],
+      "symptoms": "Thin, separated lines, missing spots, weak and porous layers.",
+      "causes": ["flow too low", "temperature too low for the speed", "speed too high", "clog or slipping feeder"],
+      "settings": [
+        {"key": "material_flow", "direction": "increase", "step": 3, "unit": "%"},
+        {"key": "material_print_temperature", "direction": "increase", "step": 5, "unit": "°C"},
+        {"key": "speed_print", "direction": "decrease", "step": 10, "unit": "mm/s"}
+      ],
+      "not_settings": ["Feeder tension, clogged nozzle, tangled spool, wrong filament diameter."]
+    },
+    {
+      "id": "over_extrusion",
+      "names": ["переэкструзия", "перелив", "жирные стенки", "наплывы на верхних слоях", "over-extrusion", "overextrusion"],
+      "symptoms": "Bulging walls, rough top surfaces, dimensions larger than designed.",
+      "causes": ["flow too high", "wrong filament diameter", "line width too large"],
+      "settings": [
+        {"key": "material_flow", "direction": "decrease", "step": 3, "unit": "%"},
+        {"key": "wall_line_width_0", "direction": "decrease", "step": 0.02, "unit": "mm"}
+      ],
+      "not_settings": ["Measure the filament diameter."]
+    },
+    {
+      "id": "first_layer_squish",
+      "names": ["жирный первый слой", "слоновья нога", "расплющен первый слой", "первый слой выдавлен", "elephant foot", "first layer too thick"],
+      "symptoms": "The bottom layers bulge outward or the first layer is squashed and wider than the part.",
+      "causes": ["nozzle too close", "first layer flow too high", "bed too hot", "first layer too thin"],
+      "settings": [
+        {"key": "layer_height_0", "direction": "increase", "step": 0.05, "unit": "mm", "note": "Usually 0.2-0.3 mm."},
+        {"key": "material_flow_layer_0", "direction": "decrease", "step": 5, "unit": "%"},
+        {"key": "xy_offset_layer_0", "direction": "decrease", "step": 0.05, "unit": "mm", "note": "Negative value compensates elephant foot."},
+        {"key": "material_bed_temperature_layer_0", "direction": "decrease", "step": 5, "unit": "°C"},
+        {"key": "initial_layer_line_width_factor", "direction": "decrease", "step": 10, "unit": "%"}
+      ],
+      "not_settings": ["Re-level the bed or raise the Z offset."]
+    },
+    {
+      "id": "poor_adhesion",
+      "names": ["не прилипает", "отлипает", "отклеивается", "сдвинулась деталь", "first layer not sticking", "poor adhesion"],
+      "symptoms": "The first layer does not stick, corners lift, the part detaches during printing.",
+      "causes": ["bed too cold", "first layer too fast", "small contact area", "nozzle too far"],
+      "settings": [
+        {"key": "material_bed_temperature_layer_0", "direction": "increase", "step": 5, "unit": "°C"},
+        {"key": "speed_layer_0", "direction": "decrease", "step": 5, "unit": "mm/s"},
+        {"key": "adhesion_type", "direction": "set", "value": "brim"},
+        {"key": "brim_width", "direction": "increase", "step": 3, "unit": "mm"},
+        {"key": "cool_fan_full_layer", "direction": "increase", "step": 1, "note": "Fan reaches full speed later."}
+      ],
+      "not_settings": ["Clean the bed with IPA; re-level; use glue or a suitable sheet for the material."]
+    },
+    {
+      "id": "warping",
+      "names": ["коробление", "загибаются углы", "отгибается", "поднимаются края", "warping", "curling"],
+      "symptoms": "Corners or edges lift and bend upward, often on long ABS/ASA/PA/PC parts.",
+      "causes": ["thermal shrinkage", "draft or open chamber", "bed too cold", "too much cooling"],
+      "settings": [
+        {"key": "material_bed_temperature", "direction": "increase", "step": 5, "unit": "°C"},
+        {"key": "adhesion_type", "direction": "set", "value": "brim"},
+        {"key": "brim_width", "direction": "increase", "step": 3, "unit": "mm"},
+        {"key": "cool_fan_speed", "direction": "decrease", "step": 20, "unit": "%"},
+        {"key": "infill_sparse_density", "direction": "decrease", "step": 10, "unit": "%", "note": "Less material shrinks less."}
+      ],
+      "not_settings": ["Close the chamber, avoid drafts; orient the part to reduce the long flat footprint."]
+    },
+    {
+      "id": "layer_separation",
+      "names": ["расслоение", "трещины между слоями", "слои отходят", "ломается по слоям", "delamination", "layer separation", "cracks"],
+      "symptoms": "Layers split or crack, the part breaks along the layer lines.",
+      "causes": ["temperature too low", "too much cooling", "layer too thick for the nozzle", "drafts"],
+      "settings": [
+        {"key": "material_print_temperature", "direction": "increase", "step": 5, "unit": "°C"},
+        {"key": "cool_fan_speed", "direction": "decrease", "step": 20, "unit": "%"},
+        {"key": "layer_height", "direction": "decrease", "step": 0.04, "unit": "mm", "note": "Keep below 75% of the nozzle diameter."},
+        {"key": "speed_print", "direction": "decrease", "step": 10, "unit": "mm/s"}
+      ],
+      "not_settings": ["Orient the part so the main load does not pull layers apart."]
+    },
+    {
+      "id": "overhang_sag",
+      "names": ["провисание", "провисают нависания", "кудри на нависаниях", "плохие мосты", "провис моста", "overhang sagging", "bad bridges", "curling overhangs"],
+      "symptoms": "Overhangs droop or curl, bridges sag, the underside is rough.",
+      "causes": ["insufficient cooling", "too hot", "overhang angle beyond the material limit", "no supports"],
+      "settings": [
+        {"key": "cool_fan_speed", "direction": "increase", "step": 20, "unit": "%"},
+        {"key": "support_enable", "direction": "enable"},
+        {"key": "support_angle", "direction": "decrease", "step": 5, "unit": "°"},
+        {"key": "bridge_settings_enabled", "direction": "enable"},
+        {"key": "bridge_wall_speed", "direction": "decrease", "step": 5, "unit": "mm/s"},
+        {"key": "material_print_temperature", "direction": "decrease", "step": 5, "unit": "°C"}
+      ],
+      "not_settings": ["Rotate the part to reduce overhangs; in 5D modes the rotation axis changes which faces overhang."]
+    },
+    {
+      "id": "rough_surface",
+      "names": ["шероховатость", "шершавые слои", "неровная поверхность", "видны слои", "грубая стенка", "rough surface", "visible layers", "layer lines"],
+      "symptoms": "Rough or uneven walls, clearly visible layer lines.",
+      "causes": ["layer too thick", "speed or acceleration too high", "temperature unstable", "outer wall printed before inner"],
+      "settings": [
+        {"key": "layer_height", "direction": "decrease", "step": 0.04, "unit": "mm"},
+        {"key": "speed_wall_0", "direction": "decrease", "step": 5, "unit": "mm/s"},
+        {"key": "outer_inset_first", "direction": "disable"},
+        {"key": "acceleration_enabled", "direction": "enable"},
+        {"key": "ironing_enabled", "direction": "enable", "note": "Smooths only top surfaces."}
+      ],
+      "not_settings": ["Mechanical play or a worn nozzle; for a visual part consider post-processing."]
+    },
+    {
+      "id": "layer_shift",
+      "names": ["смещение слоёв", "сдвиг слоёв", "ступенька", "layer shift", "shifted layers"],
+      "symptoms": "The part is suddenly offset in X or Y from one layer on.",
+      "causes": ["skipped steps from too high speed or acceleration", "nozzle hits curled parts"],
+      "settings": [
+        {"key": "speed_travel", "direction": "decrease", "step": 20, "unit": "mm/s"},
+        {"key": "acceleration_enabled", "direction": "enable"},
+        {"key": "retraction_hop_enabled", "direction": "enable", "note": "Lifts the nozzle over printed parts."}
+      ],
+      "not_settings": ["Loose belts or pulleys, motor current, obstacles on the gantry."]
+    },
+    {
+      "id": "dimension_error",
+      "names": ["не тот размер", "отверстие меньше", "не входит вал", "усадка размеров", "допуск", "dimensional accuracy", "hole too small", "shrinkage"],
+      "symptoms": "Holes are smaller and outer dimensions differ from the model.",
+      "causes": ["material shrinkage", "over-extrusion", "polygon resolution of holes"],
+      "settings": [
+        {"key": "xy_offset", "direction": "decrease", "step": 0.05, "unit": "mm", "note": "Negative horizontal expansion opens holes and shrinks outer contours."},
+        {"key": "material_flow", "direction": "decrease", "step": 2, "unit": "%"},
+        {"key": "wall_line_count", "direction": "increase", "step": 1, "note": "More walls keep hole shape stable."}
+      ],
+      "not_settings": ["Print a hole_tolerance calibration part and measure; ream critical holes."]
+    },
+    {
+      "id": "moisture",
+      "names": ["пузыри", "треск при печати", "пар из сопла", "влажный пластик", "bubbles", "popping", "wet filament"],
+      "symptoms": "Popping or steam from the nozzle, bubbles and pits on the surface, brittle parts.",
+      "causes": ["filament absorbed moisture (PA, PETG, TPU, PC are sensitive)"],
+      "settings": [
+        {"key": "material_print_temperature", "direction": "decrease", "step": 5, "unit": "°C", "note": "Only a mitigation; drying is the fix."}
+      ],
+      "not_settings": ["Dry the filament (PA 70-80 °C 6-12 h, PETG 65 °C 4-6 h) and print from a dry box."]
+    },
+    {
+      "id": "top_surface_holes",
+      "names": ["дырки сверху", "пиллоуинг", "неплотная крышка", "провалы верхнего слоя", "pillowing", "holes in top surface"],
+      "symptoms": "Bumps or holes in the top surface over sparse infill.",
+      "causes": ["too few top layers", "sparse infill", "insufficient cooling on top layers"],
+      "settings": [
+        {"key": "top_layers", "direction": "increase", "step": 2},
+        {"key": "infill_sparse_density", "direction": "increase", "step": 5, "unit": "%"},
+        {"key": "cool_fan_speed", "direction": "increase", "step": 20, "unit": "%"}
+      ],
+      "not_settings": []
+    }
+  ]
+}

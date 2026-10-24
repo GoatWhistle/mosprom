@@ -9,6 +9,7 @@ Item {
     signal attach()
     signal stop()
     signal detach(int index)
+    signal skillChosen(string name)
 
     height: box.height + hint.height + 6
 
@@ -83,11 +84,20 @@ Item {
                 width: parent.width
                 height: 34
                 IconButton {
+                    id: attachButton
                     anchors.left: parent.left
                     glyph: "attach"
                     palette_: root.c
                     enabledButton: !root.view.busy
                     onClicked: root.attach()
+                }
+                SkillPicker {
+                    anchors.left: attachButton.right
+                    anchors.leftMargin: 6
+                    view: root.view
+                    c: root.c
+                    visible: (root.view.skill_options || []).length > 0
+                    onChosen: root.skillChosen(name)
                 }
                 IconButton {
                     anchors.right: parent.right
@@ -103,6 +113,7 @@ Item {
                     visible: !!root.view.run_active
                     glyph: "stop"
                     palette_: root.c
+                    enabledButton: !root.view.stopping
                     onClicked: root.stop()
                 }
             }

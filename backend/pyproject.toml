@@ -5,11 +5,7 @@ requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.143.1",
     "httpx>=0.28.1",
-    "psycopg-pool>=3.2",
-    "psycopg[binary]>=3.2",
-    "python-multipart>=0.0.32",
     "uvicorn>=0.54.0",
-    "websockets>=17.3",
 ]
 
 [dependency-groups]
@@ -20,9 +16,12 @@ dev = [
     "pytest-xdist>=3.8",
     "ruff>=0.14",
 ]
+llm = [
+    "claude-agent-sdk>=0.2.173",
+]
 
 [tool.uv]
-default-groups = ["dev"]
+default-groups = ["dev", "llm"]
 
 [build-system]
 requires = ["hatchling"]
@@ -39,13 +38,8 @@ src = ["src"]
 testpaths = ["tests"]
 addopts = ["-n", "auto", "--strict-markers"]
 asyncio_mode = "auto"
-markers = ["integration: needs docker PostgreSQL"]
 
 [tool.mypy]
 strict = true
 mypy_path = "src"
 files = ["src", "tests"]
-
-[[tool.mypy.overrides]]
-module = "tests.integration.e2e.*"
-warn_return_any = false

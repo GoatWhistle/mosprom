@@ -1,9 +1,9 @@
+import base64
 import json
 import unittest
 from urllib import error, request
 
-from tests.test_executor import build, call
-from Brim.protocol.authorization import AuthorizedCalls, McpAuthorizationGate
+from tests.test_executor import build
 from Brim.protocol.local_mcp import LocalMcpServer
 from Brim.protocol.mcp import McpDispatcher
 from Brim.protocol.tools import load_tools
@@ -18,23 +18,43 @@ def rpc(method, params=None, request_id=1):
     return message
 
 
+def dispatcher_for(executor):
+    return McpDispatcher(load_tools(), executor.execute)
+
+
 class DispatcherTests(unittest.TestCase):
     def setUp(self):
-        self.executor, self.port, _, _, _ = build()
-        self.dispatcher = McpDispatcher(load_tools(), lambda name, arguments, request_id, meta:
-                                        self.executor.execute_mcp(name, arguments, request_id))
+        self.executor, self.port, _ = build()
+        self.dispatcher = dispatcher_for(self.executor)
 
     def test_initialize_and_list(self):
         init = self.dispatcher.handle(rpc("initialize", {}))
         self.assertIn("tools", init["result"]["capabilities"])
-        names = [tool["name"] for tool in self.dispatcher.handle(rpc("tools/list"))["result"]["tools"]]
+        tools = self.dispatcher.handle(rpc("tools/list"))["result"]["tools"]
+        names = [tool["name"] for tool in tools]
         self.assertIn("apply_changes", names)
+        self.assertNotIn("ask_user", names)
+        annotations = dict((tool["name"], tool["annotations"]) for tool in tools)
+        self.assertTrue(annotations["inspect_profile"]["readOnlyHint"])
+        self.assertFalse(annotations["apply_changes"]["readOnlyHint"])
 
     def test_call_returns_text_content(self):
         reply = self.dispatcher.handle(rpc("tools/call", {"name": "inspect_profile", "arguments": {}}))
         payload = json.loads(reply["result"]["content"][0]["text"])
         self.assertTrue(payload["ok"])
         self.assertFalse(reply["result"]["isError"])
+
+    def test_render_returns_image_block(self):
+        reply = self.dispatcher.handle(rpc("tools/call", {"name": "render_scene", "arguments": {"view": "iso"}}))
+        image = reply["result"]["content"][1]
+        self.assertEqual(image["type"], "image")
+        self.assertEqual(base64.b64decode(image["data"]), b"\x89PNG-fake")
+
+    def test_mutations_run_without_backend_authorization(self):
+        reply = self.dispatcher.handle(rpc("tools/call", {"name": "apply_changes",
+                                                          "arguments": {"operations": [{"kind": "arrange"}]}}))
+        self.assertFalse(reply["result"]["isError"])
+        self.assertEqual(len(self.port.applied), 1)
 
     def test_errors(self):
         self.assertEqual(self.dispatcher.handle(rpc("nope"))["error"]["code"], -32601)
@@ -48,43 +68,10 @@ class DispatcherTests(unittest.TestCase):
         self.assertEqual(len(replies), 1)
 
 
-class GateTests(unittest.TestCase):
-    def setUp(self):
-        self.executor, self.port, _, _, _ = build()
-        self.authorized = AuthorizedCalls()
-        self.gate = McpAuthorizationGate(self.executor, self.authorized)
-        self.ops = {"operations": [{"kind": "arrange"}]}
-
-    def test_read_only_tools_pass(self):
-        self.assertTrue(self.gate.handle("inspect_profile", {}, 1, {})["ok"])
-
-    def test_mutation_without_backend_call_is_refused(self):
-        outcome = self.gate.handle("apply_changes", self.ops, 1, {})
-        self.assertEqual(outcome["error"]["code"], "execution_not_authorized")
-        self.assertEqual(self.port.applied, [])
-
-    def test_mutation_with_unknown_or_mismatching_call_is_refused(self):
-        self.authorized.register(call("c1", "apply_changes", self.ops))
-        for meta, arguments in (({"call_id": "zzz"}, self.ops), ({"call_id": "c1"}, {"operations": [{"kind": "delete", "object_ids": ["a"]}]})):
-            self.assertEqual(self.gate.handle("apply_changes", arguments, 1, meta)["error"]["code"], "execution_not_authorized")
-        self.assertEqual(self.gate.handle("slice", {}, 1, {"call_id": "c1"})["error"]["code"], "execution_not_authorized")
-        self.assertEqual(self.port.applied, [])
-
-    def test_mutation_matching_authorized_call_runs_once(self):
-        frame = call("c1", "apply_changes", self.ops)
-        self.authorized.register(frame)
-        first = self.gate.handle("apply_changes", self.ops, 1, {"call_id": "c1"})
-        second = self.gate.handle("apply_changes", self.ops, 2, {"call_id": "c1"})
-        self.assertTrue(first["ok"])
-        self.assertEqual(first, second)
-        self.assertEqual(len(self.port.applied), 1)
-
-
 class LocalServerTests(unittest.TestCase):
     def setUp(self):
-        executor, self.port, _, _, _ = build()
-        gate = McpAuthorizationGate(executor, AuthorizedCalls())
-        self.server = LocalMcpServer(McpDispatcher(load_tools(), gate.handle))
+        executor, self.port, _ = build()
+        self.server = LocalMcpServer(dispatcher_for(executor))
         self.url = "http://127.0.0.1:%d/mcp" % self.server.start()
         self.addCleanup(self.server.stop)
 
@@ -119,12 +106,11 @@ class LocalServerTests(unittest.TestCase):
     def test_notification_gets_202(self):
         self.assertEqual(self.post(rpc("notifications/initialized", request_id=None))[0], 202)
 
-    def test_mutation_is_refused_over_http(self):
+    def test_slice_runs_over_http(self):
         status, body = self.post(rpc("tools/call", {"name": "slice", "arguments": {}}))
         payload = json.loads(json.loads(body.decode("utf-8"))["result"]["content"][0]["text"])
-        self.assertFalse(payload["ok"])
-        self.assertEqual(payload["error"]["code"], "execution_not_authorized")
-        self.assertEqual(self.port.slices, 0)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(self.port.slices, 1)
 
     def test_unknown_path(self):
         self.assertEqual(self.post(rpc("ping"), url=self.url.replace("/mcp", "/other"))[0], 404)

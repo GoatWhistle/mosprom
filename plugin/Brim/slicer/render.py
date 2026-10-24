@@ -2,13 +2,13 @@ from ..execution.errors import OperationError
 from ..protocol import constants
 
 SUPPORTED_VIEWS = ("iso",)
+SIZE = 800
 
 
 class Renderer(object):
-    def __init__(self, host, main, http_client):
+    def __init__(self, host, main):
         self._h = host
         self._main = main
-        self._http = http_client
 
     def render(self, view):
         if view not in SUPPORTED_VIEWS:
@@ -17,11 +17,10 @@ class Renderer(object):
         data = self._main.call(self._snapshot)
         if not data:
             raise OperationError(constants.ERR_OPERATION_FAILED, "the scene is empty, nothing to render")
-        meta = self._http.upload_attachment("scene-%s.png" % view, data)
-        return {"attachment_id": meta["id"], "view": view, "width": 800, "height": 800}
+        return {"view": view, "width": SIZE, "height": SIZE, "png": data}
 
     def _snapshot(self):
-        image = self._h.Snapshot.snapshot(width=800, height=800)
+        image = self._h.Snapshot.snapshot(width=SIZE, height=SIZE)
         if image is None:
             return None
         buffer = self._h.QBuffer()

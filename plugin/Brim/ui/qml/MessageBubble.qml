@@ -8,20 +8,26 @@ Item {
     property bool mine: entry.kind === "user"
     property real maxBubble: Math.max(220, width * (mine ? 0.82 : 0.94))
 
+    function themed(html) {
+        return (html || "").replace(/#c0de01/g, c.selected).replace(/#c0de02/g, c.line)
+            .replace(/#c0de03/g, c.accentText).replace(/#c0de04/g, c.muted)
+    }
+
     width: parent ? parent.width : 300
     height: bubble.height
 
     Text {
         id: measure
         visible: false
-        text: root.entry.text || ""
+        text: root.mine ? root.entry.text || "" : ""
         font.pixelSize: 14
     }
 
     Rectangle {
         id: bubble
         x: root.mine ? root.width - width : 0
-        width: Math.min(root.maxBubble, Math.max(measure.implicitWidth, chips.visible ? 200 : 0) + 28)
+        width: root.mine ? Math.min(root.maxBubble, Math.max(measure.implicitWidth, chips.visible ? 200 : 0) + 28)
+                         : root.maxBubble
         height: content.height + 20
         radius: 14
         color: root.mine ? root.c.userBg : "transparent"
@@ -47,7 +53,8 @@ Item {
             SelectableText {
                 id: body
                 width: parent.width
-                text: root.entry.text
+                textFormat: root.mine ? TextEdit.PlainText : TextEdit.RichText
+                text: root.mine ? root.entry.text || "" : root.themed(root.entry.html || "")
                 textColor: root.mine ? root.c.userText : root.c.text
                 font.pixelSize: 14
             }

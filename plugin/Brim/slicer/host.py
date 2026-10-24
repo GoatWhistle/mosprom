@@ -60,6 +60,11 @@ class SlicerHost(object):
     def plugin_path(self, plugin_id):
         return PluginRegistry.getInstance().getPluginPath(plugin_id)
 
+    def log_path(self):
+        from UM.Resources import Resources
+
+        return os.path.join(Resources.getDataStoragePath(), "steslicer.log")
+
     def user_data_dir(self):
         from UM.Resources import Resources
 

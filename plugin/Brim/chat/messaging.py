@@ -1,125 +1,158 @@
-import uuid
-
-from .history import conversation_row
+from ..agent.transcript import call_arguments
+from .activity import activity_key
+from .entries_view import question_of
+from .files import copy_into
 
 
 class ChatMessaging(object):
-    def __init__(self, state, http, settings, submit, notice, strings, bridge):
+    def __init__(self, state, settings, loop, conversation, submit, post, notice, strings, changed):
         self.state = state
-        self._http = http
         self._settings = settings
+        self._loop = loop
+        self._conversation = conversation
         self._submit = submit
+        self._post = post
         self._notice = notice
         self._strings = strings
-        self._bridge = bridge
+        self._changed = changed
+        self._turn = None
+        self._after_turn = []
 
-    def send(self, text):
+    def send(self, text, ensure_conversation):
+        state = self.state
         text = (text or "").strip()
-        pending = self.state.pending
-        if pending is not None and pending["type"] == "confirmation":
-            if text:
-                self.confirm("clarify", text)
-            else:
-                self._notice(self._strings()["clarify_hint"])
+        if state.confirmation is not None:
+            self._notice(self._strings()["confirm_first"])
             return
-        if not text and not self.state.attachments:
+        if not text and not state.attachments:
             return
-        if self.state.switching is not None or self.state.workspace_blocked:
-            self._notice(self._strings()["workspace_blocked" if self.state.workspace_blocked else "switching"])
+        if state.switching is not None or state.workspace_blocked:
+            self._notice(self._strings()["workspace_blocked" if state.workspace_blocked else "switching"])
             return
-        if self.state.run_active() and self.state.run_state != "awaiting_user" and (pending is None or pending["type"] != "question"):
+        if state.running or self._turn is not None:
             self._notice(self._strings()["busy_run"])
             return
         if not self._settings.llm_configured():
             self._notice(self._strings()["llm_missing"])
             return
-        if self.state.conversation_id is None:
-            self._create_then_send(text)
+        if state.conversation_id is None:
+            ensure_conversation(lambda: self._begin(text))
             return
-        self._post_message(self.state.conversation_id, text)
+        self._begin(text)
 
-    def _create_then_send(self, text):
-        mode = self.state.mode
+    def _begin(self, text):
+        state = self.state
+        conversation = self._conversation()
+        if conversation is None:
+            return
+        attachments = list(state.attachments)
+        question = question_of(state.messages)
+        answer = text if question is not None else None
+        directory = conversation.files_dir
 
         def work():
-            return self._http.create_conversation_with(mode)
+            return copy_into(attachments, directory) if attachments else []
 
-        def done(created):
-            kept = list(self.state.attachments)
-            self.state.select_conversation(created["id"], created.get("mode"))
-            self.state.attachments = kept
-            self.state.conversations.insert(0, conversation_row(created))
-            self._post_message(created["id"], text)
+        def done(copied):
+            if self._conversation() is not conversation or state.running:
+                return
+            self._start(conversation, None if answer is not None else text, copied, answer)
 
-        self._submit(work, done, busy=True)
+        state.busy = True
+        self._submit(work, done, on_error=self._copy_failed)
 
-    def _post_message(self, conversation_id, text):
-        attachments = list(self.state.attachments)
-        ids = [item["id"] for item in attachments]
-        mode = self.state.mode
-        if self.state.client_message_id is None:
-            self.state.client_message_id = uuid.uuid4().hex
-        client_id = self.state.client_message_id
+    def _copy_failed(self, error):
+        self.state.busy = False
+        self._notice("%s: %s" % (self._strings()["attach_failed"], error))
 
-        def work():
-            return self._http.send_message(conversation_id, text, ids, mode, client_id)
+    def _start(self, conversation, text, attachments, answer):
+        state = self.state
+        state.busy = False
+        state.turn_started()
+        conversation_id = conversation.id
+        turn = self._loop.turn(conversation, lambda: self.state.mode if self.state.conversation_id == conversation_id
+                               else "ask", self._deliver,
+                               lambda: self.state.skill if self.state.conversation_id == conversation_id else None)
+        self._turn = turn
+        turn.start(text=text, attachments=attachments, answer=answer)
 
-        def done(reply):
-            self.state.add_sent_message(reply.get("message_id"), reply.get("run_id"), text,
-                                        [item["name"] for item in attachments])
+    def _deliver(self, turn, kind, payload):
+        self._post(lambda: self._on_event(turn, kind, payload))
 
-        self._submit(work, done, busy=True)
-
-    def confirm(self, decision, text=None):
-        run_id = self.state.run_id
-        pending = self.state.pending
-        if run_id is None or pending is None or pending["type"] != "confirmation":
+    def _on_event(self, turn, kind, payload):
+        if turn is not self._turn:
             return
-        if decision == "clarify" and not (text or "").strip():
-            self._notice(self._strings()["clarify_hint"])
+        state = self.state
+        if kind == "finished":
+            self._finish_turn()
             return
+        if kind == "thinking":
+            state.phase = "thinking"
+            state.progress = None
+            state.step += 1
+        elif kind == "confirm":
+            state.confirmation = dict(payload, explanation=self._explanation(turn, payload))
+        elif kind == "confirmed":
+            state.confirmation = None
+        elif kind == "warning":
+            self._notice("MCP %s: %s" % (payload.get("server"), payload.get("message")))
+        elif kind == "error":
+            state.add_error(payload.get("message", ""))
+        state.messages = turn.conversation.messages()
+        state.mark_activity(activity_key(state))
+        self._changed()
 
-        def work():
-            return self._http.confirm(run_id, decision, text)
+    def _explanation(self, turn, payload):
+        for message in reversed(turn.conversation.messages()):
+            for call in message.get("tool_calls") or []:
+                if call.get("id") == payload.get("call_id"):
+                    return str(call_arguments(call).get("explanation") or message.get("content") or "")
+        return ""
 
-        def done(_):
-            if self.state.pending is not None and self.state.pending.get("batch_id") == pending.get("batch_id"):
-                self.state.resolve_confirmation(decision)
-                if decision == "clarify":
-                    self.state.clear_draft()
+    def _finish_turn(self):
+        turn, self._turn = self._turn, None
+        if turn is not None:
+            self.state.messages = turn.conversation.messages()
+        self.state.turn_finished()
+        waiting, self._after_turn = self._after_turn, []
+        for proceed in waiting:
+            proceed()
+        self._changed()
 
-        self._submit(work, done, busy=True)
+    def on_progress(self, stage, fraction):
+        if self._turn is not None:
+            self.state.progress = {"stage": stage, "fraction": fraction}
+            self.state.mark_activity(activity_key(self.state))
+            self._changed()
+
+    def confirm(self, decision, comment=None):
+        if self._turn is None or self.state.confirmation is None:
+            return
+        self._turn.decide(decision, (comment or "").strip())
+        self.state.confirmation = None
+        if (comment or "").strip():
+            self.state.clear_draft()
+        self.state.mark_activity(activity_key(self.state))
+        self._changed()
 
     def stop(self):
-        run_id = self.state.run_id
-        if run_id is None or not self.state.run_active():
-            return
-        bridge = self._bridge()
-
-        def work():
-            reply = self._http.stop_run(run_id)
-            return reply
-
-        def done(_):
-            self.state.mark_stopped()
-            self.state.run_state = "aborted"
-            if bridge is not None:
-                bridge.cancel_run(run_id)
-
-        self._submit(work, done, busy=True)
+        self.stop_then(None)
 
     def stop_then(self, proceed):
-        run_id = self.state.run_id
-        bridge = self._bridge()
+        turn = self._turn
+        if turn is None:
+            if proceed is not None:
+                proceed()
+            return
+        if proceed is not None:
+            self._after_turn.append(proceed)
+        self.state.stopping = True
+        self.state.confirmation = None
+        self.state.mark_activity(activity_key(self.state))
+        if turn.cancel():
+            self._finish_turn()
+        else:
+            self._changed()
 
-        def work():
-            self._http.stop_run(run_id)
-            if bridge is not None:
-                bridge.cancel_run(run_id)
-
-        def done(_):
-            self.state.mark_stopped()
-            self.state.run_state = "aborted"
-            proceed()
-
-        self._submit(work, done, busy=True)
+    def busy(self):
+        return self._turn is not None

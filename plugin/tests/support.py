@@ -21,9 +21,9 @@ class FakePort(object):
         self.bump_on_slice = False
         self.export_dir = None
         self.state = {"printer": {"name": "fake"}, "objects": []}
-
-    def scene_epoch(self):
-        return ""
+        self.facts = {"material_bed_temperature": {"value": 40, "minimum_value": 0, "maximum_value": 120,
+                                                   "minimum_value_warning": 20, "maximum_value_warning": 110,
+                                                   "unit": "°C"}}
 
     def scene_version(self):
         return self.version
@@ -40,7 +40,7 @@ class FakePort(object):
     def end_batch(self):
         self.batches -= 1
 
-    def apply_operation(self, op, expected_version=None, check=None):
+    def apply_operation(self, op, check=None):
         if check:
             check()
         if self.fail_on == op["kind"]:
@@ -59,7 +59,13 @@ class FakePort(object):
         return {"material": material_id}
 
     def render_scene(self, view):
-        return {"view": view}
+        return {"view": view, "png": b"\x89PNG-fake"}
+
+    def setting_facts(self, key, extruder=None):
+        return self.facts.get(key)
+
+    def snapshot(self):
+        return self.version, dict(self.state, settings=[{"category": "material", "settings": ["material_bed_temperature = 40"]}])
 
     def mesh_snapshot(self, object_id):
         if object_id != "obj-1":
@@ -73,6 +79,7 @@ class FakePort(object):
         report("slicing", 0.5)
         if self.bump_on_slice:
             self.version += 1
+            self.state = dict(self.state, objects=[{"id": "moved"}])
         return {"print_time_seconds": 600}
 
     def export_artifacts(self, directory, check=None):
@@ -96,31 +103,3 @@ def cube_mesh(size=10.0):
     triangles = [(0, 2, 1), (0, 3, 2), (4, 5, 6), (4, 6, 7), (0, 1, 5), (0, 5, 4),
                  (1, 2, 6), (1, 6, 5), (2, 3, 7), (2, 7, 6), (3, 0, 4), (3, 4, 7)]
     return {"vertices": [tuple(float(i) for i in v) for v in vertices], "triangles": triangles}
-
-
-class FakeHttp(object):
-    def __init__(self):
-        self.calls = []
-        self.fail_upload = 0
-        self.chunks = {}
-        self.attachments = {}
-
-    def upload_artifact_chunk(self, run_id, kind, scene_version, index, count, sha256, chunk, scene_epoch=""):
-        from Brim.protocol.backend_http import BackendHttpError
-
-        self.calls.append(("chunk", kind, index, count))
-        if self.fail_upload > 0:
-            self.fail_upload -= 1
-            raise BackendHttpError("network down")
-        self.chunks.setdefault(kind, {})[index] = chunk
-        complete = len(self.chunks[kind]) == count
-        artifact = None
-        if complete:
-            data = b"".join(self.chunks[kind][i] for i in range(count))
-            import hashlib
-
-            artifact = {"sha256": hashlib.sha256(data).hexdigest(), "size": len(data)}
-        return {"complete": complete, "received": len(self.chunks[kind]), "artifact": artifact}
-
-    def download_attachment(self, attachment_id):
-        return self.attachments[attachment_id], {"Content-Disposition": 'attachment; filename="part.stl"'}

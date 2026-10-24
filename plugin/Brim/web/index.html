@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Brim</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <div id="app" class="app">
+    <aside id="sidebar" class="sidebar">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 164 164" aria-hidden="true">
+          <path fill="currentColor" fill-rule="evenodd" d="M62 18H102A44 44 0 0 1 146 62V102A44 44 0 0 1 102 146H62A44 44 0 0 1 18 102V62A44 44 0 0 1 62 18ZM62 26H102A36 36 0 0 1 138 62V102A36 36 0 0 1 102 138H62A36 36 0 0 1 26 102V62A36 36 0 0 1 62 26ZM62 36H102A26 26 0 0 1 128 62V102A26 26 0 0 1 102 128H62A26 26 0 0 1 36 102V62A26 26 0 0 1 62 36ZM62 44H102A18 18 0 0 1 120 62V102A18 18 0 0 1 102 120H62A18 18 0 0 1 44 102V62A18 18 0 0 1 62 44ZM62 54H102A8 8 0 0 1 110 62V102A8 8 0 0 1 102 110H62A8 8 0 0 1 54 102V62A8 8 0 0 1 62 54Z"/>
+          <path fill="var(--accent)" fill-rule="evenodd" d="M62 0H102A62 62 0 0 1 164 62V102A62 62 0 0 1 102 164H62A62 62 0 0 1 0 102V62A62 62 0 0 1 62 0ZM62 8H102A54 54 0 0 1 156 62V102A54 54 0 0 1 102 156H62A54 54 0 0 1 8 102V62A54 54 0 0 1 62 8Z"/>
+        </svg>
+        <span class="brand-name">Brim</span>
+      </div>
+      <button id="new-chat" class="btn primary block" type="button"></button>
+      <button id="new-from-scene" class="btn block" type="button"></button>
+      <div id="chats-title" class="section-title"></div>
+      <nav id="chat-list" class="chat-list"></nav>
+    </aside>
+    <div id="scrim" class="scrim" hidden></div>
+    <main class="main">
+      <header class="header">
+        <button id="menu" class="icon-btn only-narrow" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <span id="status-dot" class="status-dot" aria-hidden="true"></span>
+        <div class="header-text">
+          <h1 id="title" class="title"></h1>
+          <div id="status" class="status" role="status" aria-live="polite"></div>
+        </div>
+        <div id="mode" class="segmented" role="radiogroup"></div>
+        <button id="open-folder" class="icon-btn" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        </button>
+        <button id="settings" class="icon-btn" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </button>
+      </header>
+      <div id="banner" class="banner" role="alert" hidden></div>
+      <section id="timeline" class="timeline" aria-live="polite">
+        <div id="empty" class="empty">
+          <div class="empty-mark" aria-hidden="true"></div>
+          <h2 id="empty-title"></h2>
+          <p id="empty-body"></p>
+        </div>
+        <div id="entries" class="entries"></div>
+      </section>
+      <button id="jump" class="btn primary jump" type="button" hidden></button>
+      <div id="status-area" class="status-area"></div>
+      <form id="composer" class="composer">
+        <div id="attachments" class="chips"></div>
+        <textarea id="input" rows="2"></textarea>
+        <div class="composer-bar">
+          <button id="attach" class="icon-btn" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5l-8.6 8.6a5 5 0 0 1-7.1-7.1l8.6-8.6a3.3 3.3 0 0 1 4.7 4.7l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9"/></svg>
+          </button>
+          <select id="skill" class="skill"></select>
+          <span class="spacer"></span>
+          <button id="send" class="icon-btn primary" type="submit">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          </button>
+          <button id="stop" class="icon-btn" type="button" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>
+          </button>
+        </div>
+        <input id="file" type="file" multiple hidden accept=".stl,.obj,.3mf,.jpg,.jpeg,.png,.docx,.xlsx,.csv,.tsv,.txt,.md,.json,.pdf">
+      </form>
+      <div id="composer-hint" class="composer-hint"></div>
+      <div id="drop" class="drop" hidden><span id="drop-text"></span></div>
+    </main>
+  </div>
+  <div id="settings-host" class="overlay" hidden></div>
+</body>
+</html>

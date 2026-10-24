@@ -1,38 +1,6 @@
 name: ${COMPOSE_PROJECT_NAME:-app}
 
 services:
-  db:
-    image: postgres:16
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-brim}
-      POSTGRES_USER: ${POSTGRES_USER:-brim}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-brim}
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-    restart: unless-stopped
-
-  migrate:
-    image: ghcr.io/amacneil/dbmate:2.36.0
-    pull_policy: missing
-    environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-brim}:${POSTGRES_PASSWORD:-brim}@db:5432/${POSTGRES_DB:-brim}?sslmode=disable
-      DBMATE_MIGRATIONS_DIR: /db/migrations/postgres
-      DBMATE_NO_DUMP_SCHEMA: "true"
-      DBMATE_STRICT: "true"
-      DBMATE_WAIT: "true"
-      DBMATE_MIGRATION_LOCK: "true"
-    command: ["up"]
-    volumes:
-      - ./backend/migrations:/db/migrations:ro
-    depends_on:
-      db:
-        condition: service_healthy
-
   backend:
     image: ${COMPOSE_PROJECT_NAME:-app}-backend:${TAG:-latest}
     pull_policy: never
@@ -40,13 +8,9 @@ services:
       - path: .env
         required: false
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-brim}:${POSTGRES_PASSWORD:-brim}@db:5432/${POSTGRES_DB:-brim}
       LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-120}
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
     healthcheck:
       test:
         - CMD
@@ -57,6 +21,3 @@ services:
       timeout: 3s
       retries: 5
     restart: unless-stopped
-
-volumes:
-  db-data:

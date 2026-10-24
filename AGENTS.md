@@ -40,16 +40,15 @@ Originals and verbatim quotes are preserved; derived views may be updated with t
 ## Priorities and architecture
 
 - P0 is the scenario the jury will use. Order work by criteria weights; finish P0 before P1/P2.
-- UI: embedded STE Slicer chat; the standalone frontend has been removed. Backend: Clean Architecture under
-  `src/app/{domain,usecase,repository,adapter,controller}`, wired in `main.py`. Outer layers depend
-  on domain/usecase interfaces. Read the backend topic documents before implementation.
-- The current template has a backend Compose service. The backend has LLM/embedding
-  ports with Claude Agent SDK and Codex SDK adapters, a decision-model port with a System One HTTP
-  adapter and a lexical fallback, and a FastAPI composition root in `main.py` serving only
-  `GET /api/v1/health`; no use cases, database or migrations yet. Add them when implementing the
-  project; document only commands that exist.
-- The completed product runs through Compose, with synthetic data seeded into real storage and a
-  main scenario that works without paid keys. An LLM lives behind a port with a deterministic fallback.
+- UI: embedded STE Slicer chat; the standalone frontend has been removed. The agent loop runs in the
+  plugin (`plugin/Brim/agent/`): an OpenAI-compatible `chat/completions` client and MCP host with the
+  built-in Brim server always on (ADR 0002). There is no database; chats live in the plugin's
+  `chats/<id>/` folders. The backend is an optional stateless proxy for Claude by subscription
+  (`POST /v1/chat/completions` over Claude Agent SDK) with Clean Architecture under
+  `src/app/{domain,usecase,adapter,controller}`, wired in `main.py`. Read the backend topic
+  documents before changing it.
+- The jury scenario ships as the plugin zip and uses the organizers' LLM; Compose is needed only for
+  Claude. Without a configured LLM the chat shows an honest error rather than a scripted answer.
 - Product screens consume real API responses. Missing endpoints show an honest error state.
   Test doubles belong in tests; synthetic seed data and fallback logic compute through real code.
 - Every number has a method, sample size, date and evidence. Distinguish implemented, tested and
@@ -117,7 +116,7 @@ Originals and verbatim quotes are preserved; derived views may be updated with t
   bare copy; source history stays unchanged. Review the copy before manually publishing it.
 - Deck: `cd presentation && npm run build`
   and `npm run speech:check`. Backend: `cd backend && uv run ruff check . && uv run mypy . &&
-  uv run pytest tests/unit`, plus `uv run pytest tests/integration` for storage or stand changes.
+  uv run pytest tests/unit`. Plugin: `cd plugin && PYTHONPATH=. python3 -B -m unittest discover -s tests -t .`.
   The pre-commit hook runs backend unit tests when `backend/` is staged.
 - Verify the changed scenario, update its docs and inspect visible changes at 375px/1440px, both
   themes and languages when requested. Report which checks actually ran and remaining limitations.

@@ -9,6 +9,8 @@ Tests are split by what they need to run:
   holds `domain/`, `usecase/`, `adapter/`, `controller/`, `repository/memory/` and the import-contract
   checks in `architecture/`. Adapter tests here replace the provider client or SDK call. Add
   provider-specific `adapter/<provider>/` folders when implemented.
+- Brim has no integration group now: without storage, `tests/unit` covers the backend, and the
+  plugin has its own `unittest` suite in `plugin/tests/`.
 - `tests/integration/` needs real local infrastructure and the `dbmate` binary:
   `repository/sqlite/` uses a temporary database file, `repository/postgres/` uses disposable
   PostgreSQL, `e2e/` uses the seeded running stand. An adapter test against a local container or

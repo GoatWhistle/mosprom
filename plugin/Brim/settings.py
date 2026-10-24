@@ -1,21 +1,22 @@
-import threading
-import uuid
+import json
+import re
 
-from .protocol import constants
-from .protocol.backend_http import BackendHttpError
+from .agent.hub import LOCAL_SERVER
 
 PREFIX = "brim/"
 DEFAULTS = {
-    "backend_url": constants.DEFAULT_BACKEND_URL,
-    "instance_id": "",
-    "token": "",
     "llm_base_url": "",
     "llm_model": "",
     "llm_api_key": "",
+    "mcp_servers": "[]",
+    "risk_ratio": "2",
     "language": "ru",
     "theme": "dark",
     "mcp_port": 0,
+    "panel_width": 0,
+    "export_root": "",
 }
+SERVER_NAME = re.compile(r"^[A-Za-z0-9_-]{1,24}$")
 
 
 class PreferencesStore(object):
@@ -43,31 +44,19 @@ class MemoryStore(object):
         self._values[name] = value
 
 
+def parse_header(line):
+    line = (line or "").strip()
+    if not line:
+        return {}
+    name, separator, value = line.partition(":")
+    if not separator or not name.strip() or not value.strip():
+        raise ValueError("header must look like Name: value")
+    return {name.strip(): value.strip()}
+
+
 class PluginSettings(object):
     def __init__(self, store):
         self._store = store
-        self._registration = threading.RLock()
-
-    def backend_url(self):
-        return str(self._store.get("backend_url") or constants.DEFAULT_BACKEND_URL).strip()
-
-    def set_backend_url(self, value):
-        value = (value or "").strip().rstrip("/")
-        if not value.startswith(("http://", "https://")):
-            raise ValueError("backend address must start with http:// or https://")
-        if value != self.backend_url():
-            self._store.set("token", "")
-        self._store.set("backend_url", value)
-
-    def token(self):
-        return str(self._store.get("token") or "")
-
-    def instance_id(self):
-        value = str(self._store.get("instance_id") or "")
-        if not value:
-            value = "slicer-" + uuid.uuid4().hex
-            self._store.set("instance_id", value)
-        return value
 
     def llm(self):
         return {
@@ -77,13 +66,60 @@ class PluginSettings(object):
         }
 
     def llm_configured(self):
-        return all(self.llm().values())
+        llm = self.llm()
+        return bool(llm["base_url"] and llm["model"])
 
     def set_llm(self, base_url, model, api_key):
-        self._store.set("llm_base_url", (base_url or "").strip())
+        base_url = (base_url or "").strip().rstrip("/")
+        if base_url and not base_url.startswith(("http://", "https://")):
+            raise ValueError("LLM URL must start with http:// or https://")
+        self._store.set("llm_base_url", base_url)
         self._store.set("llm_model", (model or "").strip())
         if api_key:
             self._store.set("llm_api_key", api_key)
+
+    def mcp_servers(self):
+        try:
+            items = json.loads(str(self._store.get("mcp_servers") or "[]"))
+        except ValueError:
+            return []
+        servers = []
+        for item in items if isinstance(items, list) else []:
+            if isinstance(item, dict) and SERVER_NAME.match(str(item.get("name", ""))) and item.get("url"):
+                headers = item.get("headers") if isinstance(item.get("headers"), dict) else {}
+                servers.append({"name": item["name"], "url": str(item["url"]),
+                                "headers": dict((str(key), str(value)) for key, value in headers.items()),
+                                "enabled": item.get("enabled", True) is not False})
+        return servers
+
+    def _save_servers(self, servers):
+        self._store.set("mcp_servers", json.dumps(servers, ensure_ascii=False))
+
+    def add_mcp_server(self, name, url, header_line):
+        name = (name or "").strip()
+        url = (url or "").strip()
+        if not SERVER_NAME.match(name) or name == LOCAL_SERVER:
+            raise ValueError("server name: 1-24 latin letters, digits, _ or -, not %s" % LOCAL_SERVER)
+        if not url.startswith(("http://", "https://")):
+            raise ValueError("server URL must start with http:// or https://")
+        servers = self.mcp_servers()
+        if any(item["name"] == name for item in servers):
+            raise ValueError("server %s already exists" % name)
+        servers.append({"name": name, "url": url, "headers": parse_header(header_line), "enabled": True})
+        self._save_servers(servers)
+
+    def set_mcp_server_enabled(self, name, enabled):
+        servers = self.mcp_servers()
+        for item in servers:
+            if item["name"] == name:
+                item["enabled"] = bool(enabled)
+        self._save_servers(servers)
+
+    def remove_mcp_server(self, name):
+        self._save_servers([item for item in self.mcp_servers() if item["name"] != name])
+
+    def risk_ratio(self):
+        return self._store.get("risk_ratio")
 
     def mcp_port(self):
         return int(self._store.get("mcp_port") or 0)
@@ -103,42 +139,14 @@ class PluginSettings(object):
     def set_theme(self, value):
         self._store.set("theme", "light" if value == "light" else "dark")
 
-    def ensure_registered(self, http_client):
-        with self._registration:
-            if self.token():
-                return self.token()
-            for _ in range(3):
-                try:
-                    reply = http_client.register(self.instance_id())
-                except BackendHttpError as error:
-                    if error.status == 409:
-                        self._store.set("instance_id", "")
-                        continue
-                    raise
-                self._store.set("token", reply["token"])
-                return reply["token"]
-            raise BackendHttpError("could not register this slicer instance")
+    def panel_width(self):
+        return int(self._store.get("panel_width") or 0)
 
-    def forget_registration(self):
-        with self._registration:
-            self._store.set("token", "")
+    def set_panel_width(self, value):
+        self._store.set("panel_width", max(0, int(value)))
 
+    def export_root(self):
+        return str(self._store.get("export_root") or "")
 
-class RegisteredConnection(object):
-    def __init__(self, settings):
-        self._settings = settings
-        self._http = None
-
-    def bind(self, http_client):
-        self._http = http_client
-
-    def backend_url(self):
-        return self._settings.backend_url()
-
-    def token(self):
-        if not self._settings.token():
-            self._settings.ensure_registered(self._http)
-        return self._settings.token()
-
-    def forget_registration(self):
-        self._settings.forget_registration()
+    def set_export_root(self, value):
+        self._store.set("export_root", str(value or ""))

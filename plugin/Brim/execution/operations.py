@@ -61,8 +61,8 @@ def _check_reset(op):
 
 
 def _check_import(op):
-    if not (_text(op.get("attachment_id")) or _text(op.get("path"))):
-        return ["attachment_id required"]
+    if not _text(op.get("path")):
+        return ["path required"]
     return []
 
 
@@ -122,6 +122,13 @@ def _check_delete(op):
     return []
 
 
+def _check_object_extruder(op):
+    problems = [] if _text(op.get("object_id")) else ["object_id required"]
+    if not _index(op.get("extruder")):
+        problems.append("extruder must be a non-negative integer")
+    return problems
+
+
 def _check_save_profile(op):
     return [] if _text(op.get("name")) else ["name required"]
 
@@ -139,6 +146,7 @@ CHECKS = {
     "duplicate": _check_duplicate,
     "arrange": _check_arrange,
     "delete": _check_delete,
+    "set_object_extruder": _check_object_extruder,
     "save_profile": _check_save_profile,
 }
 
