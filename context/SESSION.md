@@ -77,6 +77,11 @@ Updated: 2026-10-24, MSK
   whitelisted actions on Qt thread, upload/download) and `plugin/Brim/web/` (vanilla ES modules); menu
   «Открыть в браузере»; plugin 0.5.0. Verified only on Linux with real presenter on fakes + headless
   Chromium; not run in STE Slicer. Not merged, not pushed. Rationale: docs/design-decisions.md.
+- Stand 2026-10-24 16:40–17:00: deployed 0.5.2 = uncommitted merge of feat/calibration-figure + feat/browser-spa
+  (0.5.1 backup %TEMP%\Brim-0.5.1-backup). Edge via menu passed: STL upload in file dialog (1.2 MB), answer to
+  question card, auto run (transform, settings, slice 0 h 53 min, 3.3 g), result card, G-code download, recover
+  button. Stand scripts must be UTF-8 with BOM (PS 5); a mojibake chat title was fixed in chat.json
+  (backup chat.json.bak-mojibake). Old tab after slicer restart says "no connection" forever (new port).
 
 - Branch `fix/jury-run-findings` from main 4c085cd, not pushed: plugin 0.4.1 with run fixes (overrides reset
   on empty chat, extruder-ordered slice report, `set_object_extruder`, 5D rotation-axis data and rules,
