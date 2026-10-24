@@ -68,7 +68,12 @@ Updated: 2026-10-24, MSK
 
 - Branch `feat/agent-skills-documents` (plugin 0.4.0, not pushed, not merged): skills + tools
   read_document, load_skill, lookup_defect, match_materials, calculate, generate_calibration_model
-  (ADR 0003). Expert consultation transcript in brief/QA.md. Not deployed to the stand.
+  (ADR 0003). Expert consultation transcript in brief/QA.md. Deployed to the stand 2026-10-24
+  (0.3.4 backup %TEMP%\Brim-0.3.4-backup); gear run passed (engineer-spec auto, PC G20, 1 h 16 min),
+  defect skill pinned run passed. Stand fixes: recovery button, defect values from extruder 0,
+  speed_travel key, material dedupe. Stand UI driving: %TEMP%\typeonly.ps1 now runs steps from
+  brim-steps.txt, click.ps1 reads brim-points.txt (originals *.orig). Startup restore needs a click
+  on Open Project within 120 s, otherwise the chat is blocked until «Восстановить проект».
 
 - Docs: ADR 0002, design-decisions, api, architecture, running, plugin/README, work/protocol-contract v3.
 - Stand 2026-10-24: plugin 0.3.0 in VM `user@192.168.1.190` (%APPDATA%\steslicer\7.10\plugins),
