@@ -9,6 +9,7 @@ from .agent.loop import AgentLoop
 from .agent.mcp_client import McpHttpClient
 from .agent.skills import SkillCatalog
 from .knowledge.defects import DefectGuide
+from .knowledge.materials import MaterialMatcher
 from .chat.presenter import ChatPresenter
 from .execution.executor import ToolExecutor
 from .protocol.local_mcp import LocalMcpServer
@@ -59,7 +60,8 @@ class BrimRuntime(object):
         self.workspace = WorkspaceService(self.port, WorkspaceStore(os.path.join(self.cache_dir, "chats")))
         self.skills = SkillCatalog()
         self.executor = ToolExecutor(self.port, lambda: self.presenter.output_dir(), lambda: self.presenter.files_dir(),
-                                     self.skills, DefectGuide(self.port.setting_facts))
+                                     self.skills, DefectGuide(self.port.setting_facts),
+                                     MaterialMatcher(self.port.read_state))
         self.dispatcher = McpDispatcher(load_tools(), self._execute)
         self.local_mcp = LocalMcpServer(self.dispatcher, port=self.settings.mcp_port())
         self.llm = LlmClient(self.settings.llm)

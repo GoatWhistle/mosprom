@@ -14,12 +14,13 @@ def error_object(code, message):
 
 
 class ToolExecutor(object):
-    def __init__(self, port, output_dir, files_dir=None, skills=None, defects=None):
+    def __init__(self, port, output_dir, files_dir=None, skills=None, defects=None, materials=None):
         self._port = port
         self._output_dir = output_dir
         self._files_dir = files_dir or (lambda: None)
         self._skills = skills
         self._defects = defects
+        self._materials = materials
         self._cancel = threading.Event()
         self._execution = threading.Lock()
         self._tools = {
@@ -34,6 +35,7 @@ class ToolExecutor(object):
             constants.TOOL_READ_DOCUMENT: self._read_document,
             constants.TOOL_LOAD_SKILL: self._load_skill,
             constants.TOOL_LOOKUP_DEFECT: self._lookup_defect,
+            constants.TOOL_MATCH_MATERIALS: self._match_materials,
         }
 
     def cancel(self):
@@ -160,6 +162,11 @@ class ToolExecutor(object):
         if self._defects is None:
             raise OperationError(constants.ERR_NOT_AVAILABLE, "the defect guide is not loaded")
         return self._defects.lookup(arguments.get("query"), arguments.get("defect_id"))
+
+    def _match_materials(self, arguments, report, applied, images):
+        if self._materials is None:
+            raise OperationError(constants.ERR_NOT_AVAILABLE, "the material table is not loaded")
+        return self._materials.match(arguments.get("requirements"))
 
     def _fingerprint(self):
         state = dict(self._port.read_state())

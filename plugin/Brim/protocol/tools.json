@@ -392,6 +392,74 @@
         "readOnlyHint": true,
         "destructiveHint": false
       }
+    },
+    {
+      "name": "match_materials",
+      "description": "Filter the materials available in the slicer by requirements using typical reference properties of their polymer family. Returns candidates with passed and failed criteria, materials whose family is unknown, and suitable families the slicer does not offer.",
+      "input_schema": {
+        "type": "object",
+        "required": [
+          "requirements"
+        ],
+        "properties": {
+          "requirements": {
+            "type": "object",
+            "properties": {
+              "max_temp_c": {
+                "type": "number",
+                "description": "Highest temperature the part sees in service, °C."
+              },
+              "min_temp_c": {
+                "type": "number",
+                "description": "Lowest service temperature, °C."
+              },
+              "max_density": {
+                "type": "number",
+                "description": "Density limit, g/cm³."
+              },
+              "flexible": {
+                "type": "boolean",
+                "description": "true for an elastic part, false for a rigid one."
+              },
+              "resist": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "oil",
+                    "fuel",
+                    "alkali",
+                    "acid",
+                    "ipa",
+                    "water_hot",
+                    "uv",
+                    "ozone"
+                  ]
+                }
+              },
+              "low_moisture": {
+                "type": "boolean",
+                "description": "Hydrophobic, low water absorption."
+              },
+              "low_friction": {
+                "type": "boolean"
+              },
+              "non_conductive": {
+                "type": "boolean",
+                "description": "No conductive filler."
+              },
+              "creep_resistant": {
+                "type": "boolean",
+                "description": "Constant load at elevated temperature."
+              }
+            }
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
+      }
     }
   ]
 }
