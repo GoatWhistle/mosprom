@@ -5,10 +5,12 @@ import time
 
 from ..execution.errors import OperationError
 from ..protocol import constants
+from .engine_log import EngineLog
 from .project_archive import verify_project
 from .qt_wrappers import direct_qt_calls
 
 SLICE_TIMEOUT = 900.0
+FATAL_GRACE = 20.0
 ESTIMATE_RETRIES = 10
 ESTIMATE_PAUSE = 0.5
 
@@ -29,6 +31,8 @@ class SlicingService(object):
         self._main = main
         self._state = state
         self._cancel = threading.Event()
+        log_path = getattr(host, "log_path", None)
+        self._log = EngineLog(log_path() if callable(log_path) else None)
 
     def cancel(self):
         self._cancel.set()
@@ -70,25 +74,33 @@ class SlicingService(object):
             report("slicing", float(fraction))
 
         backend = self._main.call(self._h.backend)
+        self._log.mark()
         self._main.call(backend.backendStateChange.connect, on_state)
         self._main.call(backend.processingProgress.connect, on_progress)
         try:
             self._main.call(backend.forceSlice, guard=check)
             finished = False
             elapsed = 0.0
+            fatal_at = None
             while not finished and elapsed < SLICE_TIMEOUT and not self._cancel.is_set():
                 finished = done.wait(1.0)
                 elapsed += 1.0
+                if fatal_at is None and int(elapsed) % 5 == 0 and self._log.fatal():
+                    fatal_at = elapsed
+                if fatal_at is not None and elapsed - fatal_at >= FATAL_GRACE:
+                    break
         finally:
             self._main.call(backend.backendStateChange.disconnect, on_state)
             self._main.call(backend.processingProgress.disconnect, on_progress)
         if self._cancel.is_set():
             raise OperationError(constants.ERR_CANCELLED, "slicing was cancelled")
         if not finished:
-            raise OperationError(constants.ERR_SLICE_FAILED, "slicing did not finish within %.0f s" % SLICE_TIMEOUT)
+            self._main.call(self._stop)
+            raise OperationError(constants.ERR_SLICE_FAILED, "slicing stopped without a result after %.0f s" % elapsed,
+                                 {"engine_log": self._log.errors()})
         if result["state"] == error_state:
             raise OperationError(constants.ERR_SLICE_FAILED, "the slicer engine reported an error",
-                                 {"slicer_errors": list(self._state.errors)})
+                                 {"slicer_errors": list(self._state.errors), "engine_log": self._log.errors()})
         summary = self._main.call(self._summary)
         for _ in range(ESTIMATE_RETRIES):
             if summary.get("print_time_seconds") is not None:
