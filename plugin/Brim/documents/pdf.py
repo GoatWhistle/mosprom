@@ -2,7 +2,8 @@ from ..execution.errors import OperationError
 from ..protocol import constants
 from .pdf_objects import PdfObjects
 from .pdf_syntax import Ref
-from .pdf_text import PageText, load_font
+from .pdf_fonts import load_font
+from .pdf_text import PageText
 
 MAX_FORM_DEPTH = 4
 
