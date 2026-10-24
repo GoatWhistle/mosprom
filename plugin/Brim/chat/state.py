@@ -8,6 +8,7 @@ class ChatState(object):
         self.conversations = []
         self.conversation_id = None
         self.mode = "ask"
+        self.skill = None
         self.messages = []
         self.running = False
         self.stopping = False
@@ -40,7 +41,7 @@ class ChatState(object):
         self.draft = ""
         self.draft_rev += 1
 
-    def select_conversation(self, conversation_id, mode, messages):
+    def select_conversation(self, conversation_id, mode, messages, skill=None):
         carried = None
         if self.conversation_id is None:
             carried = {"text": self.draft, "attachments": self.attachments}
@@ -53,6 +54,7 @@ class ChatState(object):
         self.save_state = None
         self.conversation_id = conversation_id
         self.mode = mode or "ask"
+        self.skill = skill or None
         self.messages = list(messages)
         self.confirmation = None
         self.errors = []

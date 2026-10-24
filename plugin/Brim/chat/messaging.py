@@ -71,7 +71,8 @@ class ChatMessaging(object):
         state.turn_started()
         conversation_id = conversation.id
         turn = self._loop.turn(conversation, lambda: self.state.mode if self.state.conversation_id == conversation_id
-                               else "ask", self._deliver)
+                               else "ask", self._deliver,
+                               lambda: self.state.skill if self.state.conversation_id == conversation_id else None)
         self._turn = turn
         turn.start(text=text, attachments=attachments, answer=answer)
 

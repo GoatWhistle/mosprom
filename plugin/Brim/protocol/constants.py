@@ -20,5 +20,6 @@ TOOL_ANALYZE_GEOMETRY = "analyze_geometry"
 TOOL_RENDER_SCENE = "render_scene"
 TOOL_SLICE = "slice"
 TOOL_READ_DOCUMENT = "read_document"
+TOOL_LOAD_SKILL = "load_skill"
 
 PRINT_MODES = ("classic", "cylindrical", "cylindrical_full")

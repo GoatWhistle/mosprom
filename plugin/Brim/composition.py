@@ -7,6 +7,7 @@ from .agent.hub import McpHub
 from .agent.llm_client import LlmClient
 from .agent.loop import AgentLoop
 from .agent.mcp_client import McpHttpClient
+from .agent.skills import SkillCatalog
 from .chat.presenter import ChatPresenter
 from .execution.executor import ToolExecutor
 from .protocol.local_mcp import LocalMcpServer
@@ -55,13 +56,15 @@ class BrimRuntime(object):
             SettingsDigest(self.host),
         )
         self.workspace = WorkspaceService(self.port, WorkspaceStore(os.path.join(self.cache_dir, "chats")))
-        self.executor = ToolExecutor(self.port, lambda: self.presenter.output_dir(), lambda: self.presenter.files_dir())
+        self.skills = SkillCatalog()
+        self.executor = ToolExecutor(self.port, lambda: self.presenter.output_dir(), lambda: self.presenter.files_dir(),
+                                     self.skills)
         self.dispatcher = McpDispatcher(load_tools(), self._execute)
         self.local_mcp = LocalMcpServer(self.dispatcher, port=self.settings.mcp_port())
         self.llm = LlmClient(self.settings.llm)
         self.hub = McpHub(self.dispatcher, self.settings.mcp_servers, lambda url, headers: McpHttpClient(url, headers))
         policy = ConfirmationPolicy(self.port.setting_facts, self.settings.risk_ratio)
-        self.loop = AgentLoop(self.llm, self.hub, policy, SceneContext(self.port), self.executor.cancel)
+        self.loop = AgentLoop(self.llm, self.hub, policy, SceneContext(self.port, skills=self.skills), self.executor.cancel)
         self.controller = ChatController(self._build_presenter, self.settings)
         self.port.add_change_listener(self._ui(lambda: self.presenter.on_scene_changed()))
         self._started = False
@@ -78,7 +81,7 @@ class BrimRuntime(object):
         return ChatPresenter(self.settings, self.workspace, self.loop, self.llm, self.hub, runner, on_change,
                              post=lambda function: self.controller.post(function),
                              mcp_port=lambda: self.local_mcp.port(),
-                             open_path=lambda path: self.controller.open_path(path))
+                             open_path=lambda path: self.controller.open_path(path), skills=self.skills)
 
     def _ui(self, handler):
         def deliver(*args):

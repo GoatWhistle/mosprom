@@ -524,6 +524,7 @@ Item {
             onAttach: attachDialog.open()
             onStop: brim.stop()
             onDetach: brim.removeAttachment(index)
+            onSkillChosen: brim.setSkill(name)
             onTextChanged: brim.setDraft(text)
         }
 

@@ -78,7 +78,7 @@ class FakeLoop(object):
     def __init__(self):
         self.turns = []
 
-    def turn(self, conversation, mode, emit):
+    def turn(self, conversation, mode, emit, skill=None):
         return FakeTurn(self, conversation, mode, emit)
 
 

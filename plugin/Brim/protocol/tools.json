@@ -335,6 +335,26 @@
         "readOnlyHint": true,
         "destructiveHint": false
       }
+    },
+    {
+      "name": "load_skill",
+      "description": "Load the instructions of a skill from the skill catalog in the context. Load the skill that fits the user's task before acting; follow its instructions for the rest of the task.",
+      "input_schema": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Skill name from the catalog."
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
+      }
     }
   ]
 }

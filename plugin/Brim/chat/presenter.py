@@ -12,7 +12,7 @@ from .view import chat_view
 
 class ChatPresenter(object):
     def __init__(self, settings, workspace, loop, llm, hub, runner, on_change, post=None, mcp_port=None,
-                 open_path=None, autosave_delay=3.0):
+                 open_path=None, autosave_delay=3.0, skills=None):
         self._settings = settings
         self._workspace = workspace
         self._store = workspace.store
@@ -21,6 +21,7 @@ class ChatPresenter(object):
         self._post = post or (lambda function: function())
         self._mcp_port = mcp_port
         self._open_path = open_path
+        self._skills = skills
         self.state = ChatState()
         self._conversation = None
         self._started = False
@@ -36,7 +37,8 @@ class ChatPresenter(object):
                                            self._post, autosave_delay)
 
     def view(self):
-        return chat_view(self.state, self._settings, self._mcp_port, self._preferences.notice)
+        return chat_view(self.state, self._settings, self._mcp_port, self._preferences.notice,
+                         self._skills.rows() if self._skills is not None else [])
 
     def _changed(self):
         self._on_change()
@@ -86,7 +88,7 @@ class ChatPresenter(object):
         chat = self._store.load(conversation_id)
         self._conversation = Conversation(conversation_id, chat["messages"], self._persist(conversation_id),
                                           self._store.files_dir(conversation_id))
-        self.state.select_conversation(conversation_id, chat.get("mode"), chat["messages"])
+        self.state.select_conversation(conversation_id, chat.get("mode"), chat["messages"], chat.get("skill"))
         self.state.upsert_row(self._store.row(chat))
 
     def output_dir(self):
@@ -138,9 +140,10 @@ class ChatPresenter(object):
 
     def _ensure_conversation(self, then):
         mode = self.state.mode
+        skill = self.state.skill
 
         def work():
-            row = self._store.create(mode)
+            row = self._store.create(mode, skill)
             self._store.set_active(row["id"])
             self._workspace.save(row["id"])
             return row
@@ -193,6 +196,16 @@ class ChatPresenter(object):
         conversation_id = self.state.conversation_id
         if conversation_id is not None:
             self._row_saved(self._store.set_mode(conversation_id, mode))
+        self._changed()
+
+    def set_skill(self, skill):
+        skill = skill or None
+        if skill is not None and (self._skills is None or skill not in self._skills.names()):
+            return
+        self.state.skill = skill
+        conversation_id = self.state.conversation_id
+        if conversation_id is not None:
+            self._row_saved(self._store.set_skill(conversation_id, skill))
         self._changed()
 
     def send(self, text):

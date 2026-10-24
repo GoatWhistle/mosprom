@@ -42,5 +42,9 @@ Working:
   they help with the user's task.
 """
 
+SKILLS_HEADER = """[skills: pick the one that fits the task and load it with load_skill before acting; switch when
+the task changes]"""
+PINNED_HEADER = "[skill pinned by the user for this chat; follow it]"
+
 SETTINGS_HEADER = ("[current values of enabled settings: key = value unit (type; min..max; options; "
                    "per-extruder values); * marks a user override]")

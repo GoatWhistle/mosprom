@@ -124,6 +124,10 @@ class ChatController(QObject):
         self._presenter.set_mode(mode)
 
     @pyqtSlot(str)
+    def setSkill(self, name):
+        self._presenter.set_skill(name)
+
+    @pyqtSlot(str)
     def attach(self, url):
         self._presenter.attach(local_path(url))
 

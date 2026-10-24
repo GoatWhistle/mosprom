@@ -72,10 +72,11 @@ class WorkspaceStore(object):
     def _chat_path(self, conversation_id):
         return os.path.join(self.directory(conversation_id), CHAT_NAME)
 
-    def create(self, mode):
+    def create(self, mode, skill=None):
         conversation_id = uuid.uuid4().hex
         now = _now()
-        chat = {"id": conversation_id, "title": "", "mode": mode, "created_at": now, "updated_at": now, "messages": []}
+        chat = {"id": conversation_id, "title": "", "mode": mode, "skill": skill, "created_at": now, "updated_at": now,
+                "messages": []}
         with self._lock:
             os.makedirs(self.directory(conversation_id), exist_ok=True)
             _write_json(self._chat_path(conversation_id), chat)
@@ -83,7 +84,7 @@ class WorkspaceStore(object):
 
     def row(self, chat):
         return {"id": chat["id"], "title": chat.get("title") or "", "mode": chat.get("mode") or "ask",
-                "updated_at": chat.get("updated_at") or ""}
+                "skill": chat.get("skill"), "updated_at": chat.get("updated_at") or ""}
 
     def chats(self):
         rows = []
@@ -121,6 +122,9 @@ class WorkspaceStore(object):
 
     def set_mode(self, conversation_id, mode):
         return self.row(self._update(conversation_id, lambda chat: chat.__setitem__("mode", mode)))
+
+    def set_skill(self, conversation_id, skill):
+        return self.row(self._update(conversation_id, lambda chat: chat.__setitem__("skill", skill)))
 
     def path_for(self, conversation_id):
         return os.path.join(self.directory(conversation_id), SCENE_NAME)

@@ -26,10 +26,11 @@ def _skipped(call, answer):
 
 
 class Turn(object):
-    def __init__(self, loop, conversation, mode, emit):
+    def __init__(self, loop, conversation, mode, emit, skill=None):
         self._loop = loop
         self.conversation = conversation
         self._mode = mode
+        self._skill = skill or (lambda: None)
         self._emit = emit
         self._cancelled = threading.Event()
         self._released = threading.Event()
@@ -106,7 +107,7 @@ class Turn(object):
         conversation = self.conversation
         history = conversation.messages()
         tools = self._loop.hub.tools()
-        messages = [self._loop.context.system_message(history, self._mode())] + wire_messages(history, read_file)
+        messages = [self._loop.context.system_message(history, self._mode(), self._skill())] + wire_messages(history, read_file)
         self._phase = "llm"
         self.emit("thinking")
         try:
@@ -227,5 +228,5 @@ class AgentLoop(object):
     def cancel_tools(self):
         self._cancel_tools()
 
-    def turn(self, conversation, mode, emit):
-        return Turn(self, conversation, mode, emit)
+    def turn(self, conversation, mode, emit, skill=None):
+        return Turn(self, conversation, mode, emit, skill)

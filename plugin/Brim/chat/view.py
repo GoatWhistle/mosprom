@@ -15,7 +15,7 @@ def _servers(settings, status):
     return rows
 
 
-def chat_view(state, settings, mcp_port, notice):
+def chat_view(state, settings, mcp_port, notice, skills=()):
     strings = strings_for(settings.language())
     entries = build_entries(state.messages, state.running)
     question = None if state.running else question_of(state.messages)
@@ -23,6 +23,10 @@ def chat_view(state, settings, mcp_port, notice):
         "conversations": list(state.conversations),
         "conversation_id": state.conversation_id,
         "mode": state.mode,
+        "skill": state.skill or "",
+        "skill_options": ([{"name": "", "title": strings["skill_auto"]}] if skills else [])
+        + [{"name": item.get("name"), "title": item.get("title_" + settings.language()) or item.get("name")}
+           for item in skills],
         "entries": entries,
         "running": state.running,
         "stopping": state.stopping,

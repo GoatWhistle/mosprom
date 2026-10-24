@@ -14,10 +14,11 @@ def error_object(code, message):
 
 
 class ToolExecutor(object):
-    def __init__(self, port, output_dir, files_dir=None):
+    def __init__(self, port, output_dir, files_dir=None, skills=None):
         self._port = port
         self._output_dir = output_dir
         self._files_dir = files_dir or (lambda: None)
+        self._skills = skills
         self._cancel = threading.Event()
         self._execution = threading.Lock()
         self._tools = {
@@ -30,6 +31,7 @@ class ToolExecutor(object):
             constants.TOOL_RENDER_SCENE: self._render_scene,
             constants.TOOL_SLICE: self._slice,
             constants.TOOL_READ_DOCUMENT: self._read_document,
+            constants.TOOL_LOAD_SKILL: self._load_skill,
         }
 
     def cancel(self):
@@ -143,6 +145,14 @@ class ToolExecutor(object):
                                          arguments.get("pages"))
         images.extend({"mime_type": item["mime_type"], "data": item["data"]} for item in embedded)
         return result
+
+    def _load_skill(self, arguments, report, applied, images):
+        name = arguments.get("name")
+        body = self._skills.body(name) if self._skills is not None else None
+        if body is None:
+            known = ", ".join(self._skills.names()) if self._skills is not None else ""
+            raise OperationError(constants.ERR_INVALID_ARGUMENTS, "unknown skill %s; skills: %s" % (name, known))
+        return {"name": name, "instructions": body}
 
     def _fingerprint(self):
         state = dict(self._port.read_state())
