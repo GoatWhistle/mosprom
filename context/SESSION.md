@@ -1,6 +1,6 @@
 # Session state
 
-Updated: 2026-10-23, MSK
+Updated: 2026-10-24, MSK
 
 ## Explicit user instructions
 
@@ -60,12 +60,16 @@ Updated: 2026-10-23, MSK
 - 2026-10-23: «Давай попробуем оба варината в разных ветках и я выберу который понравится
   и учитывай это ~/.claude/plans/spicy-tinkering-floyd.md» — plan updated with embedding notes.
 
+- 2026-10-24: «Давай подумаем над скилами и добавим в базовые тулы работу с docx, xlsx, csv крч с
+  файлами чтобы агент их мог прочесть нормально»; skills: novice, engineer, material, defects;
+  agent picks + manual pin; formats DOCX/XLSX/CSV/TXT/MD/JSON/PDF.
+
 ## Current state
 
-- Branch `refactor/plugin-agent-mcp-host` (from main 2348e36): ADR 0002 implemented. Agent loop in
-  `plugin/Brim/agent/` (OpenAI client, MCP hub/client, ask_user, confirmation policy); chats in
-  `chats/<id>/`; bridge/ledger/backend HTTP removed. Backend = stateless `POST /v1/chat/completions`
-  over Claude Agent SDK; DB, migrations, WS, runs removed; Compose has only `backend`.
+- Branch `feat/agent-skills-documents` (plugin 0.4.0, not pushed, not merged): skills + tools
+  read_document, load_skill, lookup_defect, match_materials, calculate, generate_calibration_model
+  (ADR 0003). Expert consultation transcript in brief/QA.md. Not deployed to the stand.
+
 - Docs: ADR 0002, design-decisions, api, architecture, running, plugin/README, work/protocol-contract v3.
 - Stand 2026-10-24: plugin 0.3.0 in VM `user@192.168.1.190` (%APPDATA%\steslicer\7.10\plugins),
   cfg `llm_base_url=http://192.168.1.137:8000/v1`, `sonnet`, OAuth token from `~/.claude-azamat`;
@@ -94,7 +98,9 @@ Updated: 2026-10-23, MSK
 - Stand run from chat window passed: ask mode cards (accept, reject with comment), auto mode, import,
   transform, slice, result card, open folder; 50 min / 3.6 g gear. Fixed on stand: composition
   init crash, stale_result from version counter, Claude trying native tools.
-- Plugin unit tests 155 pass on Python 3.14; Python 3.5 Docker run not repeated. Backend checks pass.
+- 2026-10-24: plugin tests 155 pass on 3.14; on python:3.5-slim (remote Docker, code via tar stdin)
+  one old failure: test_workspace uses mock.assert_called_once (3.6+). New tools checked by scratch
+  scripts only (7 test DOCX, XLSX, CSV, 7 PDFs vs pdftotext, closed STL); QML SkillPicker unverified.
 - Not verified on stand: question card, file-dialog attachment, external MCP, render_scene, chat
   switching, organizers' LLM. Merge branch on request. User asked to stop writing tests.
 - 2026-10-24: branch `feat/chat-markdown-drop` committed 8cf00a6..6c3682c (timeline fix, Markdown,
