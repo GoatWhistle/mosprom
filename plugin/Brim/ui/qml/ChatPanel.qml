@@ -21,7 +21,12 @@ Item {
         }
         return ""
     }
-    property bool dark: view.theme !== "light"
+    property bool wantDark: view.theme !== "light"
+    property bool dark: true
+    property string language: view.language
+    property int langEpoch: 0
+    onLanguageChanged: langEpoch++
+    onWantDarkChanged: sweep.run(wantDark ? "#12130f" : "#f6f5f2", function () { panel.dark = panel.wantDark })
     property var c: dark ? {
         bg: "#12130f", panel: "#191a15", selected: "#22231d", hover: "#1d1e18", userBg: "#3a2a1c", userText: "#fbeee3", line: "#3c3c38", text: "#e4dfda",
         muted: "#9b968f", accent: "#ff8a3d", accentHover: "#ffa565", accentText: "#ff8a3d",
@@ -34,6 +39,9 @@ Item {
 
     Theme {
         id: theme
+    }
+
+    BrimFonts {
     }
 
     property string seenConversation: "\u0000"
@@ -59,7 +67,10 @@ Item {
     property string syncedConversation: "\u0000"
 
     onViewChanged: syncEntries()
-    Component.onCompleted: syncEntries()
+    Component.onCompleted: {
+        dark = wantDark
+        syncEntries()
+    }
 
     function syncEntries() {
         var list = view.entries || []
@@ -151,6 +162,9 @@ Item {
         anchors.bottom: parent.bottom
         view: panel.view
         c: panel.c
+        dark: panel.dark
+        epoch: panel.langEpoch
+        reduced: theme.reducedMotion
         onChosen: brim.openChat(id)
         onCreate: brim.newChat()
         onCreateFromScene: brim.newChatFromScene()
@@ -183,6 +197,8 @@ Item {
             width: parent.width
             view: panel.view
             c: panel.c
+            epoch: panel.langEpoch
+            reduced: theme.reducedMotion
             compact: panel.narrow
             title: panel.currentTitle
             onMenu: panel.drawerOpen = true
@@ -196,24 +212,27 @@ Item {
 
         Column {
             anchors.centerIn: parent
-            spacing: 8
+            spacing: 14
             visible: view.entries.length === 0
-            Rectangle {
+            BrandMark {
                 anchors.horizontalCenter: parent.horizontalCenter
-                width: 44
-                height: 44
-                radius: 22
-                color: c.accent
-                opacity: 0.9
+                width: 64
+                height: 64
+                base: c.text
+                accent: c.accent
+                intro: true
+                reduced: theme.reducedMotion
             }
-            Text {
+            ScrambleText {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: view.t.empty_title
+                source: view.t.empty_title
+                epoch: panel.langEpoch
+                reduced: theme.reducedMotion
                 color: c.text
-                font.pixelSize: 18
-                font.bold: true
+                font.pixelSize: 20
+                font.weight: Font.Medium
             }
-            Text {
+            BrimText {
                 width: Math.min(420, main.width - 48)
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.Wrap
@@ -416,7 +435,7 @@ Item {
                 property var entry: ({})
                 width: parent ? parent.width : 300
                 height: errorText.height + 24
-                radius: 12
+                radius: 0
                 color: Qt.rgba(1, 0.45, 0.4, 0.08)
                 border.width: 1
                 border.color: c.danger
@@ -450,7 +469,7 @@ Item {
                 theme: theme
                 onStop: brim.stop()
             }
-            Text {
+            BrimText {
                 width: parent.width
                 visible: !!view.notice
                 wrapMode: Text.Wrap
@@ -466,7 +485,7 @@ Item {
                 width: parent.width
                 spacing: 6
                 visible: view.switch_prompt
-                Text {
+                BrimText {
                     width: parent.width
                     wrapMode: Text.Wrap
                     text: view.t.switch_busy_title + ". " + view.t.switch_busy_body
@@ -547,11 +566,11 @@ Item {
             anchors.fill: parent
             anchors.margins: 8
             visible: fileDrop.containsDrag
-            radius: 14
+            radius: 0
             color: Qt.rgba(1, 0.54, 0.24, 0.10)
             border.width: 2
             border.color: c.accent
-            Text {
+            BrimText {
                 anchors.centerIn: parent
                 width: parent.width - 48
                 horizontalAlignment: Text.AlignHCenter
@@ -581,6 +600,9 @@ Item {
             height: parent.height
             view: panel.view
             c: panel.c
+            dark: panel.dark
+            epoch: panel.langEpoch
+            reduced: theme.reducedMotion
             Behavior on x { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
             onChosen: {
                 panel.drawerOpen = false
@@ -612,5 +634,11 @@ Item {
                 panel.settingsOpen = false
         }
         onCheckRequested: brim.checkConnection()
+    }
+
+    LayerSweep {
+        id: sweep
+        anchors.fill: parent
+        reduced: theme.reducedMotion
     }
 }

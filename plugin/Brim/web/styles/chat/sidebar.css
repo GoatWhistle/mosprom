@@ -1,0 +1,189 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-block-size: 0;
+  min-inline-size: 0;
+  overflow: hidden;
+  padding: var(--space-16);
+  border-inline-end: var(--hairline) solid var(--border-subtle);
+  background-color: var(--surface-raised);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--control-height);
+  padding: var(--space-4) 0 var(--space-8);
+}
+
+.sidebar-brand .brand-lockup {
+  --lockup-mark: var(--space-40);
+}
+
+.sidebar-brand .brand-word,
+.sidebar-actions .button span,
+.chat-list {
+  transition: var(--transition-fade);
+}
+
+.sidebar-foot {
+  display: flex;
+  margin-block-start: auto;
+  padding-block-start: var(--space-8);
+}
+
+.sidebar-toggle {
+  margin-inline-start: var(--space-4);
+}
+
+@media (min-width: 48rem) {
+  .sidebar-actions .button {
+    justify-content: flex-start;
+    padding-inline: calc((var(--control-height) - var(--icon-sm)) / 2);
+    overflow: hidden;
+  }
+
+  .sidebar-actions .button .icon {
+    margin-inline-start: 0;
+  }
+
+  .app[data-sidebar="collapsed"] .sidebar-brand .brand-word,
+  .app[data-sidebar="collapsed"] .sidebar-actions .button span,
+  .app[data-sidebar="collapsed"] .chat-list {
+    opacity: 0;
+  }
+
+  .app[data-sidebar="collapsed"] .chat-list {
+    pointer-events: none;
+  }
+}
+
+.sidebar-actions {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.chat-list {
+  position: relative;
+  display: grid;
+  align-content: start;
+  min-block-size: 0;
+  margin-inline: calc(var(--space-8) * -1);
+  padding-inline: var(--space-8);
+  overflow-y: auto;
+}
+
+.chat-indicator {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: var(--space-8);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-selected);
+  pointer-events: none;
+}
+
+.chat-indicator[data-ready="true"] {
+  transition: var(--transition-slide);
+}
+
+.chat-group {
+  padding: var(--space-16) var(--space-8) var(--space-4);
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+  font-weight: var(--weight-medium);
+  line-height: var(--line-height-caption);
+}
+
+.chat-indicator + .chat-group {
+  padding-block-start: var(--space-8);
+}
+
+.chat-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--space-8);
+  row-gap: var(--space-4);
+  min-block-size: var(--control-height-compact);
+  padding: var(--space-8);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  text-align: start;
+  transition: var(--transition-control);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chat-row:hover {
+    background-color: var(--action-ghost-hover);
+    color: var(--text-primary);
+  }
+}
+
+.chat-row[aria-current="true"] {
+  color: var(--text-primary);
+}
+
+.chat-row-new {
+  animation: var(--motion-rise-in);
+}
+
+.chat-row-title {
+  overflow: hidden;
+  font-size: var(--font-size-label);
+  line-height: var(--line-height-label);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-row[aria-current="true"] .chat-row-title {
+  font-weight: var(--weight-medium);
+}
+
+.chat-row-time {
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  font-variant-numeric: var(--font-numeric);
+}
+
+.chat-row-status {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: var(--space-8);
+  min-inline-size: 0;
+  overflow: hidden;
+  color: var(--text-accent);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  white-space: nowrap;
+}
+
+.chat-list-empty {
+  padding: var(--space-8);
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+}
+
+@media (max-width: 47.99rem) {
+  .sidebar {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: var(--layer-dialog);
+    inline-size: min(var(--sidebar-width), calc(100vw - var(--space-48)));
+    box-shadow: var(--shadow-float);
+    transform: translateX(-101%);
+    transition: var(--transition-drawer);
+  }
+
+  .app[data-drawer="open"] .sidebar {
+    transform: none;
+  }
+
+  .sidebar-toggle {
+    display: none;
+  }
+}

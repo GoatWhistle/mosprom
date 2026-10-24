@@ -8,7 +8,7 @@ Rectangle {
     signal open(string path)
 
     height: column.height + 28
-    radius: 14
+    radius: 0
     color: c.panel
     border.width: 2
     border.color: c.accent
@@ -37,11 +37,14 @@ Rectangle {
         width: parent.width - 32
         spacing: 10
 
-        Text {
+        BrimText {
             text: root.t.result || ""
             color: root.c.accentText
-            font.bold: true
-            font.pixelSize: 13
+            font.family: "JetBrains Mono"
+            font.pixelSize: 11
+            font.weight: Font.DemiBold
+            font.capitalization: Font.AllUppercase
+            font.letterSpacing: 0.4
         }
         Row {
             spacing: 10
@@ -52,20 +55,20 @@ Rectangle {
                 ]
                 delegate: Rectangle {
                     width: (column.width - 10) / 2
-                    height: 56
-                    radius: 10
+                    height: 72
+                    radius: 0
                     color: root.c.bg
                     Column {
                         anchors.centerIn: parent
                         spacing: 2
-                        Text {
+                        BrimText {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: modelData.value
                             color: root.c.text
-                            font.pixelSize: 16
-                            font.bold: true
+                            font.family: "Handjet"
+                            font.pixelSize: 34
                         }
-                        Text {
+                        BrimText {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: modelData.label
                             color: root.c.muted
@@ -82,6 +85,7 @@ Rectangle {
                 visible: !!(root.result.files || {})[modelData]
                 text: (root.result.files || {})[modelData] || ""
                 textColor: root.c.muted
+                font.family: "JetBrains Mono"
                 font.pixelSize: 11
             }
         }

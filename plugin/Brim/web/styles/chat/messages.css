@@ -1,0 +1,147 @@
+.message {
+  display: flex;
+  min-inline-size: 0;
+}
+
+.entry-fresh {
+  animation: var(--motion-rise-in);
+}
+
+.message-user {
+  justify-content: flex-end;
+}
+
+.message-user .message-body {
+  max-inline-size: min(85%, var(--prose-measure));
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-user);
+  color: var(--text-on-user);
+}
+
+.message-agent {
+  gap: var(--space-12);
+}
+
+.message-agent .brand-mark {
+  --mark-size: var(--icon-md);
+
+  margin-block-start: var(--space-2);
+}
+
+.entries > :not(.message-user) + .message-agent .brand-mark {
+  visibility: hidden;
+}
+
+.entries > .tools,
+.entries > .tool,
+.entries > .tool-group,
+.entries > .card {
+  margin-inline-start: var(--agent-indent);
+}
+
+.message-body {
+  display: grid;
+  gap: var(--space-8);
+  min-inline-size: 0;
+  font-size: var(--font-size-body-sm);
+  line-height: var(--line-height-body-sm);
+}
+
+.message-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.message-user .chip {
+  background-color: var(--surface-raised);
+}
+
+.rich {
+  display: grid;
+  gap: var(--space-8);
+  max-inline-size: var(--prose-measure);
+  overflow-wrap: anywhere;
+}
+
+.rich * {
+  margin: 0;
+}
+
+.rich ul,
+.rich ol {
+  display: grid;
+  gap: var(--space-4);
+  padding-inline-start: var(--space-20);
+}
+
+.rich .rich-heading {
+  padding-block-start: var(--space-8);
+  font-size: var(--font-size-body);
+  font-weight: var(--weight-medium);
+  line-height: var(--line-height-body);
+}
+
+.rich code {
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-sunken);
+  font-size: var(--font-size-caption);
+}
+
+.rich pre {
+  padding: var(--space-12);
+  overflow-x: auto;
+  background-color: var(--surface-sunken);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-body-sm);
+}
+
+.rich pre code {
+  padding: 0;
+  background: transparent;
+}
+
+.rich table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-variant-numeric: var(--font-numeric);
+}
+
+.rich td,
+.rich th {
+  padding: var(--space-4) var(--space-8);
+  border: var(--hairline) solid var(--border-subtle);
+  text-align: start;
+}
+
+.rich th {
+  font-weight: var(--weight-medium);
+}
+
+.rich table:has(pre),
+.rich table:has(pre) tbody,
+.rich table:has(pre) tr,
+.rich td:has(> pre) {
+  display: block;
+  inline-size: 100%;
+  padding: 0;
+  border: 0;
+}
+
+.rich a {
+  color: var(--text-accent);
+  text-underline-offset: var(--space-2);
+}
+
+.rich blockquote {
+  padding-inline-start: var(--space-12);
+  border-inline-start: var(--hairline) solid var(--border-strong);
+  color: var(--text-secondary);
+}
+
+.rich hr {
+  border: 0;
+  border-block-start: var(--hairline) solid var(--border-subtle);
+}

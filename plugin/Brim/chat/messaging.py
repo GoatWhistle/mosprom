@@ -138,6 +138,12 @@ class ChatMessaging(object):
     def stop(self):
         self.stop_then(None)
 
+    def when_idle(self, proceed):
+        if self._turn is None:
+            proceed()
+        else:
+            self._after_turn.append(proceed)
+
     def stop_then(self, proceed):
         turn = self._turn
         if turn is None:

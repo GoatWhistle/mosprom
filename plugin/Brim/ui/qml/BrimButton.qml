@@ -7,6 +7,8 @@ Rectangle {
     property bool danger: false
     property bool enabledButton: true
     property var palette_: ({})
+    property int epoch: 0
+    property bool reduced: false
     signal clicked()
 
     implicitWidth: label.implicitWidth + 28
@@ -21,10 +23,12 @@ Rectangle {
 
     Behavior on color { ColorAnimation { duration: 120 } }
 
-    Text {
+    ScrambleText {
         id: label
         anchors.centerIn: parent
-        text: root.text
+        source: root.text
+        epoch: root.epoch
+        reduced: root.reduced
         font.pixelSize: 13
         font.bold: root.primary
         color: root.primary ? "#12130f" : (root.danger ? root.palette_.danger : root.palette_.text)

@@ -1,0 +1,79 @@
+.card {
+  display: grid;
+  align-content: start;
+  gap: var(--space-12);
+  min-inline-size: 0;
+  padding: var(--space-card);
+  border: var(--hairline) solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-raised);
+}
+
+.card-active {
+  border-color: var(--action-primary);
+  background-color: color-mix(in oklab, var(--surface-raised), var(--action-primary) 6%);
+}
+
+.card-danger {
+  border-color: var(--status-danger);
+  background-color: var(--surface-danger-wash);
+  color: var(--text-danger);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  margin-block: calc(var(--space-8) * -1);
+}
+
+.card-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--text-secondary);
+  font-size: var(--font-size-label);
+  font-weight: var(--weight-medium);
+  line-height: var(--line-height-label);
+}
+
+.card-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-12);
+}
+
+.card-alert .icon {
+  margin-block-start: var(--space-2);
+}
+
+.card-active .card-eyebrow {
+  color: var(--text-accent);
+}
+
+.card-title {
+  font-size: var(--font-size-body);
+  font-weight: var(--weight-medium);
+  line-height: var(--line-height-body);
+}
+
+.card-text {
+  font-size: var(--font-size-body-sm);
+  line-height: var(--line-height-body-sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.card-hint {
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}

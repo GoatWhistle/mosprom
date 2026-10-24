@@ -13,13 +13,13 @@ Rectangle {
     y: parent ? parent.height + 8 : 0
     width: Math.min(260, label.implicitWidth + 20)
     height: label.height + 14
-    radius: 8
+    radius: 2
     color: c.panel
     border.width: 1
     border.color: c.line
     Behavior on opacity { NumberAnimation { duration: 120 } }
 
-    Text {
+    BrimText {
         id: label
         x: 10
         y: 7

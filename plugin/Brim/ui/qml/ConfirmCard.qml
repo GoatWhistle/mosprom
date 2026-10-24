@@ -10,7 +10,7 @@ Rectangle {
 
     width: parent ? parent.width : 300
     height: column.height + 28
-    radius: 14
+    radius: 0
     color: c.panel
     border.width: active ? 2 : 1
     border.color: active ? c.accent : c.line
@@ -65,11 +65,14 @@ Rectangle {
         width: parent.width - 32
         spacing: 10
 
-        Text {
+        BrimText {
             text: (root.t.confirmation || "") + (root.entry.server && root.entry.server !== "brim" ? " · " + root.entry.server : "")
             color: root.c.accentText
-            font.bold: true
-            font.pixelSize: 13
+            font.family: "JetBrains Mono"
+            font.pixelSize: 11
+            font.weight: Font.DemiBold
+            font.capitalization: Font.AllUppercase
+            font.letterSpacing: 0.4
         }
         SelectableText {
             width: parent.width
@@ -80,7 +83,7 @@ Rectangle {
         Rectangle {
             width: parent.width
             height: rows.height
-            radius: 10
+            radius: 0
             color: root.c.bg
             clip: true
             Column {
@@ -97,7 +100,7 @@ Rectangle {
                             height: 1
                             color: root.c.line
                         }
-                        Text {
+                        BrimText {
                             id: opKind
                             x: 12
                             y: 8
@@ -120,7 +123,7 @@ Rectangle {
                                 textColor: root.c.text
                                 font.pixelSize: 13
                             }
-                            Text {
+                            BrimText {
                                 width: parent.width
                                 visible: !!modelData.risky
                                 wrapMode: Text.Wrap
@@ -150,7 +153,7 @@ Rectangle {
                 onClicked: root.decide("reject")
             }
         }
-        Text {
+        BrimText {
             visible: root.active
             width: parent.width
             wrapMode: Text.Wrap

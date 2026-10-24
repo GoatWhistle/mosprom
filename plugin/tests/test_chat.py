@@ -183,6 +183,15 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(settings.llm(), {"base_url": "http://h:8000/v1", "model": "sonnet", "api_key": "k"})
         self.assertEqual(settings.language(), "en")
 
+    def test_interface_applies_without_touching_llm(self):
+        settings = make_settings()
+        presenter, _, _ = build(settings=settings)
+        before = settings.llm()
+        presenter.set_interface("en", "light")
+        self.assertEqual((settings.language(), settings.theme()), ("en", "light"))
+        self.assertEqual(presenter.view()["theme"], "light")
+        self.assertEqual(settings.llm(), before)
+
     def test_check_reports_models(self):
         presenter, _, _ = build()
         presenter.check_connection()

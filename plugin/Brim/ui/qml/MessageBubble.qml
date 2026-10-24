@@ -16,7 +16,7 @@ Item {
     width: parent ? parent.width : 300
     height: bubble.height
 
-    Text {
+    BrimText {
         id: measure
         visible: false
         text: root.mine ? root.entry.text || "" : ""
@@ -29,7 +29,7 @@ Item {
         width: root.mine ? Math.min(root.maxBubble, Math.max(measure.implicitWidth, chips.visible ? 200 : 0) + 28)
                          : root.maxBubble
         height: content.height + 20
-        radius: 14
+        radius: 6
         color: root.mine ? root.c.userBg : "transparent"
         border.width: 0
 

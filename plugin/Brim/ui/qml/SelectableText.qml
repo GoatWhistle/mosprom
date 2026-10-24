@@ -2,6 +2,7 @@ import QtQuick 2.7
 
 TextEdit {
     id: field
+    font.family: "Onest"
     property color textColor: "#000000"
     readOnly: true
     selectByMouse: true

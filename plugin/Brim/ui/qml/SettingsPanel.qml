@@ -36,13 +36,13 @@ Rectangle {
             width: Math.min(parent.width, 560)
             spacing: 14
 
-            Text {
+            BrimText {
                 text: root.view.t.settings
                 color: root.c.text
                 font.pixelSize: 20
                 font.bold: true
             }
-            Text {
+            BrimText {
                 text: root.view.t.llm_section
                 color: root.c.text
                 font.pixelSize: 14
@@ -71,7 +71,7 @@ Rectangle {
                 label: root.view.t.llm_key
                 hint: root.view.settings.llm_key_saved ? root.view.t.llm_key_saved : ""
             }
-            Text {
+            BrimText {
                 text: root.view.t.interface_section
                 color: root.c.text
                 font.pixelSize: 14
@@ -79,7 +79,7 @@ Rectangle {
             }
             Row {
                 spacing: 8
-                Text {
+                BrimText {
                     text: root.view.t.language
                     color: root.c.muted
                     font.pixelSize: 12
@@ -100,7 +100,7 @@ Rectangle {
             }
             Row {
                 spacing: 8
-                Text {
+                BrimText {
                     text: root.view.t.theme
                     color: root.c.muted
                     font.pixelSize: 12
@@ -119,7 +119,7 @@ Rectangle {
                     onClicked: root.theme = "light"
                 }
             }
-            Text {
+            BrimText {
                 width: parent.width
                 visible: !!root.view.settings_notice
                 wrapMode: Text.Wrap
@@ -151,13 +151,13 @@ Rectangle {
                 height: 1
                 color: root.c.line
             }
-            Text {
+            BrimText {
                 text: root.view.t.servers
                 color: root.c.text
                 font.pixelSize: 14
                 font.bold: true
             }
-            Text {
+            BrimText {
                 width: parent.width
                 wrapMode: Text.Wrap
                 text: root.view.t.servers_hint
@@ -169,7 +169,7 @@ Rectangle {
                 delegate: Rectangle {
                     width: column.width
                     height: serverColumn.height + 20
-                    radius: 10
+                    radius: 0
                     color: root.c.panel
                     border.width: 1
                     border.color: root.c.line
@@ -179,7 +179,7 @@ Rectangle {
                         y: 10
                         width: parent.width - 24
                         spacing: 6
-                        Text {
+                        BrimText {
                             width: parent.width
                             elide: Text.ElideRight
                             text: modelData.name + (modelData.pinned ? " · " + root.view.t.server_builtin : "")
@@ -187,7 +187,7 @@ Rectangle {
                             font.pixelSize: 13
                             font.bold: true
                         }
-                        Text {
+                        BrimText {
                             width: parent.width
                             visible: modelData.url !== ""
                             elide: Text.ElideMiddle
@@ -195,7 +195,7 @@ Rectangle {
                             color: root.c.muted
                             font.pixelSize: 11
                         }
-                        Text {
+                        BrimText {
                             width: parent.width
                             wrapMode: Text.Wrap
                             text: root.serverState(modelData)
@@ -251,7 +251,7 @@ Rectangle {
                     }
                 }
             }
-            Text {
+            BrimText {
                 visible: root.view.mcp_port !== null && root.view.mcp_port !== undefined
                 text: root.view.t.port_note + " " + root.view.mcp_port
                 color: root.c.muted

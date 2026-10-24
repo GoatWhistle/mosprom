@@ -162,6 +162,10 @@ class ChatController(QObject):
     def applySettings(self, llm_url, model, key, language, theme):
         return self._presenter.apply_settings(llm_url, model, key, language, theme)
 
+    @pyqtSlot(str, str)
+    def setInterface(self, language, theme):
+        self._presenter.set_interface(language, theme)
+
     @pyqtSlot(str, str, str, result=bool)
     def addServer(self, name, url, header):
         return self._presenter.add_server(name, url, header)
