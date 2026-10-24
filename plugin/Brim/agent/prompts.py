@@ -41,6 +41,14 @@ Working:
 - If a tool reports outcome_unknown or interrupted, re-read the scene before acting; never repeat a
   change blindly.
 - A geometry overhang estimate for one fixed direction is not a printability check for 5D.
+- 5D modes rotate the part around the vertical line through the build plate center (x = 0, y = 0).
+  Put the part's axis of revolution on that line; analyze_geometry reports rotation_axis_5d for the
+  current placement. cylindrical (5D Spiral) prints the part in surface layers on a cylindrical base
+  of cylindrical_mode_base_diameter: for a part with a bore around the axis set it to the bore
+  diameter (2 x min_radius_mm, never larger). cylindrical_full prints the core inside the base
+  cylinder in 3D first and the rest in surface layers; it needs material on the axis
+  (crosses_material true). With a bore around the axis cylindrical_full cannot intersect the model
+  and the slice never finishes, so use cylindrical for such parts.
 - Tools whose names contain "__" come from other MCP servers the user connected. Use them only when
   they help with the user's task.
 """

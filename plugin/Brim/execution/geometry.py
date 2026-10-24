@@ -72,6 +72,39 @@ def _topology(welded):
     return boundary, non_manifold, inconsistent
 
 
+def _cross2(a, b, c):
+    return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+
+
+def _segment_radius(a, b):
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    length = dx * dx + dy * dy
+    t = 0.0 if length == 0 else max(0.0, min(1.0, -(a[0] * dx + a[1] * dy) / length))
+    return math.hypot(a[0] + t * dx, a[1] + t * dy)
+
+
+def _rotation_axis(vertices, triangles):
+    crossings = 0
+    min_radius = None
+    max_radius = 0.0
+    origin = (0.0, 0.0)
+    for a, b, c in triangles:
+        p, q, r = vertices[a], vertices[b], vertices[c]
+        signs = (_cross2(p, q, origin), _cross2(q, r, origin), _cross2(r, p, origin))
+        if (all(item >= 0 for item in signs) or all(item <= 0 for item in signs)) and any(signs):
+            crossings += 1
+        for start, end in ((p, q), (q, r), (r, p)):
+            radius = _segment_radius(start, end)
+            min_radius = radius if min_radius is None else min(min_radius, radius)
+        max_radius = max(max_radius, max(math.hypot(point[0], point[1]) for point in (p, q, r)))
+    return {
+        "axis": "vertical line through the build plate center (x = 0, y = 0); the 5D rotation axis",
+        "crosses_material": crossings > 0,
+        "min_radius_mm": 0.0 if crossings else min_radius,
+        "max_radius_mm": max_radius,
+    }
+
+
 def analyze(mesh, direction=None, support_angle_deg=DEFAULT_SUPPORT_ANGLE_DEG):
     vertices = mesh["vertices"]
     triangles = mesh["triangles"]
@@ -137,4 +170,5 @@ def analyze(mesh, direction=None, support_angle_deg=DEFAULT_SUPPORT_ANGLE_DEG):
         "overhang_area_mm2": overhang,
         "overhang_area_fraction": overhang / area if area > 0 else 0.0,
         "bed_contact_area_mm2": contact,
+        "rotation_axis_5d": _rotation_axis(vertices, triangles) if triangles else None,
     }
