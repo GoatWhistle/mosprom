@@ -72,6 +72,12 @@ Updated: 2026-10-24, MSK
 
 ## Current state
 
+- Worktree `../mosprom-hack-spa`, branch `feat/browser-spa` from main b7fdbc0 (2026-10-24): browser SPA per
+  website §3.2 next to the QML panel. `plugin/Brim/browser/` (loopback HTTP, token, long-poll view,
+  whitelisted actions on Qt thread, upload/download) and `plugin/Brim/web/` (vanilla ES modules); menu
+  «Открыть в браузере»; plugin 0.5.0. Verified only on Linux with real presenter on fakes + headless
+  Chromium; not run in STE Slicer. Not merged, not pushed. Rationale: docs/design-decisions.md.
+
 - Branch `fix/jury-run-findings` from main 4c085cd, not pushed: plugin 0.4.1 with run fixes (overrides reset
   on empty chat, extruder-ordered slice report, `set_object_extruder`, 5D rotation-axis data and rules,
   chat.json replace retry, wait for STE error check before slicing, engine_log and hung-slice stop,
