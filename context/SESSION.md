@@ -67,6 +67,8 @@ Updated: 2026-10-24, MSK
 - 2026-10-24: «твоя задача запустить новый бэк из main ветки и там новые изменения вроде уже лежат на вм,
   но ты все равно перевроверь ты должен создать 7 чатов и через brim всё прогнать и сохранить, также сам
   перепроверяй качество, все найденные баги фиксируй в md»
+- 2026-10-24: «надо переделать 2 чата зановго и через brim всё прогнать и сохранить, также сам перепроверяй
+  качество, все найденные баги фиксируй в md»; gear STL «скачай заного из ТЗ заказчика … пусть папка соотвествует».
 
 ## Current state
 
@@ -78,12 +80,13 @@ Updated: 2026-10-24, MSK
   session scratchpad; plugin 0.4.1 deployed (0.4.0 backup %TEMP%\Brim-0.4.0-backup). Task BrimSlicer now
   starts in the STE folder (OpenSCAD for 5D); 5D licence activated 2026-10-24 (10 days). Task BrimType runs
   %TEMP%\steps.ps1 (click/text/key/sleep lines from brim-steps.txt).
-- Seven models run and exported to stand `Desktop\results\<model>\`; copy `~/mosprom-results/2026-10-24/`
-  (526 MB). Older history: work/session-log.md.
+- Seven models run and exported to stand `Desktop\results\<model>\`; copy `~/mosprom-results/2026-10-24/`.
+  Gear (now `results\Шестерня`) and figurine rerun clean on branch `fix/rerun-gear-figurine` (B20 prompt rule,
+  deployed to stand as single file); old exports in stand `Desktop\results-old-2026-10-24`, local `_old/`. Older history: work/session-log.md.
 
 ## Verification and next actions
 
 - Plugin unit tests 155 passed, 2 skipped (3.14) after each fix; fixes verified on the stand as listed in
   the bugs file. Python 3.5 run not repeated. No new tests (user instruction).
-- Open: B6, B14–B19 in the bugs file; figurine and gear chats contain failed/interrupted steps; ZIP size
-  limit unknown (Wilo G-code 201 MB). Merge/push of the branch awaits the user.
+- Open: B6, B14–B19 in the bugs file; ZIP size limit unknown (figurine G-code 298 MB, Wilo 201 MB).
+  Merge/push of `fix/rerun-gear-figurine` awaits the user.

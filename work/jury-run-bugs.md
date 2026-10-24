@@ -20,10 +20,10 @@ These are slicer outputs; nothing was printed.
 
 | Model | Chat | Mode | Material | Key choices | Time, mass | Chat quality |
 |---|---|---|---|---|---|---|
-| 1 Шестерня | `2b6dd9c9…` | classic | Fiberpart PC G20 | flat, 100 %, 4 walls, brim | 1 h 31 min, 4.9 g | One STE restart mid-chat (B17); Lewis check shows the part fails at 25 N·m, user chose «max strength, state the risk» |
+| 1 Шестерня | `7540b6a2…` (rerun) | classic | Fiberpart PC G20 | flat, 100 %, 4 walls, brim | 1 h 30 min, 4.9 g | Clean rerun; Lewis check shows the part fails at 25 N·m, user chose «max strength, state the risk»; one confirmation card (infill 20 → 100 %) |
 | 2 Колесо | `2402e687…` | cylindrical | Enduse TPU D70 | base Ø15.98 = bore | 14.3 h, 58.3 g | Clean |
 | 3 Пыльник | `c77f9c40…` | classic | Sealant TPU A95 | big flange down, no supports, 5 walls | 33.6 h, 83.2 g | Clean (third attempt, B11) |
-| 4 Фигурка | `9b8b8f5f…` | classic | Fiberpart ABSPA G8 | tree supports, 0.1 mm | 64.2 h, 276 g | Two failed `cylindrical_full` slices (OpenSCAD on 565k triangles), then 3D by user choice |
+| 4 Фигурка | `aa325df4…` (rerun) | classic | Fiberpart ABSPA G8 | tree supports, 0.1 mm, 3 walls, gyroid 15 %, brim | 74.0 h, 192.8 g | Clean rerun after B20; flags «no visible layers» as unreachable without post-processing |
 | 5 Wilo | `c28264ee…` | cylindrical | Fiberpart PP G30 | base Ø7.9 < bore 7.97 | 41.6 h, 190 g | Clean; flags keyway risk |
 | 6 Крыльчатка | `932d3cb2…` | classic | Fiberpart PA12 G12 | flat, supports from plate | 12.7 h, 69 g | Clean |
 | 7 Ось Krones | `978b8716…` | cylindrical_full | Enduse PA6 | solid on axis, 100 %, 6 walls | 6.1 h, 16.2 g | Clean; torsion check shows neck margin 0.51 |
@@ -52,9 +52,33 @@ mode in its folder name. Reference 3MF files are with the jury, so closeness to 
 | B17 | High | open | After 5D slices the CuraEngine process is gone; the next classic slice waits forever at 0 % |
 | B18 | Low | open | Agent said it re-checked the scene after a restart without calling a tool (corrected itself in the next reply) |
 | B19 | Low | open | Export opens Explorer with a delay; it steals focus from the slicer |
+| B20 | High | fixed | Agent chose `cylindrical_full` for the figurine (no axis of revolution, 565k triangles); both 5D slices hung |
 | N1 | Note | open | One model turn through the backend takes 1–3 min; a model run takes 15–40 min |
 | N2 | Note | closed | `cylindrical_full` G-code has two headers (5D part and 3D core); not a bug |
-| N3 | Note | open | Wilo G-code is 201 MB, results folder 528 MB; ZIP size limit is unknown (open question Q2) |
+| N3 | Note | open | Wilo G-code is 201 MB, figurine rerun 298 MB; ZIP size limit is unknown (open question Q2) |
+
+## Rerun of the gear and the figurine, 2026-10-24
+
+The first gear and figurine chats contained failed or interrupted steps (B17, B20). Both were rerun
+in new chats on plugin 0.4.1 plus the B20 prompt rule, STE restarted before the gear chat. The gear
+STL was downloaded again from the organizers' archive (SHA-256 of the archive and of `Шестерня.stl`
+match `brief/sources/test-models-manifest.json`) under its original name, so the export folder is
+`results\Шестерня` instead of `results\gear`. Old exports moved to `Desktop\results-old-2026-10-24`
+on the stand and to `_old/` in the local copy.
+Checked offline: G-code header `classic`, only `T0`, nozzle 290 °C (PC G20) / 280 °C (ABSPA G8),
+3MF ZIP CRC ok, 3MF `printing_mode = classic`; chat exports contain no failed tool calls.
+Quality notes: gear choices match the first run; the figurine has fewer walls (3 vs 4) and
+lower mass (193 g vs 276 g) than the first run, and 74 h per piece (about 1100 h for 15) is listed
+as the main risk with the option of several copies per plate.
+
+## B20. 5D chosen for the figurine
+
+Observed in the first figurine chat: the agent chose `cylindrical_full`; OpenSCAD could not
+intersect the 565k-triangle mesh, two slices ran into the timeout, and the engine stayed broken
+for the following classic slice until STE was restarted.
+Fix: prompt rule — 5D only for parts of revolution or when the specification needs layers around
+an axis; with `triangle_count` above 200 000 no 5D slicing (observed: 73k sliced, 565k did not).
+Verified on the stand: the rerun agent chose classic and cited the triangle count.
 
 ## B1. New chat inherits setting overrides
 
