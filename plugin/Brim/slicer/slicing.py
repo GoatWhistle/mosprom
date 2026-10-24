@@ -13,6 +13,16 @@ ESTIMATE_RETRIES = 10
 ESTIMATE_PAUSE = 0.5
 
 
+def _by_extruder(values, positions):
+    values = [round(float(item), 2) for item in values]
+    if not positions or len(positions) != len(values) or sorted(positions) != list(range(len(values))):
+        return values
+    ordered = [0.0] * len(values)
+    for position, value in zip(positions, values):
+        ordered[position] = value
+    return ordered
+
+
 class SlicingService(object):
     def __init__(self, host, main, state):
         self._h = host
@@ -95,11 +105,22 @@ class SlicingService(object):
         seconds = None
         if duration is not None and duration.valid:
             seconds = int(duration.days * 86400 + duration.hours * 3600 + duration.minutes * 60 + duration.seconds)
+        positions = self._estimate_positions(info)
         return {
             "print_time_seconds": seconds,
-            "material_weight_g": [round(float(item), 2) for item in info.materialWeights],
-            "material_length_m": [round(float(item), 2) for item in info.materialLengths],
+            "material_weight_g": _by_extruder(info.materialWeights, positions),
+            "material_length_m": _by_extruder(info.materialLengths, positions),
         }
+
+    def _estimate_positions(self, info):
+        stack = self._h.global_stack()
+        if stack is None:
+            return None
+        amounts = getattr(info, "_material_amounts", None)
+        positions = [int(key) for key in stack.extruders]
+        if amounts is not None:
+            positions = [item for item in positions if item < len(amounts)]
+        return positions
 
     def export(self, directory, check=None):
         gcode_path = os.path.join(directory, "result.gcode")
