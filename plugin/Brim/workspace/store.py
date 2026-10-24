@@ -9,6 +9,8 @@ INDEX_NAME = "index.json"
 CHAT_NAME = "chat.json"
 SCENE_NAME = "scene.3mf"
 TITLE_LIMIT = 60
+REPLACE_ATTEMPTS = 10
+REPLACE_PAUSE = 0.1
 
 
 def _now():
@@ -27,11 +29,22 @@ def _title(messages):
     return ""
 
 
+def _replace(source, target):
+    for attempt in range(REPLACE_ATTEMPTS):
+        try:
+            os.replace(source, target)
+            return
+        except PermissionError:
+            if attempt == REPLACE_ATTEMPTS - 1:
+                raise
+            time.sleep(REPLACE_PAUSE)
+
+
 def _write_json(path, data):
     temporary = path + ".part"
     with open(temporary, "w", encoding="utf-8") as handle:
         json.dump(data, handle, ensure_ascii=False, sort_keys=True)
-    os.replace(temporary, path)
+    _replace(temporary, path)
 
 
 def _read_json(path):
@@ -146,7 +159,7 @@ class WorkspaceStore(object):
     def commit(self, conversation_id):
         with self._lock:
             data = self._read()
-            os.replace(self.temp_path(conversation_id), self.path_for(conversation_id))
+            _replace(self.temp_path(conversation_id), self.path_for(conversation_id))
             data["items"][conversation_id] = {"state": "saved", "saved_at": int(time.time())}
             _write_json(self._index_path(), data)
 
