@@ -12,7 +12,6 @@
 
 <p align="center">
   <!-- readme:buttons -->
-  <a href="https://{{DOMAIN}}"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/cta-live.dark.png"><img src="docs/readme/cta-live.light.png" alt="Открыть стенд" width="172" height="44"></picture></a>
   <a href="#запуск"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/cta-run.dark.png"><img src="docs/readme/cta-run.light.png" alt="Запустить локально" width="212" height="44"></picture></a>
   <a href="docs/README.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/cta-docs.dark.png"><img src="docs/readme/cta-docs.light.png" alt="Документация" width="173" height="44"></picture></a>
   <!-- /readme:buttons -->
@@ -20,24 +19,11 @@
 
 <p align="center">
   <!-- readme:status -->
-  <a href="#результаты"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-status-1.dark.png"><img src="docs/readme/badge-status-1.light.png" alt="{{M1}}: {{значение на n}}" width="180" height="28"></picture></a>
-  <a href="#запуск"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-status-2.dark.png"><img src="docs/readme/badge-status-2.light.png" alt="офлайн: без ключей" width="159" height="28"></picture></a>
-  <br>
-  <a href="docs/running.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-status-3.dark.png"><img src="docs/readme/badge-status-3.light.png" alt="тесты: {{N пройдено}}" width="167" height="28"></picture></a>
   <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-status-4.dark.png"><img src="docs/readme/badge-status-4.light.png" alt="интерфейс: RU и EN" width="155" height="28"></picture>
   <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-status-5.dark.png"><img src="docs/readme/badge-status-5.light.png" alt="лицензия: MIT" width="121" height="28"></picture></a>
   <!-- /readme:status -->
 </p>
 
-<p align="center">
-  <!-- readme:stack -->
-  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-2.dark.png"><img src="docs/readme/badge-stack-2.light.png" alt="API: {{FastAPI}}" width="122" height="28"></picture>
-  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-3.dark.png"><img src="docs/readme/badge-stack-3.light.png" alt="хранилище: файлы чатов в плагине" width="212" height="28"></picture>
-  <br>
-  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-4.dark.png"><img src="docs/readme/badge-stack-4.light.png" alt="модель: {{название, локально}}" width="225" height="28"></picture>
-  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-5.dark.png"><img src="docs/readme/badge-stack-5.light.png" alt="запуск: Docker Compose" width="181" height="28"></picture>
-  <!-- /readme:stack -->
-</p>
 
 <p align="center">
   <!-- readme:nav -->
@@ -50,109 +36,80 @@
   <a href="#устройство"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-nav-6.dark.png"><img src="docs/readme/badge-nav-6.light.png" alt="Устройство" width="95" height="26"></picture></a>
   <a href="#ограничения"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-nav-7.dark.png"><img src="docs/readme/badge-nav-7.light.png" alt="Ограничения" width="108" height="26"></picture></a>
   <!-- /readme:nav -->
-</p>
 
 <p align="center">
-  <img src="docs/images/hero.png" alt="{{Что на экране: какой экран, какие данные, какое состояние; так, чтобы понял человек, не видящий картинки}}" width="880">
+  <img src="docs/images/hero.png" alt="Чат Brim в STE Slicer: агент посчитал изгиб зуба шестерни по Льюису и показал, что зуб не выдержит момент из ТЗ" width="560">
   <br>
-  <sub>{{Реальный прогон на демо-данных: что ввели, что система сделала, что видно в кадре.}}</sub>
+  <sub>Прогон 2026-10-24 на стенде STE Slicer 7.10.12: шестерня из набора организаторов, расчёт до печати.</sub>
 </p>
 
-> **{{Главное правило продукта одной фразой.}}** {{Чем оно закреплено в коде и что гарантирует
-> пользователю. Правило сформулировано так, чтобы его нарушение можно было поймать.}}
+> **Brim меняет только то, что можно объяснить строкой ТЗ, и показывает каждое действие.** Каждый вызов
+> инструмента виден в чате с аргументами; крупные изменения ждут подтверждения пользователя.
 
 ## Зачем это
 
-{{Как задачу решают сейчас и где это ломается: конкретный случай, одно число с источником в
-[доказательствах](docs/evidence.md).}}
+В STE Slicer 661 параметр. Начинающий технолог знает свою деталь — нагрузку, температуру, среду, — но
+не знает, какие из этих параметров ей важны, и не умеет выбирать между 3D и двумя 5D-режимами
+Stereotech. Ошибку он видит только после печати.
 
-{{Что меняет продукт, на том же сквозном примере: что вводит пользователь, что делает система, что он
-получает. Три предложения, ключевое жирным.}}
+Brim — чат внутри слайсера. Пользователь прикладывает STL, фото и ТЗ детали и пишет задачу словами.
+Агент читает ТЗ, подбирает материал, проверяет прочность расчётом, выбирает режим и ориентацию,
+нарезает модель и объясняет каждое решение. На выходе — проект 3MF, G-code и переписка как отчёт.
 
-Название — {{происхождение одной фразой: какую механику оно называет}}.
+Название — кайма (brim) вокруг детали на первом слое: она удерживает деталь, пока идёт печать.
+Аудитория и аналоги — в [аналитике](docs/analytics.md).
 
 ## Как это работает
 
 ```mermaid
-%%{init: {"theme":"base","themeVariables":{"primaryColor":"#ffffff","primaryTextColor":"#12130f","primaryBorderColor":"#ff8a3d","secondaryColor":"#ecebe7","tertiaryColor":"#f6f5f2","lineColor":"#615c56","textColor":"#12130f","noteBkgColor":"#ecebe7","noteTextColor":"#4d4944","actorBkg":"#ffffff","actorBorder":"#ff8a3d","fontFamily":"Onest Variable"}}}%%
 flowchart LR
-    A["{{Вход}}<br/>{{что приходит}}"] --> B["{{Механизм 1}}"]
-    B --> C["{{Механизм 2}}"]
-    C --> D{"{{Решение}}"}
-    D -- "{{условие}}" --> E["{{Результат}}<br/>{{что видит пользователь}}"]
-    D -- "{{другое условие}}" --> F["{{Отказ или вопрос}}<br/>{{с причиной}}"]
+    A["STL, фото, ТЗ<br/>и задача словами"] --> B["Агент в плагине<br/>OpenAI-совместимый API"]
+    B --> C["MCP-инструменты<br/>сцена, настройки, расчёты"]
+    C --> D{"Риск или<br/>нехватка данных?"}
+    D -- "нет" --> E["Нарезка STE Slicer<br/>3MF, G-code, объяснение"]
+    D -- "да" --> F["Вопрос пользователю<br/>или карточка подтверждения"]
 ```
 
-<table>
-<tr>
-<td valign="top" width="33%">
+**Четыре скилла.** «Новичок» объясняет каждый параметр, «Инженер» переводит ТЗ в таблицу требований с
+цитатами, «Материал» подбирает пластик из 16 семейств, «Дефекты» разбирает фото напечатанной детали.
+Агент выбирает скилл сам, пользователь может закрепить нужный.
 
-**{{1. Механизм как утверждение}}**
+**Расчёты до печати.** Изгиб зуба по Льюису, кручение вала, напряжения во вращающемся диске, масса,
+тепловое расширение, компенсация отверстий — формула видна в чате.
 
-{{Как устроен и почему без него не работает, два-три предложения.}}
-
-<sub>{{Чем проверено: тест, метрика или шаг маршрута, со ссылкой}}</sub>
-
-</td>
-<td valign="top" width="33%">
-
-**{{2. Механизм как утверждение}}**
-
-{{Как устроен и почему важен.}}
-
-<sub>{{Чем проверено}}</sub>
-
-</td>
-<td valign="top" width="33%">
-
-**{{3. Механизм как утверждение}}**
-
-{{Как устроен и почему важен.}}
-
-<sub>{{Чем проверено}}</sub>
-
-</td>
-</tr>
-</table>
+**Агент внутри плагина.** OpenAI-совместимый клиент, MCP-хост и MCP-сервер на Python 3.5 в процессе
+слайсера. Нужны только URL, ключ и модель; сервер и база не нужны.
 
 ## Попробовать за две минуты
 
-На [стенде](https://{{DOMAIN}}) или после [запуска](#запуск). Демо-учётка: `{{login}}` / `{{password}}`.
+После [установки](#запуск):
 
-| | Что сделать | Что увидите |
+| # | Действие | Что видно |
 |---|---|---|
-| 1 | {{Адрес и действие}} | {{Наблюдаемый результат: текст, число, состояние}} |
-| 2 | {{Действие, на котором видно главное правило}} | {{Результат}} |
-| 3 | {{Действие, которое система не даёт сделать}} | {{Отказ и его причина на экране}} |
-
-Полный маршрут, что доказывает каждый шаг и где ответ на каждый критерий оценки — в
-[маршруте для жюри](docs/for-jury.md). Каждое требование ТЗ по пунктам — в
-[карте требований](docs/requirements-map.md).
+| 1 | «Brim» → «Открыть чат», приложить STL и ТЗ, написать задачу | Агент читает ТЗ и строит таблицу требований |
+| 2 | Дождаться выбора материала и режима | Каждый вызов инструмента — строка с аргументами |
+| 3 | Ответить на вопрос агента или подтвердить крупное изменение | Без ответа проект не меняется |
+| 4 | Дождаться нарезки | Время печати, расход, кнопки G-code и 3MF |
 
 ## Результаты
 
-{{Метод одной фразой: на каких данных, сколько объектов, откуда они.}} План с метриками и порогами
-зафиксирован до первого прогона — [план валидации](docs/validation-plan.md).
+Семь моделей организаторов прогнаны через чат 2026-10-24 на стенде (Windows 10, STE Slicer 7.10.12,
+профиль Stereotech Hybrid 530 V5.2.4). Подробности и найденные ошибки — в
+[аналитике](docs/analytics.md).
 
-| Метрика | {{PRODUCT}} | База | Порог |
+| Модель | Режим | Материал | Время печати, масса |
 |---|---|---|---|
-| {{M1. Метрика}} | **{{значение}}** | {{значение}}, {{что за база}} | {{≥ X}} |
-| {{M2. Метрика}} | **{{значение}}** | {{значение}}, {{что за база}} | {{≤ X}} |
-| {{M3. Цена решения}} | **{{значение}}** | {{значение}} | {{≤ X}} |
+| Шестерня | classic | Fiberpart PC G20 | 1 ч 30 мин, 4,9 г |
+| Колесо конвейера | cylindrical | Enduse TPU D70 | 14,3 ч, 58,3 г |
+| Пыльник ШРУСа | classic | Sealant TPU A95 | 33,6 ч, 83,2 г |
+| Фигурка | classic | Fiberpart ABSPA G8 | 74,0 ч, 192,8 г |
+| Колесо насоса Wilo | cylindrical | Fiberpart PP G30 | 41,6 ч, 190 г |
+| Крыльчатка | classic | Fiberpart PA12 G12 | 12,7 ч, 69 г |
+| Ось Krones | cylindrical_full | Enduse PA6 | 6,1 ч, 16,2 г |
 
-**Где проигрываем.** {{Метрика, по которой база лучше или порог не взят, с числом и причиной.}}
-
-<details>
-<summary><b>Пересчитать все числа раздела</b></summary>
-<br>
-
-```bash
-{{команда, которая пересобирает отчёт}}
-```
-
-{{Время прогона и машина. Без сети и платных ключей; отчёт пишется в `{{путь}}`.}}
-
-</details>
+У шести моделей режим указан в имени папки; агент выбрал тот же у всех шести. G-code проверен
+вручную: режим в заголовке совпадает с 3MF, температура сопла — с материалом, у 5D есть оси A/C.
+Ничего не печаталось; близость к эталонным 3MF жюри неизвестна.
 
 ## Запуск
 
@@ -189,28 +146,25 @@ cd backend && uv sync && uv run uvicorn app.main:create_app --factory --reload
 
 ## Устройство
 
-{{Два предложения: из каких частей собран стенд и в какой точке принимается ключевое решение
-продукта.}}
+Плагин — это и интерфейс, и агент: решения о печати принимает модель, плагин исполняет их через
+MCP-инструменты в главном потоке Qt.
 
 | Документ | Что внутри |
 |---|---|
-| [Архитектура](docs/architecture.md) | Роли, части стенда, путь данных основного сценария, что заменяется без правки кода |
-| [API](docs/api.md) | Вход и права, формат ошибок, методы; OpenAPI генерируется из кода |
-| [Зависимости](docs/dependencies.md) | Компоненты, библиотеки и модели с версиями и лицензиями |
-| [Глоссарий](docs/glossary.md) | Термины предметной области, одно понятие — одно слово |
-| [Оглавление](docs/README.md) | Все страницы и где ответ на каждый пункт ТЗ о документации |
+| [Архитектура](docs/architecture.md) | Части плагина и путь запроса |
+| [API](docs/api.md) | MCP-инструменты и прокси-эндпоинт |
+| [Зависимости](docs/dependencies.md) | Компоненты и библиотеки с версиями и лицензиями |
+| [Аналитика](docs/analytics.md) | Аудитория, аналоги, ценность |
+| [Оглавление](docs/README.md) | Все страницы |
 
 ## Ограничения
 
-- **{{Самое сильное ограничение как утверждение.}}** {{Что именно не доказано или не работает, с числом,
-  и что смягчает.}}
-- **{{На каких данных всё проверено.}}** {{Синтетика или реальные данные, сколько, чего они не
-  покрывают.}}
-- **{{Что упрощено.}}** {{Границы логики, синтетические данные и детерминированный запасной вариант, если они используются.}}
+- **Прогоны шли через Claude по подписке.** LLM организаторов (`qwen3.8-flash`) проверена только
+  одиночными запросами с картинкой и tools; время и качество на ней могут отличаться.
+- **Сравнение с ручной настройкой не замерено.** Скорость «в N раз» не заявляется.
+- **Разбор дефектов по фото не проверен на реальных фото брака.**
+- **Один прогон модели занимает 9–40 минут**, большая часть — ходы модели и нарезка.
 
-Все ограничения, со статусом и тем, что закрыло бы каждое, — в [ограничениях](docs/limitations.md).
-
-<!-- scrub:start -->
 ## Для команды
 
 Этот блок вырезается при сдаче вместе с маркерами `scrub:start` и `scrub:end`.
@@ -221,11 +175,10 @@ cd backend && uv sync && uv run uvicorn app.main:create_app --factory --reload
 2. Материалы организаторов — в `brief/sources/`, затем скил `hack-kickoff`: `brief/` и `context/`, шапка
    `AGENTS.md`, тезис и P0-сценарий.
 3. Название и знак — скилы `naming` и `brand-identity`.
-4. Визуал README использует сохранённые токены презентации:
-   `cd presentation && npm run readme` пересобирает `docs/readme/*.png` из `presentation/readme/assets.html`
-   и красит mermaid-диаграммы цветами продукта. Бейджи shields.io не используются.
+4. Картинки README в `docs/readme/` — готовые PNG; генератор удалён вместе с движком презентаций.
+   Текст слайдов защиты — `presentation/slides/slides.md`.
 5. Этот README ведёт скил `readme`: рабочая версия во время хакатона, продуктовая к сдаче.
-   Маршрут жюри и карта требований — `jury-route`, документация — `docs-writing`, сдача — `submission`.
+   Документация — `docs-writing`, сдача — `submission`.
 
 Международный хакатон: README, `docs/`, ассеты и слайды по-английски, заголовки и якоря переводятся
 вместе.
@@ -239,5 +192,5 @@ cd backend && uv sync && uv run uvicorn app.main:create_app --factory --reload
 <p align="center">
   <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/mark.dark.png"><img src="docs/readme/mark.light.png" alt="" width="32" height="32"></picture>
   <br>
-  <sub>Команда {{TEAM}}, {{HACKATHON}}, {{YEAR}}.</sub>
+  <sub>Команда Brim, хакатон «Открой Моспром», 2026.</sub>
 </p>
