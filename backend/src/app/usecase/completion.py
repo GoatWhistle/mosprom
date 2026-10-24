@@ -19,6 +19,7 @@ from app.domain.jsonvalue import JsonObject, JsonValue
 from app.usecase.interface.llm import ChatModel
 
 CLAUDE_AGENT = "claude-agent"
+MODEL = "opus"
 IMAGE_TYPES = frozenset({"image/jpeg", "image/png", "image/gif", "image/webp"})
 
 
@@ -27,13 +28,10 @@ class CompletionService:
         self._model = model
 
     async def complete(self, token: str, body: JsonObject) -> JsonObject:
-        model = body.get("model")
-        if not isinstance(model, str) or not model:
-            raise InvalidRequest("model is required")
         request = parse_request(body)
-        connection = LlmConnection(base_url=CLAUDE_AGENT, model=model, api_key=token)
+        connection = LlmConnection(base_url=CLAUDE_AGENT, model=MODEL, api_key=token)
         response = await self._model.chat(connection, request)
-        return render_response(model, response)
+        return render_response(MODEL, response)
 
 
 def parse_request(body: JsonObject) -> ChatRequest:

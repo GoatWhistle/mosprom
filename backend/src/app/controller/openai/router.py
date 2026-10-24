@@ -4,9 +4,8 @@ from fastapi import APIRouter, Body, Header, Request
 
 from app.domain.errors import Unauthorized
 from app.domain.jsonvalue import JsonObject
-from app.usecase.completion import CompletionService
+from app.usecase.completion import MODEL, CompletionService
 
-MODELS = ("sonnet", "opus", "haiku")
 BEARER = "Bearer "
 
 router = APIRouter(prefix="/v1", tags=["openai"])
@@ -35,5 +34,5 @@ async def chat_completions(
 async def models() -> JsonObject:
     return {
         "object": "list",
-        "data": [{"id": name, "object": "model", "owned_by": "anthropic"} for name in MODELS],
+        "data": [{"id": MODEL, "object": "model", "owned_by": "anthropic"}],
     }

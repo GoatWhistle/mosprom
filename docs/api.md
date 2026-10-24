@@ -52,8 +52,8 @@ JSON и SSE, `Mcp-Session-Id`, `MCP-Protocol-Version`, постраничный 
 
 | Метод | Что делает |
 |---|---|
-| `POST /v1/chat/completions` | Запрос OpenAI → Claude Agent SDK. `Authorization: Bearer <OAuth-токен из claude setup-token>`, `model` — `sonnet`, `opus`, `haiku` или полный ID |
-| `GET /v1/models` | Короткие имена моделей Claude |
+| `POST /v1/chat/completions` | Запрос OpenAI → Claude Agent SDK. `Authorization: Bearer <OAuth-токен из claude setup-token>`, `model` игнорируется: всегда отвечает `opus`, и поле `model` ответа — `opus` |
+| `GET /v1/models` | Одна модель — `opus` |
 | `GET /api/v1/health` | Живость процесса |
 
 Backend ничего не хранит и не логирует токен. Картинки принимаются только как data URL.
@@ -70,7 +70,7 @@ Backend ничего не хранит и не логирует токен. Ка
 | Статус | Когда |
 |---|---|
 | 401 | Нет Bearer-токена |
-| 422 | Запрос не в формате OpenAI: нет `model` или `messages`, неизвестная роль, картинка не data URL |
+| 422 | Запрос не в формате OpenAI: нет `messages`, неизвестная роль, картинка не data URL |
 | 503 | Claude недоступен, таймаут, некорректный ответ или образ собран без `LLM=true` |
 
 ---

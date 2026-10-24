@@ -25,7 +25,7 @@ LLM=true docker buildx bake
 docker compose up
 ```
 
-В настройках плагина: URL LLM — `http://<адрес машины с Compose>:8000/v1`, модель — `sonnet`, ключ —
+В настройках плагина: URL LLM — `http://<адрес машины с Compose>:8000/v1`, модель — любая (backend всегда вызывает `opus`), ключ —
 OAuth-токен из `claude setup-token`. Порт публикуется только на `127.0.0.1`; для виртуальной машины
 со слайсером пробросьте его или задайте другой адрес в Compose. Без `LLM=true` образ собирается без
 `claude-agent-sdk` и отвечает 503.
