@@ -53,8 +53,8 @@ mode in its folder name. Reference 3MF files are with the jury, so closeness to 
 | B18 | Low | open | Agent said it re-checked the scene after a restart without calling a tool (corrected itself in the next reply) |
 | B19 | Low | open | Export opens Explorer with a delay; it steals focus from the slicer |
 | B20 | High | fixed | Agent chose `cylindrical_full` for the figurine (no axis of revolution, 565k triangles); both 5D slices hung |
-| B21 | Low | open | After «Восстановить проект» the red status «Идёт переключение проекта» stays under the chat; agent changes still work |
-| B22 | Medium | open | Agent «corrected» a true statement: it read the state after its own `apply_changes` as the state before it |
+| B21 | Low | fixed | After «Восстановить проект» the red status «Идёт переключение проекта» stays under the chat; agent changes still work |
+| B22 | Medium | fixed | Agent «corrected» a true statement: it read the state after its own `apply_changes` as the state before it |
 | N4 | Note | open | Calibration figure on profile Fine (0.1 mm) with brim: 3 h 12 min, 13.9 g, not the planned 30–60 min |
 | N1 | Note | open | One model turn through the backend takes 1–3 min; a model run takes 15–40 min |
 | N2 | Note | closed | `cylindrical_full` G-code has two headers (5D part and 3D core); not a bug |
@@ -259,11 +259,21 @@ and the chat's saved `scene.3mf` (14:39) reloaded through «Восстанови
 After the restore dialog timed out and «Восстановить проект» succeeded, the status line under the chat
 kept «Идёт переключение проекта» in the new chat. The agent's `apply_changes` and `slice` worked.
 
+Cause: `ProjectSwitching.request` sets that notice when a click arrives during a switch, and neither
+`_finish` nor a successful `recover` cleared `notice`. Fix eea2e44 (plugin 0.5.1) clears it in both.
+Stand 2026-10-24: restore dialog left past 120 s, «Восстановить проект» → status «Готов», no red line.
+The click-during-switch path was checked only by a scratch script with fake workspace.
+
 ## B22. Correction of a true statement
 
 The agent wrote that extruder 0 held a ABS/PA composite at 280 °C (likely true: B15 carries materials
 into a new chat), changed it to PLA, then read the returned state and wrote that its previous message
 was false and nothing had changed. The `apply_changes` result shows only the state after the batch.
+
+Fix b4a1787 (plugin 0.5.1): `apply_changes` returns `before` (mode, profile, overrides, extruder
+materials, objects taken before the batch) next to `state`; the tool description and the system prompt
+tell the model to judge the earlier scene from `before`. Stand 2026-10-24: `before` present in the MCP
+result. The agent dialogue was not rerun with the LLM.
 
 ## N4. Calibration figure print time
 

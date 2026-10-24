@@ -77,8 +77,8 @@ Updated: 2026-10-24, MSK
 - Branch `feat/calibration-figure` from main b7fdbc0 in worktree `../mosprom-hack-calibration`, not pushed:
   plugin 0.5.0 with `calibration_figure` (calibration/figure.py), `calibration_journal`
   (calibration/journal.py, records before apply_changes) and the novice skill loop.
-- Stand: plugin 0.5.0 deployed (backup %TEMP%\Brim-0.4.1-backup), figure run passed in chat 6d5a17e0…
-  (work/jury-run-bugs.md, B21, B22, N4: 3 h 12 min on Fine). Backend from main 4c085cd; exports in stand
+- Stand: plugin 0.5.1 deployed (backups %TEMP%\Brim-0.4.1-backup, -0.5.0-backup), figure run passed in chat
+  6d5a17e0…; B21, B22 fixed in 0.5.1 (work/jury-run-bugs.md); N4 open: 3 h 12 min on Fine. Backend from main 4c085cd; exports in stand
   `Desktop\results\<model>\`, copy `~/mosprom-results/2026-10-24/`. Run bugs: work/jury-run-bugs.md.
 
 ## Verification and next actions
