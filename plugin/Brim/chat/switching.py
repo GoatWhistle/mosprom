@@ -112,6 +112,7 @@ class ProjectSwitching(object):
         state.workspace_status = self._workspace.store.statuses()
         state.save_state = "saved"
         state.switching = None
+        state.notice = None
         self._workspace.lock(False)
         self._changed()
 
@@ -135,6 +136,7 @@ class ProjectSwitching(object):
         def done(_):
             state.workspace_blocked = False
             state.switching = None
+            state.notice = None
             self._workspace.lock(False)
 
         def failed(error):
