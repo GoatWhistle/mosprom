@@ -186,6 +186,9 @@ Brim говорит как опытный технолог у принтера: 
 | Токены и шрифты презентации | `presentation/src/core/css/tokens.css`, `fonts.css` |
 | Знак, словесный знак и локап | `docs/brand/` |
 | Картинки README | `cd presentation && npm run readme` |
-| Встроенный интерфейс STE Slicer | Реализация ещё не начата |
+| Знак, словесный знак и локап в плагине | `plugin/Brim/ui/qml/` (`BrandMark`, `BrandWordmark`, `BrandLockup`), браузерный чат — `plugin/Brim/web/index.html` |
+| Анимации темы и языка в плагине | `LayerSweep.qml`, `ScrambleText.qml`; в браузерном чате `plugin/Brim/web/motion.js` |
+| Шрифты плагина | `plugin/Brim/ui/qml/fonts/` (статические TTF для Qt 5.10), `plugin/Brim/web/fonts/` (woff2) |
+| Проверить интерфейс без слайсера | Песочница: `plugin/tools/playground.py`, см. `plugin/README.md` |
 
 <sub>[Оглавление документации](README.md) · [README проекта](../README.md)</sub>
