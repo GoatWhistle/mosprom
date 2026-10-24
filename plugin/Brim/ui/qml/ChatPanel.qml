@@ -504,7 +504,7 @@ Item {
                     text: view.t.recover
                     primary: true
                     palette_: c
-                    enabledButton: view.switching === null
+                    enabledButton: !view.switching
                     onClicked: brim.recoverWorkspace()
                 }
             }

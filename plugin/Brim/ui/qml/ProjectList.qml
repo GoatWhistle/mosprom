@@ -42,7 +42,7 @@ Rectangle {
             width: parent.width
             text: root.view.t.new_from_scene
             palette_: root.c
-            enabledButton: !root.view.busy && root.view.switching === null
+            enabledButton: !root.view.busy && !root.view.switching
             onClicked: root.createFromScene()
         }
         Text {
