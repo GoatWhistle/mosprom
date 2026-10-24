@@ -123,7 +123,10 @@ class SlicerPort(object):
         self._digest.invalidate()
 
     def clear_workspace(self):
-        return self._scene_ops.clear()
+        removed = self._scene_ops.clear()
+        self._settings_ops.reset_overrides({})
+        self._digest.invalidate()
+        return removed
 
     def apply_operation(self, op, check=None):
         self._ensure_unlocked()
