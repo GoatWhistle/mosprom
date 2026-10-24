@@ -74,12 +74,19 @@ Updated: 2026-10-24, MSK
 
 ## Current state
 
-- Branch `feat/calibration-figure` from main b7fdbc0 in worktree `../mosprom-hack-calibration`, not pushed:
-  plugin 0.5.0 with `calibration_figure` (calibration/figure.py), `calibration_journal`
-  (calibration/journal.py, records before apply_changes) and the novice skill loop.
-- Stand: plugin 0.5.1 deployed (backups %TEMP%\Brim-0.4.1-backup, -0.5.0-backup), figure run passed in chat
-  6d5a17e0…; B21, B22 fixed in 0.5.1 (work/jury-run-bugs.md); N4 open: 3 h 12 min on Fine. Backend from main 4c085cd; exports in stand
-  `Desktop\results\<model>\`, copy `~/mosprom-results/2026-10-24/`. Run bugs: work/jury-run-bugs.md.
+- main 2026-10-24 (not pushed) merges `feat/calibration-figure` (calibration_figure, calibration_journal,
+  novice loop, B21/B22), `feat/qwen-mirror` (backend mirrors chat requests to organizer qwen) and
+  `feat/browser-spa` (browser SPA per website §3.2: `plugin/Brim/browser/`, `plugin/Brim/web/`, menu
+  «Открыть в браузере»); plugin 0.5.2. `feat/chat-stage` stays unmerged (rejected variant).
+- Stand: plugin 0.5.2 = this main's plugin (backups %TEMP%\Brim-0.5.1-backup, -0.5.0-, -0.4.1-). Browser run
+  2026-10-24 passed in Edge: STL upload via file dialog, question answer, auto run (gear 0 h 53 min, 3.3 g),
+  result card, G-code download, recover button. Calibration figure run passed in chat 6d5a17e0…; N4 open:
+  3 h 12 min on Fine. Stand scripts must be UTF-8 with BOM (PS 5). Old browser tab after slicer restart
+  says "no connection" forever (new port). Backend from main 4c085cd; qwen mirror not deployed by this session.
+- Exports in stand `Desktop\results\<model>\`, copy `~/mosprom-results/2026-10-24/`. Run bugs:
+  [work/jury-run-bugs.md](../work/jury-run-bugs.md). Stand: Task BrimSlicer starts in the STE folder;
+  5D licence activated 2026-10-24 (10 days); BrimType runs steps from brim-steps.txt. Older history:
+  work/session-log.md.
 
 ## Verification and next actions
 
