@@ -77,13 +77,14 @@ Updated: 2026-10-24, MSK
 - Branch `feat/calibration-figure` from main b7fdbc0 in worktree `../mosprom-hack-calibration`, not pushed:
   plugin 0.5.0 with `calibration_figure` (calibration/figure.py), `calibration_journal`
   (calibration/journal.py, records before apply_changes) and the novice skill loop.
-- Stand (unchanged): backend from main 4c085cd, plugin 0.4.1; seven model exports in stand
+- Stand: plugin 0.5.0 deployed (backup %TEMP%\Brim-0.4.1-backup), figure run passed in chat 6d5a17e0…
+  (work/jury-run-bugs.md, B21, B22, N4: 3 h 12 min on Fine). Backend from main 4c085cd; exports in stand
   `Desktop\results\<model>\`, copy `~/mosprom-results/2026-10-24/`. Run bugs: work/jury-run-bugs.md.
 
 ## Verification and next actions
 
 - Plugin unit tests 155 passed, 2 skipped (3.13); figure and journal checked by a scratch script; vermin
   3.5 ok. Not on the stand: figure union in STE, real print photos. docs/limitations.md is still a template.
-- Next: run calibration_figure on the stand (import, slice), then merge into main.
+- Next: decide on figure print time (N4), then merge into main.
 - Open: B6, B14–B19 in the bugs file; ZIP size limit unknown (figurine G-code 298 MB, Wilo 201 MB).
   `fix/rerun-gear-figurine` merged into main (fast-forward); main not pushed.

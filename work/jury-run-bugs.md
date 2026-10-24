@@ -53,6 +53,9 @@ mode in its folder name. Reference 3MF files are with the jury, so closeness to 
 | B18 | Low | open | Agent said it re-checked the scene after a restart without calling a tool (corrected itself in the next reply) |
 | B19 | Low | open | Export opens Explorer with a delay; it steals focus from the slicer |
 | B20 | High | fixed | Agent chose `cylindrical_full` for the figurine (no axis of revolution, 565k triangles); both 5D slices hung |
+| B21 | Low | open | After «Восстановить проект» the red status «Идёт переключение проекта» stays under the chat; agent changes still work |
+| B22 | Medium | open | Agent «corrected» a true statement: it read the state after its own `apply_changes` as the state before it |
+| N4 | Note | open | Calibration figure on profile Fine (0.1 mm) with brim: 3 h 12 min, 13.9 g, not the planned 30–60 min |
 | N1 | Note | open | One model turn through the backend takes 1–3 min; a model run takes 15–40 min |
 | N2 | Note | closed | `cylindrical_full` G-code has two headers (5D part and 3D core); not a bug |
 | N3 | Note | open | Wilo G-code is 201 MB, figurine rerun 298 MB; ZIP size limit is unknown (open question Q2) |
@@ -234,3 +237,37 @@ top of the slicer and caught the next clicks.
 
 Krones: `;TIME:19725` (5D part, line 11) and `;TIME:2165` (3D core, line 15); 19 725 + 2 165 =
 21 890 s, equal to the slicer total of 21 891 s. A checker that reads one header undercounts.
+
+## Calibration figure run, 2026-10-24
+
+Plugin 0.5.0 from `feat/calibration-figure` (d28dc29..6a41950), deployed over 0.4.1 (backup
+%TEMP%\Brim-0.4.1-backup). New chat `6d5a17e04a074090b26f9f04e2c5e7e9`, mode «Авто», no pinned skill,
+message «Я новичок, давай откалибруем принтер. Печатаю PLA на столе, обычным способом.» The agent loaded
+`novice-calibration`, called `generate_calibration_model` with `calibration_figure`, asked about the
+PLA brand and extruder, then selected classic + Generic PLA on extruder 0, imported the figure and
+sliced: 11 516 s (3 h 12 min), 13.86 g, 269 layers, G-code 4.3 MB. It described every zone, the
+photo set by faces A–D and the caliper check, and said thresholds need towers Brim does not make.
+`unknown_keys` was empty: all 19 zone keys exist in STE. `meshfix_union_all` is `true` by default in
+STE. `calibration_journal` was not called: there was no printed part or photo.
+
+A first direct MCP import landed in the active chat of another session (пыльник ШРУСа,
+`ff6aa254…`); it was reverted with `delete` + `select_material` + `select_mode`, the stray STL deleted,
+and the chat's saved `scene.3mf` (14:39) reloaded through «Восстановить проект».
+
+## B21. Stale project switch status
+
+After the restore dialog timed out and «Восстановить проект» succeeded, the status line under the chat
+kept «Идёт переключение проекта» in the new chat. The agent's `apply_changes` and `slice` worked.
+
+## B22. Correction of a true statement
+
+The agent wrote that extruder 0 held a ABS/PA composite at 280 °C (likely true: B15 carries materials
+into a new chat), changed it to PLA, then read the returned state and wrote that its previous message
+was false and nothing had changed. The `apply_changes` result shows only the state after the batch.
+
+## N4. Calibration figure print time
+
+The plan expected 30–60 min. On the Fine profile (0.1 mm) with an 8 mm brim the figure slices to
+3 h 12 min; the 70×50×2 mm plate alone is about 7 cm³ of the 11 cm³ total. Options: a thinner plate,
+or a 0.2 mm profile for calibration prints.
+
