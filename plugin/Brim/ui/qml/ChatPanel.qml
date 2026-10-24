@@ -115,6 +115,7 @@ Item {
         id: attachDialog
         title: view.t.attach
         selectMultiple: true
+        folder: shortcuts.home
         nameFilters: ["Models, images and documents (*.stl *.obj *.3mf *.jpg *.jpeg *.png *.docx *.xlsx *.csv *.tsv *.txt *.md *.json *.pdf)", "All files (*)"]
         onAccepted: {
             for (var i = 0; i < fileUrls.length; i++)
