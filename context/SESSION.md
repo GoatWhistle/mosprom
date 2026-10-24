@@ -74,7 +74,7 @@ Updated: 2026-10-24, MSK
 
 ## Current state
 
-- main 2026-10-24 (not pushed) merges `feat/calibration-figure` (calibration_figure, calibration_journal,
+- main 2026-10-24 (not pushed; worktrees spa/calibration/qwen-mirror removed) merges `feat/calibration-figure` (calibration_figure, calibration_journal,
   novice loop, B21/B22), `feat/qwen-mirror` (backend mirrors chat requests to organizer qwen) and
   `feat/browser-spa` (browser SPA per website §3.2: `plugin/Brim/browser/`, `plugin/Brim/web/`, menu
   «Открыть в браузере»); plugin 0.5.2. `feat/chat-stage` stays unmerged (rejected variant).
@@ -82,7 +82,8 @@ Updated: 2026-10-24, MSK
   2026-10-24 passed in Edge: STL upload via file dialog, question answer, auto run (gear 0 h 53 min, 3.3 g),
   result card, G-code download, recover button. Calibration figure run passed in chat 6d5a17e0…; N4 open:
   3 h 12 min on Fine. Stand scripts must be UTF-8 with BOM (PS 5). Old browser tab after slicer restart
-  says "no connection" forever (new port). Backend from main 4c085cd; qwen mirror not deployed by this session.
+  says "no connection" forever (new port). Backend rebuilt from main 40df7da (LLM=true, override compose.stand.yml in session scratchpad, rollback
+  image brim-backend:before-40df7da); live call from the VM 6 s. Mirror off: MIRROR_API_KEY not in .env.
 - Exports in stand `Desktop\results\<model>\`, copy `~/mosprom-results/2026-10-24/`. Run bugs:
   [work/jury-run-bugs.md](../work/jury-run-bugs.md). Stand: Task BrimSlicer starts in the STE folder;
   5D licence activated 2026-10-24 (10 days); BrimType runs steps from brim-steps.txt. Older history:
