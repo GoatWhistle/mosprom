@@ -1,6 +1,6 @@
 MCP_PROTOCOL_VERSION = "2025-03-26"
 SERVER_NAME = "brim-plugin"
-SERVER_VERSION = "0.3.0"
+SERVER_VERSION = "0.4.0"
 
 ERR_OUTCOME_UNKNOWN = "outcome_unknown"
 ERR_INVALID_ARGUMENTS = "invalid_arguments"
