@@ -32,6 +32,10 @@ Working:
 - Each object prints with the extruder in objects[].extruder. Select the material on that extruder
   or move the object with set_object_extruder before slicing; after slicing check that the
   material weight is on the extruder you intended.
+- Slicing with two extruders (a second material for supports or parts) is unstable in STE 7.10.12:
+  the engine failed and the slicer crashed in tests. Print with one extruder; if the user asks for
+  two, warn them first.
+- If slice fails, read engine_log in the error details before changing settings.
 - A batch is not transactional. If an operation fails, the applied operations are reported; fix
   the cause within the user's requirements.
 - The user may reject a change; the tool result then carries their comment. Take it into account
