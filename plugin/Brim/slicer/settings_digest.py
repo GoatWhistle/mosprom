@@ -58,6 +58,7 @@ class SettingsDigest(object):
         definition = stack.getSettingDefinition(key) if hasattr(stack, "getSettingDefinition") else None
         facts = dict((name, _plain(_property(stack, key, name))) for name in FACT_PROPERTIES)
         facts["unit"] = str(getattr(definition, "unit", "") or "")
+        facts["known"] = definition is not None or facts["value"] is not None
         return facts
 
     def _build(self):

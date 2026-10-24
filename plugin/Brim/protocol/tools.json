@@ -355,6 +355,43 @@
         "readOnlyHint": true,
         "destructiveHint": false
       }
+    },
+    {
+      "name": "lookup_defect",
+      "description": "Print defect guide: find defects by a description in Russian or English (or by id) and get their causes, the slicer settings that fix them with direction and a typical step, and the current values of those settings. Settings the slicer does not have are listed in unknown_keys.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "What the user sees, e.g. 'нитки между деталями' or 'holes in the outer wall'."
+          },
+          "defect_id": {
+            "type": "string",
+            "enum": [
+              "stringing",
+              "zits_blobs",
+              "wall_gaps",
+              "under_extrusion",
+              "over_extrusion",
+              "first_layer_squish",
+              "poor_adhesion",
+              "warping",
+              "layer_separation",
+              "overhang_sag",
+              "rough_surface",
+              "layer_shift",
+              "dimension_error",
+              "moisture",
+              "top_surface_holes"
+            ]
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
+      }
     }
   ]
 }

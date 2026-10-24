@@ -14,11 +14,12 @@ def error_object(code, message):
 
 
 class ToolExecutor(object):
-    def __init__(self, port, output_dir, files_dir=None, skills=None):
+    def __init__(self, port, output_dir, files_dir=None, skills=None, defects=None):
         self._port = port
         self._output_dir = output_dir
         self._files_dir = files_dir or (lambda: None)
         self._skills = skills
+        self._defects = defects
         self._cancel = threading.Event()
         self._execution = threading.Lock()
         self._tools = {
@@ -32,6 +33,7 @@ class ToolExecutor(object):
             constants.TOOL_SLICE: self._slice,
             constants.TOOL_READ_DOCUMENT: self._read_document,
             constants.TOOL_LOAD_SKILL: self._load_skill,
+            constants.TOOL_LOOKUP_DEFECT: self._lookup_defect,
         }
 
     def cancel(self):
@@ -153,6 +155,11 @@ class ToolExecutor(object):
             known = ", ".join(self._skills.names()) if self._skills is not None else ""
             raise OperationError(constants.ERR_INVALID_ARGUMENTS, "unknown skill %s; skills: %s" % (name, known))
         return {"name": name, "instructions": body}
+
+    def _lookup_defect(self, arguments, report, applied, images):
+        if self._defects is None:
+            raise OperationError(constants.ERR_NOT_AVAILABLE, "the defect guide is not loaded")
+        return self._defects.lookup(arguments.get("query"), arguments.get("defect_id"))
 
     def _fingerprint(self):
         state = dict(self._port.read_state())
