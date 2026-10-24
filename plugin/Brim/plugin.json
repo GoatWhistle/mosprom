@@ -1,7 +1,7 @@
 {
     "name": "Brim",
     "author": "Brim team",
-    "version": "0.5.0",
+    "version": "0.5.1",
     "description": "Chat assistant that configures FDM 3D/5D printing in STE Slicer",
     "api": 5,
     "i18n-catalog": "steslicer"
