@@ -1,0 +1,39 @@
+:root {
+  --font-sans:
+    "Onest Variable", "Onest", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    sans-serif;
+  --font-mono:
+    "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas,
+    monospace;
+  --font-display:
+    "Handjet Variable", "Handjet", "JetBrains Mono Variable", ui-monospace, Consolas, monospace;
+  --font-features: "kern" 1;
+  --font-numeric: tabular-nums;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 500;
+  --weight-bold: 600;
+  --weight-display: 500;
+
+  --font-size-caption: 0.75rem;
+  --line-height-caption: 1.25;
+  --font-size-label: 0.8125rem;
+  --line-height-label: 1.25;
+  --font-size-body-sm: 0.875rem;
+  --line-height-body-sm: 1.35;
+  --font-size-body: 1rem;
+  --line-height-body: 1.4;
+  --font-size-subheading: 1.25rem;
+  --line-height-subheading: 1.2;
+  --font-size-heading: 1.875rem;
+  --line-height-heading: 1.13;
+  --font-size-heading-lg: clamp(1.875rem, 1.3rem + 2vw, 3rem);
+  --line-height-heading-lg: 1.04;
+  --font-size-display: clamp(3rem, 1.6rem + 5vw, 5rem);
+  --line-height-display: 0.78;
+
+  --tracking-normal: 0;
+  --tracking-tight: -0.02em;
+  --tracking-telemetry: -0.04em;
+}
