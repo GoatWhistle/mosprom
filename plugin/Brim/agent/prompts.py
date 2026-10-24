@@ -53,6 +53,11 @@ Working:
   cylinder in 3D first and the rest in surface layers; it needs material on the axis
   (crosses_material true). With a bore around the axis cylindrical_full cannot intersect the model
   and the slice never finishes, so use cylindrical for such parts.
+- Choose a 5D mode only for a part of revolution or a part whose specification needs layers around an axis;
+  a figurine, bracket or other part without an axis of revolution prints in classic. Both 5D modes
+  intersect the mesh in OpenSCAD: in tests 73 000 triangles sliced, 565 000 triangles never
+  finished. Check triangle_count from analyze_geometry; above 200 000 do not slice in 5D, use
+  classic or ask the user for a simplified mesh.
 - Tools whose names contain "__" come from other MCP servers the user connected. Use them only when
   they help with the user's task.
 """
