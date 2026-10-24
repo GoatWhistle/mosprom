@@ -69,24 +69,21 @@ Updated: 2026-10-24, MSK
   перепроверяй качество, все найденные баги фиксируй в md»
 - 2026-10-24: «надо переделать 2 чата зановго и через brim всё прогнать и сохранить, также сам перепроверяй
   качество, все найденные баги фиксируй в md»; gear STL «скачай заного из ТЗ заказчика … пусть папка соотвествует».
+- 2026-10-24: plan brim-calibration-figure-replicated-ritchie (one calibration figure, attempt journal,
+  novice loop): no new unit tests, local check only, no stand; «делай в отдельном worktree».
 
 ## Current state
 
-- Branch `fix/jury-run-findings` from main 4c085cd, not pushed: plugin 0.4.1 with run fixes (overrides reset
-  on empty chat, extruder-ordered slice report, `set_object_extruder`, 5D rotation-axis data and rules,
-  chat.json replace retry, wait for STE error check before slicing, engine_log and hung-slice stop,
-  45-min slice limit). Bugs and run table: [work/jury-run-bugs.md](../work/jury-run-bugs.md).
-- Stand: backend `brim-backend:latest` rebuilt from main 4c085cd (always opus), compose override in
-  session scratchpad; plugin 0.4.1 deployed (0.4.0 backup %TEMP%\Brim-0.4.0-backup). Task BrimSlicer now
-  starts in the STE folder (OpenSCAD for 5D); 5D licence activated 2026-10-24 (10 days). Task BrimType runs
-  %TEMP%\steps.ps1 (click/text/key/sleep lines from brim-steps.txt).
-- Seven models run and exported to stand `Desktop\results\<model>\`; copy `~/mosprom-results/2026-10-24/`.
-  Gear (now `results\Шестерня`) and figurine rerun clean, now on main (B20 prompt rule,
-  deployed to stand as single file); old exports in stand `Desktop\results-old-2026-10-24`, local `_old/`. Older history: work/session-log.md.
+- Branch `feat/calibration-figure` from main b7fdbc0 in worktree `../mosprom-hack-calibration`, not pushed:
+  plugin 0.5.0 with `calibration_figure` (calibration/figure.py), `calibration_journal`
+  (calibration/journal.py, records before apply_changes) and the novice skill loop.
+- Stand (unchanged): backend from main 4c085cd, plugin 0.4.1; seven model exports in stand
+  `Desktop\results\<model>\`, copy `~/mosprom-results/2026-10-24/`. Run bugs: work/jury-run-bugs.md.
 
 ## Verification and next actions
 
-- Plugin unit tests 155 passed, 2 skipped (3.14) after each fix; fixes verified on the stand as listed in
-  the bugs file. Python 3.5 run not repeated. No new tests (user instruction).
+- Plugin unit tests 155 passed, 2 skipped (3.13); figure and journal checked by a scratch script; vermin
+  3.5 ok. Not on the stand: figure union in STE, real print photos. docs/limitations.md is still a template.
+- Next: run calibration_figure on the stand (import, slice), then merge into main.
 - Open: B6, B14–B19 in the bugs file; ZIP size limit unknown (figurine G-code 298 MB, Wilo 201 MB).
   `fix/rerun-gear-figurine` merged into main (fast-forward); main not pushed.
