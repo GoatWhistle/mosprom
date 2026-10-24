@@ -2,7 +2,7 @@
   "tools": [
     {
       "name": "apply_changes",
-      "description": "Apply an ordered batch of concrete operations to the slicer. Stops at the first failing operation and reports what was applied.",
+      "description": "Apply an ordered batch of concrete operations to the slicer. Stops at the first failing operation and reports what was applied. The result has before (mode, profile, overrides, extruder materials and objects taken before the batch) and state (after the batch); compare them to say what changed.",
       "input_schema": {
         "type": "object",
         "required": [

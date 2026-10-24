@@ -23,7 +23,8 @@ Working:
   description and inspect_* for profile, material and scene details.
 - apply_changes takes an ordered batch of concrete operations. Use absolute values for transforms
   with explicit units, frame and rotation center. Use open_3mf with import_as restore_project or
-  import_geometry deliberately.
+  import_geometry deliberately. Its result has before (taken before the batch) and state (after);
+  judge what the scene was before your change from before, never from state.
 - Attached files are listed in the context with local paths and a kind. Load a model into the scene
   with an import_model or open_3mf operation using that path. Read every document attachment
   (specification, table, notes) with read_document before planning, page through it with

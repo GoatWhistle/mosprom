@@ -16,6 +16,14 @@ def error_object(code, message):
     return {"code": code, "message": message}
 
 
+def state_summary(state):
+    printer = state.get("printer") or {}
+    return {"mode": state.get("mode"), "profile": state.get("profile"), "overrides": state.get("overrides"),
+            "materials": [{"extruder": item.get("index"), "material_id": item.get("material_id")}
+                          for item in printer.get("extruders") or []],
+            "objects": [{"id": item.get("id"), "name": item.get("name")} for item in state.get("objects") or []]}
+
+
 class ToolExecutor(object):
     def __init__(self, port, output_dir, files_dir=None, skills=None, defects=None, materials=None):
         self._port = port
@@ -78,6 +86,7 @@ class ToolExecutor(object):
         problems = validate_operations(operations)
         if problems:
             raise OperationError(constants.ERR_INVALID_ARGUMENTS, "invalid operations", {"problems": problems})
+        before = state_summary(self._port.read_state())
         self._port.begin_batch()
         try:
             for index, op in enumerate(operations):
@@ -89,15 +98,15 @@ class ToolExecutor(object):
                     report("apply_changes", (index + 1) / float(len(operations)))
         except OperationError as error:
             error.details = dict(error.details, failed_index=len(applied), failed_kind=operations[len(applied)]["kind"],
-                                 state=self._port.read_state())
+                                 state=self._port.read_state(), before=before)
             raise
         except Exception as error:
             raise OutcomeUnknown("operation %d (%s) ended unexpectedly: %s" % (
                 len(applied), operations[len(applied)]["kind"], error),
-                {"failed_index": len(applied), "state": self._port.read_state()})
+                {"failed_index": len(applied), "state": self._port.read_state(), "before": before})
         finally:
             self._port.end_batch()
-        return {"state": self._port.read_state()}
+        return {"before": before, "state": self._port.read_state()}
 
     def _search_settings(self, arguments, report, applied, images):
         query = arguments.get("query")
