@@ -23,6 +23,9 @@ maps OpenAI messages to `domain/chat.py`, and `adapter/llm/claude_agent.py` call
 with the request's Bearer token. The `/v1` router is mounted next to `api_router_v1` because OpenAI
 clients append `/chat/completions` to their base URL. There is no database, WebSocket or agent loop
 here; the agent runs in `plugin/Brim/agent/`. Never log the Bearer token.
+When `MIRROR_*` is set, `adapter/llm/openai_mirror.py` fire-and-forgets each valid request to an
+OpenAI-compatible endpoint (the organizers' Qwen) through the `RequestMirror` port; its answer is
+never used.
 
 ## Architecture contract
 

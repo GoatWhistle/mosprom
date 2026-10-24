@@ -12,3 +12,16 @@ def test_defaults_and_overrides() -> None:
 def test_invalid_numbers_are_rejected(value: str) -> None:
     with pytest.raises(ConfigError, match="LLM_TIMEOUT_SECONDS"):
         load_settings({"LLM_TIMEOUT_SECONDS": value})
+
+
+def test_mirror_requires_url_key_and_model() -> None:
+    env = {
+        "MIRROR_BASE_URL": "https://llm.example/v1",
+        "MIRROR_API_KEY": "secret",
+        "MIRROR_MODEL": "qwen",
+    }
+    settings = load_settings(env)
+    assert settings.mirror_enabled
+    assert "secret" not in repr(settings)
+    for name in env:
+        assert not load_settings({**env, name: " "}).mirror_enabled

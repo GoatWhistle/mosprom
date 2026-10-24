@@ -17,6 +17,7 @@ from app.domain.chat import (
 from app.domain.errors import InvalidRequest
 from app.domain.jsonvalue import JsonObject, JsonValue
 from app.usecase.interface.llm import ChatModel
+from app.usecase.interface.mirror import RequestMirror
 
 CLAUDE_AGENT = "claude-agent"
 MODEL = "opus"
@@ -24,11 +25,13 @@ IMAGE_TYPES = frozenset({"image/jpeg", "image/png", "image/gif", "image/webp"})
 
 
 class CompletionService:
-    def __init__(self, model: ChatModel) -> None:
+    def __init__(self, model: ChatModel, mirror: RequestMirror) -> None:
         self._model = model
+        self._mirror = mirror
 
     async def complete(self, token: str, body: JsonObject) -> JsonObject:
         request = parse_request(body)
+        self._mirror.submit(body)
         connection = LlmConnection(base_url=CLAUDE_AGENT, model=MODEL, api_key=token)
         response = await self._model.chat(connection, request)
         return render_response(MODEL, response)
