@@ -492,6 +492,36 @@
         "readOnlyHint": true,
         "destructiveHint": false
       }
+    },
+    {
+      "name": "generate_calibration_model",
+      "description": "Generate a calibration test part as STL in the chat folder and return its path for apply_changes import_model. Kinds: cube(size_mm) for dimensions and first layer; overhang_test(angles_deg, height_mm) for overhang limits; bridge_test(lengths_mm, height_mm) for bridging; stringing_towers(distance_mm, height_mm) for retraction; hole_tolerance(diameters_mm, thickness_mm) for hole accuracy and horizontal expansion.",
+      "input_schema": {
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "bridge_test",
+              "cube",
+              "hole_tolerance",
+              "overhang_test",
+              "stringing_towers"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "description": "Optional parameters of the kind; defaults are used when omitted."
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
+      }
     }
   ]
 }

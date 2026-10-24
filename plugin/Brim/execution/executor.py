@@ -2,6 +2,7 @@ import json
 import os
 import threading
 
+from ..calibration.models import generate
 from ..documents.reader import read_document
 from ..engineering.calculations import calculate
 from ..protocol import constants
@@ -38,6 +39,7 @@ class ToolExecutor(object):
             constants.TOOL_LOOKUP_DEFECT: self._lookup_defect,
             constants.TOOL_MATCH_MATERIALS: self._match_materials,
             constants.TOOL_CALCULATE: self._calculate,
+            constants.TOOL_GENERATE_CALIBRATION: self._generate_calibration,
         }
 
     def cancel(self):
@@ -172,6 +174,9 @@ class ToolExecutor(object):
 
     def _calculate(self, arguments, report, applied, images):
         return calculate(arguments.get("formula"), arguments.get("inputs"))
+
+    def _generate_calibration(self, arguments, report, applied, images):
+        return generate(arguments.get("kind"), arguments.get("params") or {}, self._files_dir())
 
     def _fingerprint(self):
         state = dict(self._port.read_state())
