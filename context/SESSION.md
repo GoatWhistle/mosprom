@@ -64,51 +64,26 @@ Updated: 2026-10-24, MSK
   файлами чтобы агент их мог прочесть нормально»; skills: novice, engineer, material, defects;
   agent picks + manual pin; formats DOCX/XLSX/CSV/TXT/MD/JSON/PDF.
 
+- 2026-10-24: «твоя задача запустить новый бэк из main ветки и там новые изменения вроде уже лежат на вм,
+  но ты все равно перевроверь ты должен создать 7 чатов и через brim всё прогнать и сохранить, также сам
+  перепроверяй качество, все найденные баги фиксируй в md»
+
 ## Current state
 
-- Branch `feat/agent-skills-documents` (plugin 0.4.0, not pushed, not merged): skills + tools
-  read_document, load_skill, lookup_defect, match_materials, calculate, generate_calibration_model
-  (ADR 0003). Expert consultation transcript in brief/QA.md. Deployed to the stand 2026-10-24
-  (0.3.4 backup %TEMP%\Brim-0.3.4-backup); gear run passed (engineer-spec auto, PC G20, 1 h 16 min),
-  defect skill pinned run passed. Stand fixes: recovery button, defect values from extruder 0,
-  speed_travel key, material dedupe. Stand UI driving: %TEMP%\typeonly.ps1 now runs steps from
-  brim-steps.txt, click.ps1 reads brim-points.txt (originals *.orig). Startup restore needs a click
-  on Open Project within 120 s, otherwise the chat is blocked until «Восстановить проект».
-
-- Docs: ADR 0002, design-decisions, api, architecture, running, plugin/README, work/protocol-contract v3.
-- Stand 2026-10-24: plugin 0.3.0 in VM `user@192.168.1.190` (%APPDATA%\steslicer\7.10\plugins),
-  cfg `llm_base_url=http://192.168.1.137:8000/v1`, `sonnet`, OAuth token from `~/.claude-azamat`;
-  0.2.0 backup in VM %TEMP%\Brim-0.2.0-backup. Backend `brim-backend:latest` (LLM=true) on docker host
-  192.168.1.137 with scratchpad override `compose.stand.yml` (port 0.0.0.0:8000); old db/migrate removed.
-  Slicer start: `schtasks /run /tn BrimSlicer`; UI driven via interactive scheduled tasks
-  (screenshots, clicks, SendKeys). Stand chat id `stand0300scenario000000000000001`.
-
-- 2026-10-24: user chose dock + motion; main fast-forwarded to 94ed90d (plugin 0.3.2, not pushed).
-  `feat/chat-stage` 7ee662a kept on request (worktree ../mosprom-hack-stage). Stand runs dock 0.3.2
-  (0.3.0 backup %TEMP%\Brim-0.3.0-backup); kill CuraEngine with STESlicer on restart. Plan
-  spicy-tinkering-floyd steps 1 and 5 pending. Left sidebar: slicer Ctrl+E collapse, unverified.
-
-- 2026-10-24: branch `feat/chat-export` (5a18084, from 94ed90d): chat export to `<root>/<model>/`
-  (project.3mf, result.gcode, chat.md, UI chat_NN.png; text PNG removed on user request), plugin 0.3.3 zip built.
-  Offscreen PyQt5 run (Qt 5.15) verified RU/EN, dark/light. Stand 2026-10-24: 0.3.3 deployed (0.3.2 backup
-  %TEMP%\Brim-0.3.2-backup; cfg panel_width 700, export_root Desktop\results); gear chat exported to
-  Desktop\results\gear: 3 UI + 2 text PNG, chat.md, 3MF, G-code; native folder dialog works.
-  Redeployed 8d31b8e (rejection card shows only the user's comment) and re-exported gear; verified.
+- Branch `fix/jury-run-findings` from main 4c085cd, not pushed: plugin 0.4.1 with run fixes (overrides reset
+  on empty chat, extruder-ordered slice report, `set_object_extruder`, 5D rotation-axis data and rules,
+  chat.json replace retry, wait for STE error check before slicing, engine_log and hung-slice stop,
+  45-min slice limit). Bugs and run table: [work/jury-run-bugs.md](../work/jury-run-bugs.md).
+- Stand: backend `brim-backend:latest` rebuilt from main 4c085cd (always opus), compose override in
+  session scratchpad; plugin 0.4.1 deployed (0.4.0 backup %TEMP%\Brim-0.4.0-backup). Task BrimSlicer now
+  starts in the STE folder (OpenSCAD for 5D); 5D licence activated 2026-10-24 (10 days). Task BrimType runs
+  %TEMP%\steps.ps1 (click/text/key/sleep lines from brim-steps.txt).
+- Seven models run and exported to stand `Desktop\results\<model>\`; copy `~/mosprom-results/2026-10-24/`
+  (526 MB). Older history: work/session-log.md.
 
 ## Verification and next actions
 
-- Next: transcript → brief/QA.md; Novice/Engineer modes;
-  material catalog; seven-model runs.
-
-- Stand run from chat window passed: ask mode cards (accept, reject with comment), auto mode, import,
-  transform, slice, result card, open folder; 50 min / 3.6 g gear. Fixed on stand: composition
-  init crash, stale_result from version counter, Claude trying native tools.
-- 2026-10-24: plugin tests 155 pass on 3.14; on python:3.5-slim (remote Docker, code via tar stdin)
-  one old failure: test_workspace uses mock.assert_called_once (3.6+). New tools checked by scratch
-  scripts only (7 test DOCX, XLSX, CSV, 7 PDFs vs pdftotext, closed STL); QML SkillPicker unverified.
-- Not verified on stand: question card, file-dialog attachment, external MCP, render_scene, chat
-  switching, organizers' LLM. Merge branch on request. User asked to stop writing tests.
-- 2026-10-24: branch `feat/chat-markdown-drop` committed 8cf00a6..6c3682c (timeline fix, Markdown,
-  file drop, docs, 0.3.4); not merged/pushed. Stand: 0.3.4 deployed (0.3.3 backup %TEMP%\Brim-0.3.3-backup);
-  Markdown list and restored history at end verified on screenshot. Drag-and-drop not exercised on stand.
-  First 0.3.4 start stalled after boot (no OpenGL init, no window); restart OK, cause unknown.
+- Plugin unit tests 155 passed, 2 skipped (3.14) after each fix; fixes verified on the stand as listed in
+  the bugs file. Python 3.5 run not repeated. No new tests (user instruction).
+- Open: B6, B14–B19 in the bugs file; figurine and gear chats contain failed/interrupted steps; ZIP size
+  limit unknown (Wilo G-code 201 MB). Merge/push of the branch awaits the user.

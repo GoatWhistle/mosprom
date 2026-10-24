@@ -34,3 +34,55 @@ Quoted user words are preserved. Entries marked "uncommitted" were later committ
 - 2026-10-23: «да, делай» (all settings into every agent turn). Branch feat/settings-context (uncommitted): plugin slicer/settings_digest.py adds cached `settings` to state snapshots only; backend context renders them as a text block; inspect_profile lost truncated `values`; prompt updated. Plugin 172 tests pass (3.14); Py3.5 Docker: only pre-existing assert_called_once error in test_workspace. Backend ruff/mypy/66 unit pass. Not deployed to Windows stand; digest build time on Qt thread unmeasured.
 - 2026-10-23: «3, oauth токен дам» (Claude Agent SDK adapter). Branch feat/claude-agent-adapter (committed 9e303a1, 66bb88b; not pushed/merged): adapter/llm/claude_agent.py + claude_transcript.py (transcript prompt, tool calls via structured output), routing.py routes base_url `claude-agent` there; SDK in `llm` group, image only with LLM=true (built brim-backend:claude, 701 MB, CLI 2.1.309 present). Ruff, 85 unit pass; mypy errors only pre-existing e2e/harness.py. Live smoke 2026-10-23 («юзай ~/.claude-azamat модель sonnet»): token file ~/.claude-azamat, 3 turns OK ~8 s each, parallel tool calls parsed. Not run in container or through slicer.
 - 2026-10-23: «1 и 2» — committed; stand backend rebuilt with LLM=true as brim-backend:latest (override copied to session scratchpad compose.windows.yml), Claude call from container OK. Windows cfg: llm_base_url=claude-agent, llm_model=sonnet, OAuth token; old timeweb/qwen cfg backed up to steslicer.cfg.bak-before-claude. Slicer started via scheduled task; plugin WS + PUT /instances/llm 200. Full chat scenario through Claude not run yet.
+
+
+## State entries moved 2026-10-24 (jury-model run)
+
+### Current state (before the run)
+
+- Branch `feat/agent-skills-documents` (plugin 0.4.0, not pushed, not merged): skills + tools
+  read_document, load_skill, lookup_defect, match_materials, calculate, generate_calibration_model
+  (ADR 0003). Expert consultation transcript in brief/QA.md. Deployed to the stand 2026-10-24
+  (0.3.4 backup %TEMP%\Brim-0.3.4-backup); gear run passed (engineer-spec auto, PC G20, 1 h 16 min),
+  defect skill pinned run passed. Stand fixes: recovery button, defect values from extruder 0,
+  speed_travel key, material dedupe. Stand UI driving: %TEMP%\typeonly.ps1 now runs steps from
+  brim-steps.txt, click.ps1 reads brim-points.txt (originals *.orig). Startup restore needs a click
+  on Open Project within 120 s, otherwise the chat is blocked until «Восстановить проект».
+
+- Docs: ADR 0002, design-decisions, api, architecture, running, plugin/README, work/protocol-contract v3.
+- Stand 2026-10-24: plugin 0.3.0 in VM `user@192.168.1.190` (%APPDATA%\steslicer\7.10\plugins),
+  cfg `llm_base_url=http://192.168.1.137:8000/v1`, `sonnet`, OAuth token from `~/.claude-azamat`;
+  0.2.0 backup in VM %TEMP%\Brim-0.2.0-backup. Backend `brim-backend:latest` (LLM=true) on docker host
+  192.168.1.137 with scratchpad override `compose.stand.yml` (port 0.0.0.0:8000); old db/migrate removed.
+  Slicer start: `schtasks /run /tn BrimSlicer`; UI driven via interactive scheduled tasks
+  (screenshots, clicks, SendKeys). Stand chat id `stand0300scenario000000000000001`.
+
+- 2026-10-24: user chose dock + motion; main fast-forwarded to 94ed90d (plugin 0.3.2, not pushed).
+  `feat/chat-stage` 7ee662a kept on request (worktree ../mosprom-hack-stage). Stand runs dock 0.3.2
+  (0.3.0 backup %TEMP%\Brim-0.3.0-backup); kill CuraEngine with STESlicer on restart. Plan
+  spicy-tinkering-floyd steps 1 and 5 pending. Left sidebar: slicer Ctrl+E collapse, unverified.
+
+- 2026-10-24: branch `feat/chat-export` (5a18084, from 94ed90d): chat export to `<root>/<model>/`
+  (project.3mf, result.gcode, chat.md, UI chat_NN.png; text PNG removed on user request), plugin 0.3.3 zip built.
+  Offscreen PyQt5 run (Qt 5.15) verified RU/EN, dark/light. Stand 2026-10-24: 0.3.3 deployed (0.3.2 backup
+  %TEMP%\Brim-0.3.2-backup; cfg panel_width 700, export_root Desktop\results); gear chat exported to
+  Desktop\results\gear: 3 UI + 2 text PNG, chat.md, 3MF, G-code; native folder dialog works.
+  Redeployed 8d31b8e (rejection card shows only the user's comment) and re-exported gear; verified.
+
+### Verification and next actions (before the run)
+
+- Next: transcript → brief/QA.md; Novice/Engineer modes;
+  material catalog; seven-model runs.
+
+- Stand run from chat window passed: ask mode cards (accept, reject with comment), auto mode, import,
+  transform, slice, result card, open folder; 50 min / 3.6 g gear. Fixed on stand: composition
+  init crash, stale_result from version counter, Claude trying native tools.
+- 2026-10-24: plugin tests 155 pass on 3.14; on python:3.5-slim (remote Docker, code via tar stdin)
+  one old failure: test_workspace uses mock.assert_called_once (3.6+). New tools checked by scratch
+  scripts only (7 test DOCX, XLSX, CSV, 7 PDFs vs pdftotext, closed STL); QML SkillPicker unverified.
+- Not verified on stand: question card, file-dialog attachment, external MCP, render_scene, chat
+  switching, organizers' LLM. Merge branch on request. User asked to stop writing tests.
+- 2026-10-24: branch `feat/chat-markdown-drop` committed 8cf00a6..6c3682c (timeline fix, Markdown,
+  file drop, docs, 0.3.4); not merged/pushed. Stand: 0.3.4 deployed (0.3.3 backup %TEMP%\Brim-0.3.3-backup);
+  Markdown list and restored history at end verified on screenshot. Drag-and-drop not exercised on stand.
+  First 0.3.4 start stalled after boot (no OpenGL init, no window); restart OK, cause unknown.
