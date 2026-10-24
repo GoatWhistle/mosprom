@@ -252,6 +252,58 @@
       "notes": "Chemically inert, light, fatigue resistant; hard to stick to the bed; warps."
     },
     {
+      "id": "tpe_styrenic",
+      "aliases": [
+        "sbs",
+        "sebs"
+      ],
+      "max_service_c": 60,
+      "min_service_c": -40,
+      "density": 0.95,
+      "flexible": true,
+      "moisture": "very_low",
+      "conductive": false,
+      "low_friction": false,
+      "creep": "poor",
+      "resistance": {
+        "oil": "poor",
+        "fuel": "poor",
+        "alkali": "excellent",
+        "acid": "good",
+        "ipa": "fair",
+        "water_hot": "good",
+        "uv": "fair",
+        "ozone": "good"
+      },
+      "notes": "Soft styrenic elastomer; SEBS ages better than SBS; swells in oils and fuels."
+    },
+    {
+      "id": "tpv",
+      "aliases": [
+        "tpv",
+        "tpv80"
+      ],
+      "max_service_c": 100,
+      "min_service_c": -40,
+      "density": 0.97,
+      "flexible": true,
+      "moisture": "very_low",
+      "conductive": false,
+      "low_friction": false,
+      "creep": "fair",
+      "resistance": {
+        "oil": "fair",
+        "fuel": "poor",
+        "alkali": "excellent",
+        "acid": "good",
+        "ipa": "good",
+        "water_hot": "good",
+        "uv": "good",
+        "ozone": "excellent"
+      },
+      "notes": "EPDM/PP vulcanizate: rubber-like, weather and ozone resistant, moderate oil resistance."
+    },
+    {
       "id": "pom",
       "aliases": [
         "pom",
