@@ -11,6 +11,8 @@ from .qt_wrappers import direct_qt_calls
 
 SLICE_TIMEOUT = 900.0
 FATAL_GRACE = 20.0
+ERROR_CHECK_TIMEOUT = 180.0
+ERROR_CHECK_PAUSE = 0.5
 ESTIMATE_RETRIES = 10
 ESTIMATE_PAUSE = 0.5
 
@@ -73,6 +75,7 @@ class SlicingService(object):
         def on_progress(fraction):
             report("slicing", float(fraction))
 
+        self._wait_error_check()
         backend = self._main.call(self._h.backend)
         self._log.mark()
         self._main.call(backend.backendStateChange.connect, on_state)
@@ -108,6 +111,19 @@ class SlicingService(object):
             time.sleep(ESTIMATE_PAUSE)
             summary = self._main.call(self._summary)
         return summary
+
+    def _wait_error_check(self):
+        waited = 0.0
+        while waited < ERROR_CHECK_TIMEOUT and not self._cancel.is_set():
+            if not self._main.call(self._error_check_pending):
+                return
+            time.sleep(ERROR_CHECK_PAUSE)
+            waited += ERROR_CHECK_PAUSE
+
+    def _error_check_pending(self):
+        getter = getattr(self._h.application, "getMachineErrorChecker", None)
+        checker = getter() if callable(getter) else None
+        return bool(getattr(checker, "needToWaitForResult", False))
 
     def _summary(self):
         info = self._h.application.getPrintInformation()
