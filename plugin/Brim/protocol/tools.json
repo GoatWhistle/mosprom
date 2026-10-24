@@ -460,6 +460,38 @@
         "readOnlyHint": true,
         "destructiveHint": false
       }
+    },
+    {
+      "name": "calculate",
+      "description": "Engineering calculations the slicer does not do. Formulas and inputs: gear_lewis_bending(torque_nm, module_mm, teeth, face_width_mm[, allowable_stress_mpa]); hole_compensation(nominal_mm, measured_mm[, feature hole|outer, current_xy_offset_mm]); part_mass(volume_mm3, surface_area_mm2, wall_thickness_mm, infill_percent, density_g_cm3); rotating_hoop_stress(density_g_cm3, rpm, outer_radius_mm[, shape ring|solid_disk, poisson_ratio, allowable_stress_mpa]); shaft_torsion(torque_nm, diameter_mm[, inner_diameter_mm, allowable_stress_mpa]); thermal_expansion(length_mm, delta_t_c, cte_1e6_per_k). Returns the value with units, the formula, assumptions and a safety factor when allowable_stress_mpa is given.",
+      "input_schema": {
+        "type": "object",
+        "required": [
+          "formula",
+          "inputs"
+        ],
+        "properties": {
+          "formula": {
+            "type": "string",
+            "enum": [
+              "gear_lewis_bending",
+              "hole_compensation",
+              "part_mass",
+              "rotating_hoop_stress",
+              "shaft_torsion",
+              "thermal_expansion"
+            ]
+          },
+          "inputs": {
+            "type": "object",
+            "description": "Named numeric inputs of the formula in the units given by their names."
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
+      }
     }
   ]
 }

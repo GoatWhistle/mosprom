@@ -23,5 +23,6 @@ TOOL_READ_DOCUMENT = "read_document"
 TOOL_LOAD_SKILL = "load_skill"
 TOOL_LOOKUP_DEFECT = "lookup_defect"
 TOOL_MATCH_MATERIALS = "match_materials"
+TOOL_CALCULATE = "calculate"
 
 PRINT_MODES = ("classic", "cylindrical", "cylindrical_full")
