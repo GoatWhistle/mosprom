@@ -15,8 +15,8 @@ Item {
     readonly property int gap: Math.max(1, Math.round(size * 10 / 164))
     readonly property int step: stroke + gap
     readonly property int outerRadius: Math.round(size * 62 / 164)
-    readonly property int left: Math.round((width - size) / 2)
-    readonly property int top: Math.round((height - size) / 2)
+    readonly property int contentLeft: Math.round((width - size) / 2)
+    readonly property int contentTop: Math.round((height - size) / 2)
 
     implicitWidth: 32
     implicitHeight: 32
@@ -45,8 +45,8 @@ Item {
 
     Rectangle {
         id: ring3
-        x: root.left
-        y: root.top
+        x: root.contentLeft
+        y: root.contentTop
         width: root.size
         height: width
         radius: root.outerRadius
@@ -57,8 +57,8 @@ Item {
 
     Rectangle {
         id: ring2
-        x: root.left + root.step
-        y: root.top + root.step
+        x: root.contentLeft + root.step
+        y: root.contentTop + root.step
         width: root.size - 2 * root.step
         height: width
         radius: Math.max(1, root.outerRadius - root.step)
@@ -69,8 +69,8 @@ Item {
 
     Rectangle {
         id: ring1
-        x: root.left + 2 * root.step
-        y: root.top + 2 * root.step
+        x: root.contentLeft + 2 * root.step
+        y: root.contentTop + 2 * root.step
         width: root.size - 4 * root.step
         height: width
         radius: Math.max(1, root.outerRadius - 2 * root.step)
@@ -81,8 +81,8 @@ Item {
 
     Rectangle {
         id: part
-        x: root.left + 3 * root.step
-        y: root.top + 3 * root.step
+        x: root.contentLeft + 3 * root.step
+        y: root.contentTop + 3 * root.step
         width: Math.max(1, root.size - 6 * root.step)
         height: width
         radius: Math.max(1, root.outerRadius - 3 * root.step)
