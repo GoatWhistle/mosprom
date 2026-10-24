@@ -93,6 +93,10 @@ class ChatPresenter(object):
         conversation = self._conversation
         return self._store.output_dir(conversation.id) if conversation is not None else None
 
+    def files_dir(self):
+        conversation = self._conversation
+        return conversation.files_dir if conversation is not None else None
+
     def start(self):
         if self._started:
             return

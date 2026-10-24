@@ -55,7 +55,7 @@ class BrimRuntime(object):
             SettingsDigest(self.host),
         )
         self.workspace = WorkspaceService(self.port, WorkspaceStore(os.path.join(self.cache_dir, "chats")))
-        self.executor = ToolExecutor(self.port, lambda: self.presenter.output_dir())
+        self.executor = ToolExecutor(self.port, lambda: self.presenter.output_dir(), lambda: self.presenter.files_dir())
         self.dispatcher = McpDispatcher(load_tools(), self._execute)
         self.local_mcp = LocalMcpServer(self.dispatcher, port=self.settings.mcp_port())
         self.llm = LlmClient(self.settings.llm)

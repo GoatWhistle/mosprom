@@ -280,6 +280,61 @@
         "readOnlyHint": false,
         "destructiveHint": false
       }
+    },
+    {
+      "name": "read_document",
+      "description": "Read an attached document as text: DOCX (headings, lists, tables as Markdown, embedded images returned as images), XLSX (sheets as Markdown tables), CSV/TSV, TXT, MD, JSON, PDF (text layer only; scanned PDFs report an error). Long text is paged: repeat with start = next_start.",
+      "input_schema": {
+        "type": "object",
+        "required": [
+          "path"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Local path of a document attachment from the context attachments list."
+          },
+          "start": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Character offset to continue from (next_start of the previous call)."
+          },
+          "max_chars": {
+            "type": "integer",
+            "minimum": 1000,
+            "maximum": 60000,
+            "description": "Characters to return, default 20000."
+          },
+          "sheet": {
+            "type": "string",
+            "description": "XLSX: one sheet name; all sheets by default."
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "XLSX/CSV: [first, last] 1-based row range; the header row is always kept."
+          },
+          "pages": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "PDF: [first, last] 1-based page range."
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
+      }
     }
   ]
 }

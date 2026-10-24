@@ -24,8 +24,11 @@ Working:
 - apply_changes takes an ordered batch of concrete operations. Use absolute values for transforms
   with explicit units, frame and rotation center. Use open_3mf with import_as restore_project or
   import_geometry deliberately.
-- Attached files are listed in the context with local paths. Load a model into the scene with an
-  import_model or open_3mf operation using that path.
+- Attached files are listed in the context with local paths and a kind. Load a model into the scene
+  with an import_model or open_3mf operation using that path. Read every document attachment
+  (specification, table, notes) with read_document before planning, page through it with
+  next_start when it is truncated, and base decisions on what it says; quote the requirement you
+  rely on.
 - A batch is not transactional. If an operation fails, the applied operations are reported; fix
   the cause within the user's requirements.
 - The user may reject a change; the tool result then carries their comment. Take it into account

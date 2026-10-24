@@ -1,6 +1,8 @@
 import json
+import os
 import threading
 
+from ..documents.reader import read_document
 from ..protocol import constants
 from . import geometry
 from .errors import OperationError, OutcomeUnknown
@@ -12,9 +14,10 @@ def error_object(code, message):
 
 
 class ToolExecutor(object):
-    def __init__(self, port, output_dir):
+    def __init__(self, port, output_dir, files_dir=None):
         self._port = port
         self._output_dir = output_dir
+        self._files_dir = files_dir or (lambda: None)
         self._cancel = threading.Event()
         self._execution = threading.Lock()
         self._tools = {
@@ -26,6 +29,7 @@ class ToolExecutor(object):
             constants.TOOL_ANALYZE_GEOMETRY: self._analyze_geometry,
             constants.TOOL_RENDER_SCENE: self._render_scene,
             constants.TOOL_SLICE: self._slice,
+            constants.TOOL_READ_DOCUMENT: self._read_document,
         }
 
     def cancel(self):
@@ -120,6 +124,25 @@ class ToolExecutor(object):
             except ValueError as error:
                 raise OperationError(constants.ERR_INVALID_ARGUMENTS, str(error))
         return {"objects": results}
+
+    def _attachment_path(self, path):
+        directory = self._files_dir()
+        if directory is None:
+            raise OperationError(constants.ERR_NOT_AVAILABLE, "no chat is open")
+        if not isinstance(path, str) or not path:
+            raise OperationError(constants.ERR_INVALID_ARGUMENTS, "path required")
+        root = os.path.realpath(directory)
+        target = os.path.realpath(path if os.path.isabs(path) else os.path.join(root, path))
+        if os.path.commonpath([root, target]) != root or not os.path.isfile(target):
+            raise OperationError(constants.ERR_INVALID_ARGUMENTS, "path must be an attachment of the current chat")
+        return target
+
+    def _read_document(self, arguments, report, applied, images):
+        result, embedded = read_document(self._attachment_path(arguments.get("path")), arguments.get("start", 0),
+                                         arguments.get("max_chars"), arguments.get("sheet"), arguments.get("rows"),
+                                         arguments.get("pages"))
+        images.extend({"mime_type": item["mime_type"], "data": item["data"]} for item in embedded)
+        return result
 
     def _fingerprint(self):
         state = dict(self._port.read_state())

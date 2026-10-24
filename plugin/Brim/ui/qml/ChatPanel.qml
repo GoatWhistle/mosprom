@@ -115,7 +115,7 @@ Item {
         id: attachDialog
         title: view.t.attach
         selectMultiple: true
-        nameFilters: ["Models and images (*.stl *.obj *.3mf *.jpg *.jpeg *.png)"]
+        nameFilters: ["Models, images and documents (*.stl *.obj *.3mf *.jpg *.jpeg *.png *.docx *.xlsx *.csv *.tsv *.txt *.md *.json *.pdf)", "All files (*)"]
         onAccepted: {
             for (var i = 0; i < fileUrls.length; i++)
                 brim.attach(fileUrls[i].toString())

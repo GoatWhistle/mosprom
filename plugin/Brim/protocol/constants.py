@@ -19,5 +19,6 @@ TOOL_INSPECT_SCENE = "inspect_scene"
 TOOL_ANALYZE_GEOMETRY = "analyze_geometry"
 TOOL_RENDER_SCENE = "render_scene"
 TOOL_SLICE = "slice"
+TOOL_READ_DOCUMENT = "read_document"
 
 PRINT_MODES = ("classic", "cylindrical", "cylindrical_full")
