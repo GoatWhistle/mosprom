@@ -29,7 +29,7 @@ Item {
         border.color: root.view.skill !== "" ? root.c.accent : root.c.line
         Behavior on color { ColorAnimation { duration: 120 } }
 
-        Text {
+        BrimText {
             id: label
             x: 12
             anchors.verticalCenter: parent.verticalCenter
@@ -38,7 +38,7 @@ Item {
             font.pixelSize: 12
             font.bold: root.view.skill !== ""
         }
-        Text {
+        BrimText {
             anchors.right: parent.right
             anchors.rightMargin: 10
             anchors.verticalCenter: parent.verticalCenter
@@ -87,7 +87,7 @@ Item {
                     height: 34
                     radius: 7
                     color: itemArea.containsMouse ? root.c.selected : "transparent"
-                    Text {
+                    BrimText {
                         x: 10
                         anchors.verticalCenter: parent.verticalCenter
                         width: parent.width - 20

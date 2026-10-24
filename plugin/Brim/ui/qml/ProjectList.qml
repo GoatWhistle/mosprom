@@ -4,6 +4,9 @@ Rectangle {
     id: root
     property var view: ({})
     property var c: ({})
+    property bool dark: true
+    property int epoch: 0
+    property bool reduced: false
     signal chosen(string id)
     signal create()
     signal createFromScene()
@@ -15,45 +18,43 @@ Rectangle {
         anchors.margins: 14
         spacing: 12
 
-        Row {
-            spacing: 8
-            Rectangle {
-                width: 10
-                height: 10
-                radius: 5
-                anchors.verticalCenter: parent.verticalCenter
-                color: root.c.accent
-            }
-            Text {
-                text: "Brim"
-                color: root.c.text
-                font.pixelSize: 20
-                font.bold: true
-            }
+        BrandLockup {
+            markSize: 26
+            dark: root.dark
+            base: root.c.text
+            accent: root.c.accent
+            intro: true
+            reduced: root.reduced
         }
         BrimButton {
             width: parent.width
             text: "+  " + root.view.t.new_chat
             primary: true
+            epoch: root.epoch
+            reduced: root.reduced
             palette_: root.c
             onClicked: root.create()
         }
         BrimButton {
             width: parent.width
             text: root.view.t.new_from_scene
+            epoch: root.epoch
+            reduced: root.reduced
             palette_: root.c
             enabledButton: !root.view.busy && !root.view.switching
             onClicked: root.createFromScene()
         }
-        Text {
-            text: root.view.t.chats
+        ScrambleText {
+            source: root.view.t.chats
+            epoch: root.epoch
+            reduced: root.reduced
             color: root.c.muted
             font.pixelSize: 11
             font.bold: true
             font.capitalization: Font.AllUppercase
             font.letterSpacing: 1
         }
-        Text {
+        BrimText {
             visible: root.view.conversations.length === 0
             text: root.view.t.no_chats
             color: root.c.muted
@@ -69,7 +70,7 @@ Rectangle {
                 property bool current: modelData.id === root.view.conversation_id
                 width: ListView.view.width
                 height: 50
-                radius: 10
+                radius: 0
                 color: current ? root.c.selected : (hover.containsMouse ? root.c.hover : "transparent")
                 activeFocusOnTab: true
                 Keys.onReturnPressed: root.chosen(modelData.id)
@@ -89,7 +90,7 @@ Rectangle {
                     anchors.rightMargin: 10
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 2
-                    Text {
+                    BrimText {
                         width: parent.width
                         elide: Text.ElideRight
                         text: modelData.title !== "" ? modelData.title : modelData.updated_at.substring(0, 16).replace("T", " ")
@@ -97,7 +98,7 @@ Rectangle {
                         font.pixelSize: 13
                         font.bold: current
                     }
-                    Text {
+                    BrimText {
                         width: parent.width
                         elide: Text.ElideRight
                         font.pixelSize: 11

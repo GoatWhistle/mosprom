@@ -21,7 +21,7 @@ Item {
         id: box
         width: parent.width
         height: Math.min(200, Math.max(84, input.contentHeight + 62 + (chips.visible ? chips.height + 6 : 0)))
-        radius: 18
+        radius: 6
         color: root.c.panel
         border.width: 1
         border.color: input.activeFocus ? root.c.accent : root.c.line
@@ -55,6 +55,7 @@ Item {
                 contentHeight: input.contentHeight
                 clip: true
                 TextEdit {
+                    font.family: "Onest"
                     id: input
                     width: parent.width
                     wrapMode: TextEdit.Wrap
@@ -71,7 +72,7 @@ Item {
                             root.send()
                         }
                     }
-                    Text {
+                    BrimText {
                         visible: input.text === ""
                         text: root.view.t.placeholder
                         color: root.c.muted
@@ -120,7 +121,7 @@ Item {
         }
     }
 
-    Text {
+    BrimText {
         id: hint
         anchors.top: box.bottom
         anchors.topMargin: 6

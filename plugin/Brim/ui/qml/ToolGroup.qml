@@ -31,12 +31,12 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 color: root.c.ok
             }
-            Text {
+            BrimText {
                 text: (root.t.agent_actions || "") + " · " + (root.entry.items || []).length
                 color: root.c.muted
                 font.pixelSize: 12
             }
-            Text {
+            BrimText {
                 text: "˅"
                 color: root.c.muted
                 font.pixelSize: 12

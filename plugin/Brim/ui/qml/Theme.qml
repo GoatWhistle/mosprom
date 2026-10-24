@@ -13,5 +13,7 @@ QtObject {
     readonly property int easeOut: Easing.OutQuint
     readonly property int easeInOut: Easing.InOutQuart
     readonly property int slowThinkingSeconds: 60
-    readonly property string fontMono: "Consolas"
+    readonly property string fontMono: "JetBrains Mono"
+    readonly property string fontSans: "Onest"
+    readonly property string fontDisplay: "Handjet"
 }

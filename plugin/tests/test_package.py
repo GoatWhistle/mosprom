@@ -31,8 +31,10 @@ class PackageTests(unittest.TestCase):
         target = build.build(tempfile.mkdtemp())
         with zipfile.ZipFile(target) as archive:
             names = set(archive.namelist())
-        for name in os.listdir(folder):
-            self.assertIn("Brim/ui/qml/" + name, names)
+        for root, _, files in os.walk(folder):
+            for name in files:
+                relative = os.path.relpath(os.path.join(root, name), folder).replace(os.sep, "/")
+                self.assertIn("Brim/ui/qml/" + relative, names)
 
 
 if __name__ == "__main__":

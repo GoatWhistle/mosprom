@@ -27,7 +27,7 @@ Rectangle {
         height: 18
         radius: 9
         color: root.c.accent
-        Text {
+        BrimText {
             id: ext
             anchors.centerIn: parent
             text: root.extension()
@@ -36,7 +36,7 @@ Rectangle {
             color: "#12130f"
         }
     }
-    Text {
+    BrimText {
         id: label
         anchors.left: badge.right
         anchors.leftMargin: 8
@@ -48,7 +48,7 @@ Rectangle {
         color: root.c.text
         font.pixelSize: 12
     }
-    Text {
+    BrimText {
         visible: root.removable
         anchors.right: parent.right
         anchors.rightMargin: 9

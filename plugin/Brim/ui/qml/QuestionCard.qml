@@ -10,7 +10,7 @@ Rectangle {
 
     width: parent ? parent.width : 300
     height: column.height + 28
-    radius: 14
+    radius: 0
     color: c.panel
     border.width: active ? 2 : 1
     border.color: active ? c.accent : c.line
@@ -22,11 +22,14 @@ Rectangle {
         width: parent.width - 32
         spacing: 8
 
-        Text {
+        BrimText {
             text: root.t.question || ""
             color: root.c.accentText
-            font.bold: true
-            font.pixelSize: 13
+            font.family: "JetBrains Mono"
+            font.pixelSize: 11
+            font.weight: Font.DemiBold
+            font.capitalization: Font.AllUppercase
+            font.letterSpacing: 0.4
         }
         Repeater {
             model: root.entry.questions || []
@@ -54,7 +57,7 @@ Rectangle {
                 }
             }
         }
-        Text {
+        BrimText {
             visible: root.active
             width: parent.width
             wrapMode: Text.Wrap

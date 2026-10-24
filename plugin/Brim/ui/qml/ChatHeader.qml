@@ -7,6 +7,8 @@ Rectangle {
     property bool compact: false
     property string title: ""
     property bool closable: false
+    property int epoch: 0
+    property bool reduced: false
     signal menu()
     signal create()
     signal settings()
@@ -58,18 +60,22 @@ Rectangle {
         Column {
             anchors.verticalCenter: parent.verticalCenter
             width: Math.max(40, root.width - actions.width - 64 - (root.compact ? 42 : 0))
-            Text {
+            ScrambleText {
                 width: parent.width
                 elide: Text.ElideRight
-                text: root.title !== "" ? root.title : root.view.t.new_chat
+                source: root.title !== "" ? root.title : root.view.t.new_chat
+                epoch: root.epoch
+                reduced: root.reduced
                 color: root.c.text
                 font.pixelSize: 14
                 font.bold: true
             }
-            Text {
+            ScrambleText {
                 width: parent.width
                 elide: Text.ElideRight
-                text: root.view.status_text + (root.view.save_text !== "" ? "  ·  " + root.view.save_text : "")
+                source: root.view.status_text + (root.view.save_text !== "" ? "  ·  " + root.view.save_text : "")
+                epoch: root.epoch
+                reduced: root.reduced
                 color: root.view.status_kind === "error" ? root.c.danger : root.c.muted
                 font.pixelSize: 11
             }
@@ -101,20 +107,24 @@ Rectangle {
                 Behavior on x { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
                 Behavior on width { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
             }
-            Text {
+            ScrambleText {
                 id: autoLabel
                 x: 11
                 anchors.verticalCenter: parent.verticalCenter
-                text: root.view.t.mode_auto
+                source: root.view.t.mode_auto
+                epoch: root.epoch
+                reduced: root.reduced
                 font.pixelSize: 12
                 font.bold: root.view.mode === "auto"
                 color: root.view.mode === "auto" ? "#12130f" : root.c.text
             }
-            Text {
+            ScrambleText {
                 id: askLabel
                 x: autoLabel.implicitWidth + 31
                 anchors.verticalCenter: parent.verticalCenter
-                text: root.view.t.mode_ask
+                source: root.view.t.mode_ask
+                epoch: root.epoch
+                reduced: root.reduced
                 font.pixelSize: 12
                 font.bold: root.view.mode === "ask"
                 color: root.view.mode === "ask" ? "#12130f" : root.c.text

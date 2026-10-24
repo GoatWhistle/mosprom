@@ -16,7 +16,7 @@ Column {
         text.text = ""
     }
 
-    Text {
+    BrimText {
         text: root.label
         color: root.c.muted
         font.pixelSize: 12
@@ -30,6 +30,7 @@ Column {
         border.color: text.activeFocus ? root.c.accent : root.c.line
 
         TextInput {
+            font.family: "Onest"
             id: text
             anchors.fill: parent
             anchors.leftMargin: 10
@@ -42,7 +43,7 @@ Column {
             echoMode: root.secret ? TextInput.Password : TextInput.Normal
             activeFocusOnTab: true
         }
-        Text {
+        BrimText {
             anchors.fill: parent
             anchors.leftMargin: 10
             verticalAlignment: Text.AlignVCenter

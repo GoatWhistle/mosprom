@@ -88,7 +88,7 @@ Item {
                         NumberAnimation { to: 1.0; duration: 500; easing.type: Easing.InOutQuad }
                     }
                 }
-                Text {
+                BrimText {
                     anchors.left: parent.left
                     anchors.leftMargin: 26
                     anchors.right: meta.left
@@ -100,7 +100,7 @@ Item {
                     font.pixelSize: 13
                     font.bold: root.waiting
                 }
-                Text {
+                BrimText {
                     id: meta
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
@@ -149,7 +149,7 @@ Item {
                 }
             }
 
-            Text {
+            BrimText {
                 width: parent.width
                 visible: !!root.progress && !!(root.progress || {}).stage
                 text: ((root.progress || {}).stage || "") + "  " + Math.round(((root.progress || {}).fraction || 0) * 100) + "%"
@@ -161,7 +161,7 @@ Item {
                 width: parent.width
                 height: root.slow ? hint.height + 4 : 0
                 visible: root.slow
-                Text {
+                BrimText {
                     id: hint
                     anchors.left: parent.left
                     anchors.right: stopButton.left

@@ -44,13 +44,21 @@ Item {
         opacity: dock.open ? 0 : 1
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: 140 } }
-        Text {
-            anchors.centerIn: parent
+        BrandMark {
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: 10
+            width: 18
+            height: 18
+            base: "#12130f"
+            accent: "#12130f"
+        }
+        BrandWordmark {
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenterOffset: 1
+            y: 52
+            height: 11
             rotation: -90
-            text: "Brim"
-            color: "#12130f"
-            font.pixelSize: 13
-            font.bold: true
+            dark: false
         }
         MouseArea {
             id: tabArea

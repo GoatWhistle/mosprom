@@ -12,7 +12,7 @@ Rectangle {
 
     width: parent ? parent.width : 300
     height: column.height + 12
-    radius: 10
+    radius: 0
     color: failed ? Qt.rgba(1, 0.45, 0.4, 0.08) : "transparent"
     border.width: failed ? 1 : 0
     border.color: c.danger
@@ -37,7 +37,7 @@ Rectangle {
                     color: root.c.accent
                     track: Qt.rgba(0.5, 0.5, 0.5, 0.25)
                 }
-                Text {
+                BrimText {
                     id: mark
                     anchors.centerIn: parent
                     visible: !root.running
@@ -47,7 +47,7 @@ Rectangle {
                     font.bold: true
                 }
             }
-            Text {
+            BrimText {
                 text: (root.entry.server && root.entry.server !== "brim" ? root.entry.server + " · " : "")
                       + (root.entry.server === "brim" ? (root.t["tool_" + root.entry.tool] || root.entry.tool) : root.entry.tool)
                       + " · " + (root.t[root.statusKey] || root.entry.status)

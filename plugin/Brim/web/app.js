@@ -5,6 +5,7 @@ import { buildEntry } from "./entries.js";
 import { renderHeader, renderSidebar } from "./chrome.js";
 import { renderSettings, settingsDraft } from "./settings.js";
 import { renderStatus, tickClocks } from "./status.js";
+import { layerSweep, scrambleText } from "./motion.js";
 
 const OFFLINE = {
   ru: { connecting: "Подключаюсь к слайсеру…", no_token: "Откройте чат из меню слайсера: Brim → Открыть в браузере" },
@@ -20,7 +21,7 @@ const ui = {
   jump: $("jump"), mode: $("mode"),
 };
 const state = { view: null, expanded: {}, rendered: [], conversation: "\u0000", draftRev: -1, draftTimer: null,
-  followEnd: true, settings: null, uploading: [] };
+  followEnd: true, settings: null, uploading: [], theme: null, language: null };
 
 function offline() {
   return OFFLINE[navigator.language && navigator.language.startsWith("ru") ? "ru" : "en"];
@@ -128,8 +129,14 @@ function renderComposer(view) {
 
 function render(view) {
   state.view = view;
-  document.documentElement.lang = view.language === "en" ? "en" : "ru";
-  document.documentElement.dataset.theme = view.theme === "light" ? "light" : "dark";
+  const language = view.language === "en" ? "en" : "ru";
+  const theme = view.theme === "light" ? "light" : "dark";
+  const relabel = state.language !== null && state.language !== language;
+  state.language = language;
+  document.documentElement.lang = language;
+  if (state.theme === null) document.documentElement.dataset.theme = theme;
+  else if (state.theme !== theme) layerSweep(theme, () => { document.documentElement.dataset.theme = theme; });
+  state.theme = theme;
   $("empty-title").textContent = view.t.empty_title;
   $("empty-body").textContent = view.t.empty_body;
   $("jump").textContent = "↓  " + view.t.new_messages;
@@ -139,6 +146,7 @@ function render(view) {
   renderStatus(ui.status, view, showError);
   renderComposer(view);
   if (state.settings) renderSettings(ui.settingsHost, view, state.settings, closeSettings, showError);
+  if (relabel) scrambleText();
 }
 
 function scheduleDraft() {
