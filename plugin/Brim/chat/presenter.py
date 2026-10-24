@@ -30,7 +30,7 @@ class ChatPresenter(object):
         self._messaging = ChatMessaging(self.state, settings, loop, lambda: self._conversation, self._submit,
                                         self._post, self._notice, self._strings, self._changed)
         self._switching = ProjectSwitching(self.state, workspace, self._submit, self._notice, self._strings,
-                                           self._select, self._messaging.stop_then)
+                                           self._select, self._messaging.stop_then, self._messaging.when_idle)
         self._exporter = ChatExporter(self.state, settings, self._store, self._submit, self._notice, self._strings,
                                       self.open_path)
         self._autosave = WorkspaceAutosave(self.state, workspace, self._submit, self._notice, self._strings,
@@ -234,6 +234,9 @@ class ChatPresenter(object):
 
     def apply_settings(self, llm_url, llm_model, llm_key, language, theme):
         return self._preferences.apply(llm_url, llm_model, llm_key, language, theme)
+
+    def set_interface(self, language, theme):
+        self._preferences.set_interface(language, theme)
 
     def add_server(self, name, url, header):
         return self._preferences.add_server(name, url, header)

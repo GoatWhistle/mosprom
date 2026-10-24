@@ -1,0 +1,54 @@
+:root {
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-48: 48px;
+  --space-64: 64px;
+
+  --space-page: var(--space-20);
+  --space-page-narrow: var(--space-16);
+  --space-card: var(--space-16);
+  --space-element: var(--space-12);
+
+  --hairline: 1px;
+  --optical-lift: 1px;
+  --target-min: 44px;
+  --control-height: 44px;
+  --control-height-compact: 36px;
+  --control-height-mini: 28px;
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+  --icon-xl: 48px;
+  --icon-stroke: 1.75;
+  --focus-ring-width: 2px;
+  --stroke-wave: 3px;
+  --focus-ring-offset: 2px;
+  --scrollbar-size: 10px;
+  --scrollbar-gutter: 2px;
+  --header-height: 64px;
+  --state-min-height: 160px;
+  --term-min: 120px;
+  --prose-measure: 70ch;
+  --field-max-width: 480px;
+
+  --sidebar-width: 264px;
+  --sidebar-rail: 76px;
+  --drawer-width: 480px;
+  --chat-measure: 880px;
+  --composer-min-height: 48px;
+  --composer-max-height: 200px;
+  --chip-max-width: 240px;
+  --progress-height: 4px;
+  --status-dot: 8px;
+  --mark-empty: 64px;
+  --agent-indent: calc(var(--icon-md) + var(--space-12));
+  --switch-width: 36px;
+  --switch-height: 20px;
+}

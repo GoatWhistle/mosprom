@@ -229,6 +229,23 @@ class SwitchingTests(unittest.TestCase):
         self.assertTrue(presenter.loop.turns[0].cancelled)
         self.assertEqual(presenter.state.conversation_id, c1)
 
+    def test_pending_switch_runs_when_the_turn_ends(self):
+        presenter, _, _, c1, c2 = two_projects()
+        presenter.send("go")
+        presenter.open_conversation(c1)
+        self.assertTrue(presenter.view()["switch_prompt"])
+        presenter.loop.turns[0].emit("finished")
+        self.assertFalse(presenter.view()["switch_prompt"])
+        self.assertEqual(presenter.state.conversation_id, c1)
+
+    def test_dismissed_switch_stays_on_the_chat(self):
+        presenter, _, _, c1, c2 = two_projects()
+        presenter.send("go")
+        presenter.open_conversation(c1)
+        presenter.cancel_switch()
+        presenter.loop.turns[0].emit("finished")
+        self.assertEqual(presenter.state.conversation_id, c2)
+
     def test_stop_and_switch_waits_for_a_running_tool(self):
         presenter, _, _, c1, c2 = two_projects()
         presenter.send("go")

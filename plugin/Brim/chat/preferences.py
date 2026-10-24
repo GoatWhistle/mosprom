@@ -29,6 +29,11 @@ class ChatPreferences(object):
         self._report(None)
         return True
 
+    def set_interface(self, language, theme):
+        self._settings.set_language(language)
+        self._settings.set_theme(theme)
+        self._changed()
+
     def add_server(self, name, url, header):
         try:
             self._settings.add_mcp_server(name, url, header)

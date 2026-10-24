@@ -1,0 +1,100 @@
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --surface-base: var(--paper-50);
+  --surface-light-base: var(--paper-50);
+  --surface-dark-base: var(--graphite-900);
+  --surface-raised: var(--paper-0);
+  --surface-raised-hover: color-mix(in oklab, var(--paper-0), var(--graphite-900) 4%);
+  --surface-sunken: var(--paper-100);
+  --surface-selected: color-mix(in oklab, var(--paper-0), var(--ste-500) 9%);
+  --surface-indicator: var(--paper-0);
+  --surface-skeleton: color-mix(in oklab, var(--paper-50), var(--graphite-900) 7%);
+  --surface-user: var(--ste-100);
+  --surface-accent-wash: color-mix(in oklab, var(--ste-500) 8%, transparent);
+  --surface-danger-wash: color-mix(in oklab, var(--red-700) 7%, transparent);
+  --surface-scrim: color-mix(in oklab, var(--graphite-950) 40%, transparent);
+  --surface-overlay: color-mix(in oklab, var(--paper-50) 94%, transparent);
+
+  --text-primary: var(--graphite-850);
+  --text-secondary: var(--slate-600);
+  --text-muted: var(--slate-550);
+  --text-disabled: color-mix(in oklab, var(--graphite-850) 38%, var(--paper-50));
+  --text-accent: var(--ste-700);
+  --text-danger: var(--red-700);
+  --text-success: var(--green-700);
+  --text-warning: var(--yellow-700);
+  --text-on-user: var(--ste-900);
+
+  --action-primary: var(--ste-500);
+  --action-primary-hover: var(--ste-600);
+  --action-primary-press: var(--ste-700);
+  --action-primary-text: var(--paper-0);
+  --action-ghost-hover: color-mix(in oklab, var(--graphite-900) 6%, transparent);
+  --action-ghost-press: color-mix(in oklab, var(--graphite-900) 11%, transparent);
+  --action-disabled: var(--paper-100);
+
+  --border-subtle: color-mix(in oklab, var(--graphite-900) 11%, transparent);
+  --border-strong: color-mix(in oklab, var(--graphite-900) 22%, transparent);
+
+  --status-danger: var(--red-700);
+  --status-success: var(--green-700);
+  --status-warning: var(--yellow-700);
+  --status-neutral: var(--slate-550);
+
+  --focus-ring: var(--ste-500);
+  --shadow-color: color-mix(in oklab, var(--graphite-950) 12%, transparent);
+  --scrollbar-thumb: color-mix(in oklab, var(--graphite-900) 24%, transparent);
+  --scrollbar-thumb-hover: color-mix(in oklab, var(--graphite-900) 42%, transparent);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --surface-base: var(--graphite-900);
+  --surface-light-base: var(--paper-50);
+  --surface-dark-base: var(--graphite-900);
+  --surface-raised: var(--graphite-850);
+  --surface-raised-hover: color-mix(in oklab, var(--graphite-850), var(--frost-100) 5%);
+  --surface-sunken: var(--graphite-950);
+  --surface-selected: var(--graphite-800);
+  --surface-indicator: var(--graphite-800);
+  --surface-skeleton: color-mix(in oklab, var(--graphite-850), var(--frost-100) 8%);
+  --surface-user: var(--ste-800);
+  --surface-accent-wash: color-mix(in oklab, var(--ste-300) 11%, transparent);
+  --surface-danger-wash: color-mix(in oklab, var(--red-300) 9%, transparent);
+  --surface-scrim: color-mix(in oklab, var(--graphite-950) 64%, transparent);
+  --surface-overlay: color-mix(in oklab, var(--graphite-900) 94%, transparent);
+
+  --text-primary: var(--frost-100);
+  --text-secondary: var(--slate-300);
+  --text-muted: var(--slate-400);
+  --text-disabled: color-mix(in oklab, var(--frost-100) 38%, var(--graphite-900));
+  --text-accent: var(--ste-300);
+  --text-danger: var(--red-300);
+  --text-success: var(--green-300);
+  --text-warning: var(--yellow-300);
+  --text-on-user: var(--ste-50);
+
+  --action-primary: var(--ste-500);
+  --action-primary-hover: var(--ste-600);
+  --action-primary-press: var(--ste-700);
+  --action-primary-text: var(--paper-0);
+  --action-ghost-hover: color-mix(in oklab, var(--frost-100) 8%, transparent);
+  --action-ghost-press: color-mix(in oklab, var(--frost-100) 14%, transparent);
+  --action-disabled: var(--graphite-800);
+
+  --border-subtle: color-mix(in oklab, var(--frost-100) 12%, transparent);
+  --border-strong: color-mix(in oklab, var(--frost-100) 24%, transparent);
+
+  --status-danger: var(--red-300);
+  --status-success: var(--green-300);
+  --status-warning: var(--yellow-300);
+  --status-neutral: var(--slate-400);
+
+  --focus-ring: var(--ste-300);
+  --shadow-color: color-mix(in oklab, var(--graphite-950) 70%, transparent);
+  --scrollbar-thumb: color-mix(in oklab, var(--frost-100) 22%, transparent);
+  --scrollbar-thumb-hover: color-mix(in oklab, var(--frost-100) 40%, transparent);
+}

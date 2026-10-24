@@ -1,0 +1,197 @@
+.drawer {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-end: 0;
+  z-index: var(--layer-dialog);
+  display: flex;
+  flex-direction: column;
+  inline-size: min(var(--drawer-width), 100vw);
+  border-inline-start: var(--hairline) solid var(--border-subtle);
+  background-color: var(--surface-base);
+  box-shadow: var(--shadow-float);
+  animation: var(--motion-drawer-in);
+}
+
+.drawer-head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  min-block-size: var(--header-height);
+  padding-inline: var(--space-24) var(--space-12);
+  border-block-end: var(--hairline) solid var(--border-subtle);
+  background-color: var(--surface-raised);
+}
+
+.drawer-title {
+  font-size: var(--font-size-subheading);
+  line-height: var(--line-height-subheading);
+}
+
+.drawer-body {
+  display: grid;
+  flex: 1;
+  align-content: start;
+  gap: var(--space-32);
+  min-block-size: 0;
+  padding: var(--space-24);
+  overflow-y: auto;
+}
+
+.settings-section {
+  display: grid;
+  gap: var(--space-16);
+}
+
+.settings-heading {
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+}
+
+.settings-panel {
+  display: grid;
+  gap: var(--space-16);
+  padding: var(--space-16);
+  border: var(--hairline) solid var(--border-subtle);
+  background-color: var(--surface-raised);
+}
+
+.settings-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  min-inline-size: 0;
+  padding-block-end: var(--space-12);
+  border-block-end: var(--hairline) solid var(--border-subtle);
+}
+
+.settings-status-text {
+  min-inline-size: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-label);
+  line-height: var(--line-height-label);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.settings-status-ok {
+  color: var(--text-success);
+}
+
+.settings-status-warning {
+  color: var(--text-warning);
+}
+
+.settings-status-error {
+  color: var(--text-danger);
+}
+
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.settings-saved {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  color: var(--text-success);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  animation: var(--motion-fade-in);
+}
+
+.settings-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  font-size: var(--font-size-label);
+  line-height: var(--line-height-label);
+}
+
+.settings-row + .settings-row {
+  padding-block-start: var(--space-16);
+  border-block-start: var(--hairline) solid var(--border-subtle);
+}
+
+.server-list {
+  display: grid;
+  border: var(--hairline) solid var(--border-subtle);
+  background-color: var(--surface-raised);
+}
+
+.server {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-12);
+  min-block-size: var(--target-min);
+  padding: var(--space-12) var(--space-12) var(--space-12) var(--space-16);
+}
+
+.server + .server {
+  border-block-start: var(--hairline) solid var(--border-subtle);
+}
+
+.server-text {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.server-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--font-size-label);
+  font-weight: var(--weight-medium);
+  line-height: var(--line-height-label);
+}
+
+.server-badge {
+  padding: 0 var(--space-8);
+  border-radius: var(--radius-pill);
+  background-color: var(--surface-sunken);
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-caption);
+}
+
+.server-meta {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.server-meta-error {
+  color: var(--text-danger);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.server-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.server-form {
+  animation: var(--motion-rise-in);
+}
+
+.settings-port {
+  color: var(--text-muted);
+}
+
+.settings-section > .button {
+  justify-self: start;
+}

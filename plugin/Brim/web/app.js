@@ -1,200 +1,175 @@
 import { action, openPath, poll, token, upload } from "./api.js";
-import { chip, h } from "./dom.js";
+import { brandLockup, brandMark } from "./brand.js";
+import { h } from "./dom.js";
+import { renderComposer, syncSend } from "./composer.js";
 import { bindDrop } from "./drop.js";
-import { buildEntry } from "./entries.js";
+import { renderEmpty } from "./empty.js";
 import { renderHeader, renderSidebar } from "./chrome.js";
-import { renderSettings, settingsDraft } from "./settings.js";
+import { hydrateIcons, icon } from "./icons.js";
+import { renderSettings, resetSettings, settingsDraft } from "./settings.js";
 import { renderStatus, tickClocks } from "./status.js";
-import { layerSweep, scrambleText } from "./motion.js";
+import { leave, readMs, scrambleText, switchTheme, warmMotion } from "./motion.js";
+import { offline, setBanner } from "./banner.js";
+import { createTimeline } from "./timeline.js";
+import { createPanels } from "./panels.js";
 
-const OFFLINE = {
-  ru: { connecting: "Подключаюсь к слайсеру…", no_token: "Откройте чат из меню слайсера: Brim → Открыть в браузере" },
-  en: { connecting: "Connecting to the slicer…", no_token: "Open the chat from the slicer menu: Brim → Open in browser" },
-};
 const DRAFT_DELAY_MS = 300;
 
 const $ = (id) => document.getElementById(id);
 const ui = {
   app: $("app"), sidebar: $("sidebar"), scrim: $("scrim"), chatList: $("chat-list"), timeline: $("timeline"),
   entries: $("entries"), empty: $("empty"), input: $("input"), attachments: $("attachments"), status: $("status-area"),
-  banner: $("banner"), file: $("file"), drop: $("drop"), settingsHost: $("settings-host"), skill: $("skill"),
-  jump: $("jump"), mode: $("mode"),
+  banner: $("banner"), bannerSlot: $("banner-slot"), file: $("file"), drop: $("drop"), settingsHost: $("settings-host"),
+  skill: $("skill"), jump: $("jump"), splash: $("splash"), suggestions: $("suggestions"),
 };
 const state = { view: null, expanded: {}, rendered: [], conversation: "\u0000", draftRev: -1, draftTimer: null,
-  followEnd: true, settings: null, uploading: [], theme: null, language: null };
+  followEnd: true, settings: null, pendingTheme: null, switching: false, queued: null, uploading: [], theme: null, language: null };
 
-function offline() {
-  return OFFLINE[navigator.language && navigator.language.startsWith("ru") ? "ru" : "en"];
-}
+const showBanner = (text, kind) => setBanner(ui.bannerSlot, ui.banner, text, kind);
 
 function showError(error) {
-  ui.banner.hidden = false;
-  ui.banner.textContent = state.view ? (state.view.t.error || "") + ": " + error.message : error.message;
+  showBanner(state.view ? (state.view.t.error || "") + ": " + error.message : error.message, "danger");
   clearTimeout(showError.timer);
-  showError.timer = setTimeout(() => { showError.timer = null; ui.banner.hidden = true; }, 6000);
+  showError.timer = setTimeout(() => { showError.timer = null; showBanner(""); }, readMs("--dur-banner"));
+}
+
+function fillInput(text) {
+  ui.input.value = text;
+  ui.input.focus();
+  ui.input.setSelectionRange(text.length, text.length);
+  scheduleDraft();
 }
 
 const ctx = {
   get view() { return state.view; },
   get t() { return state.view.t; },
   isExpanded: (key) => !!state.expanded[key],
-  toggle: (key) => { state.expanded[key] = !state.expanded[key]; state.rendered = []; renderEntries(); },
-  pickOption: (line) => {
-    ui.input.value = ui.input.value === "" ? line : ui.input.value + "\n" + line;
-    ui.input.focus();
-    scheduleDraft();
+  setExpanded: (key, value) => { state.expanded[key] = value; },
+  pickOption: (line, single) => {
+    if (single && !ui.input.value.trim()) {
+      ui.input.value = line;
+      send();
+      return;
+    }
+    fillInput(ui.input.value.trim() === "" ? line : ui.input.value + "\n" + line);
   },
   confirm: (decision) => action("confirm", decision, ui.input.value).catch(showError),
   openFolder: (path) => openPath(path).catch(showError),
 };
 
-function atEnd() {
-  const node = ui.timeline;
-  return node.scrollHeight - node.scrollTop - node.clientHeight < 24;
+const timeline = createTimeline(ui, state, ctx);
+const panels = createPanels(ui, state);
+const closeDrawer = panels.closeDrawer;
+
+function applyTheme(theme, after) {
+  const set = () => {
+    document.documentElement.dataset.theme = theme;
+    if (after) after();
+  };
+  if (state.theme === null) set();
+  else if (state.theme !== theme) {
+    state.switching = true;
+    switchTheme(theme, set).finally(() => {
+      state.switching = false;
+      const queued = state.queued;
+      state.queued = null;
+      if (queued) render(queued);
+    });
+  } else if (after) after();
+  state.theme = theme;
 }
 
-function scrollToEnd() {
-  ui.timeline.scrollTop = ui.timeline.scrollHeight;
-  state.followEnd = true;
-  ui.jump.hidden = true;
+function previewTheme(theme, after) {
+  state.pendingTheme = theme;
+  applyTheme(theme, after);
 }
 
-function renderEntries() {
-  const entries = state.view.entries || [];
-  const switched = state.view.conversation_id !== state.conversation;
-  if (switched) {
-    state.conversation = state.view.conversation_id;
-    state.rendered = [];
-    ui.entries.replaceChildren();
-  }
-  const follow = switched || state.followEnd;
-  let keep = 0;
-  while (keep < entries.length && keep < state.rendered.length && state.rendered[keep].key === entries[keep].key) keep++;
-  const nodes = Array.from(ui.entries.children);
-  for (let index = 0; index < keep; index++) {
-    const payload = JSON.stringify(entries[index]);
-    if (state.rendered[index].payload !== payload) {
-      const node = buildEntry(entries[index], ctx);
-      nodes[index].replaceWith(node);
-      state.rendered[index] = { key: entries[index].key, payload };
-    }
-  }
-  for (const node of nodes.slice(keep)) node.remove();
-  state.rendered.length = keep;
-  for (let index = keep; index < entries.length; index++) {
-    const node = buildEntry(entries[index], ctx);
-    if (!switched) node.classList.add("fresh");
-    ui.entries.append(node);
-    state.rendered.push({ key: entries[index].key, payload: JSON.stringify(entries[index]) });
-  }
-  ui.empty.hidden = entries.length > 0;
-  if (follow) scrollToEnd();
-  else if (entries.length > keep) ui.jump.hidden = false;
+const settingsHandlers = { close: () => closeSettings(), report: (error) => { state.pendingTheme = null; showError(error); },
+  previewTheme };
+
+function receive(view) {
+  if (state.switching) state.queued = view;
+  else render(view);
 }
 
-function renderComposer(view) {
-  const t = view.t;
-  if (view.draft_rev !== state.draftRev) {
-    state.draftRev = view.draft_rev;
-    if (document.activeElement !== ui.input || view.draft === "") ui.input.value = view.draft || "";
-  }
-  ui.input.placeholder = t.placeholder;
-  ui.input.setAttribute("aria-label", t.placeholder);
-  $("composer-hint").textContent = t.composer_hint;
-  $("drop-text").textContent = t.drop_files;
-  const attach = $("attach");
-  attach.disabled = !!view.busy;
-  attach.title = t.attach_hint;
-  attach.setAttribute("aria-label", t.attach);
-  $("send").hidden = !!view.run_active;
-  $("send").disabled = !!view.busy;
-  $("send").setAttribute("aria-label", t.send);
-  $("stop").hidden = !view.run_active;
-  $("stop").disabled = !!view.stopping;
-  $("stop").setAttribute("aria-label", t.stop);
-  const chips = (view.attachments || []).map((item, index) => chip(item.name,
-    () => action("removeAttachment", index).catch(showError), t.remove));
-  ui.attachments.replaceChildren(...chips, ...state.uploading.map((name) => {
-    const node = chip(name);
-    node.classList.add("uploading");
-    return node;
-  }));
-  const options = view.skill_options || [];
-  ui.skill.hidden = options.length === 0;
-  ui.skill.title = t.skill_hint;
-  ui.skill.setAttribute("aria-label", t.skill_hint);
-  ui.skill.replaceChildren(...options.map((item) => h("option", { value: item.name, text: item.title })));
-  ui.skill.value = view.skill || "";
+function hideSplash() {
+  if (!ui.splash) return;
+  const splash = ui.splash;
+  ui.splash = null;
+  leave(splash, () => splash.remove());
 }
 
 function render(view) {
   state.view = view;
   const language = view.language === "en" ? "en" : "ru";
-  const theme = view.theme === "light" ? "light" : "dark";
+  const served = view.theme === "light" ? "light" : "dark";
+  if (state.pendingTheme === served) state.pendingTheme = null;
+  const theme = state.pendingTheme || served;
   const relabel = state.language !== null && state.language !== language;
   state.language = language;
   document.documentElement.lang = language;
-  if (state.theme === null) document.documentElement.dataset.theme = theme;
-  else if (state.theme !== theme) layerSweep(theme, () => { document.documentElement.dataset.theme = theme; });
-  state.theme = theme;
+  applyTheme(theme);
   $("empty-title").textContent = view.t.empty_title;
-  $("empty-body").textContent = view.t.empty_body;
-  $("jump").textContent = "↓  " + view.t.new_messages;
+  renderEmpty(ui.suggestions, view, fillInput);
+  ui.jump.replaceChildren(icon("down", "sm"), h("span", { text: view.t.new_messages }));
   renderSidebar(view, ui.chatList, { open: (id) => { closeDrawer(); action("openChat", id).catch(showError); } });
-  renderHeader(view, ui.mode, (mode) => action("setMode", mode).catch(showError));
-  renderEntries();
+  renderHeader(view, (mode) => action("setMode", mode).catch(showError));
+  timeline.render();
   renderStatus(ui.status, view, showError);
-  renderComposer(view);
-  if (state.settings) renderSettings(ui.settingsHost, view, state.settings, closeSettings, showError);
+  renderComposer(ui, view, state, showError);
+  if (state.settings) renderSettings(ui.settingsHost, view, state.settings, settingsHandlers);
+  panels.label();
   if (relabel) scrambleText();
+  hideSplash();
 }
 
 function scheduleDraft() {
   clearTimeout(state.draftTimer);
   state.draftTimer = setTimeout(() => action("setDraft", ui.input.value).catch(() => {}), DRAFT_DELAY_MS);
+  if (state.view) syncSend(ui, state.view, state);
 }
 
 function send() {
   if (!state.view || state.view.busy || state.view.run_active) return;
   clearTimeout(state.draftTimer);
   action("send", ui.input.value).catch(showError);
-  scrollToEnd();
+  timeline.scrollToEnd();
 }
 
 async function attachFiles(files) {
   for (const file of Array.from(files)) {
     state.uploading.push(file.name);
-    if (state.view) renderComposer(state.view);
+    if (state.view) renderComposer(ui, state.view, state, showError);
     try {
       await upload(file);
     } catch (error) {
       showError(new Error((state.view ? state.view.t.upload_failed : "Upload failed") + " — " + file.name + ": " + error.message));
     } finally {
       state.uploading.splice(state.uploading.indexOf(file.name), 1);
-      if (state.view) renderComposer(state.view);
+      if (state.view) renderComposer(ui, state.view, state, showError);
     }
   }
   ui.input.focus();
 }
 
 function openSettings() {
-  if (!state.view) return;
+  if (!state.view || state.settings) return;
   state.settings = settingsDraft(state.view);
   ui.settingsHost.hidden = false;
-  renderSettings(ui.settingsHost, state.view, state.settings, closeSettings, showError);
+  renderSettings(ui.settingsHost, state.view, state.settings, settingsHandlers);
   const first = ui.settingsHost.querySelector("input");
   if (first) first.focus();
 }
 
 function closeSettings() {
+  if (!state.settings) return;
   state.settings = null;
-  ui.settingsHost.hidden = true;
-  ui.settingsHost.replaceChildren();
-}
-
-function closeDrawer() {
-  ui.app.classList.remove("drawer-open");
-  ui.scrim.hidden = true;
+  leave(ui.settingsHost, () => {
+    if (state.settings) return;
+    ui.settingsHost.hidden = true;
+    resetSettings(ui.settingsHost);
+  });
+  $("settings").focus();
 }
 
 function bind() {
@@ -211,11 +186,12 @@ function bind() {
   $("new-from-scene").addEventListener("click", () => { closeDrawer(); action("newChatFromScene").catch(showError); });
   $("settings").addEventListener("click", openSettings);
   $("open-folder").addEventListener("click", () => action("openFolder").catch(showError));
-  $("menu").addEventListener("click", () => { ui.app.classList.add("drawer-open"); ui.scrim.hidden = false; });
+  $("menu").addEventListener("click", panels.openDrawer);
+  $("sidebar-toggle").addEventListener("click", panels.toggle);
   ui.scrim.addEventListener("click", closeDrawer);
-  ui.jump.addEventListener("click", scrollToEnd);
+  ui.jump.addEventListener("click", timeline.scrollToEnd);
   ui.timeline.addEventListener("scroll", () => {
-    state.followEnd = atEnd();
+    state.followEnd = timeline.atEnd();
     if (state.followEnd) ui.jump.hidden = true;
   });
   document.addEventListener("keydown", (event) => {
@@ -226,20 +202,31 @@ function bind() {
   setInterval(() => tickClocks(ui.status), 250);
 }
 
-bind();
-if (!token) {
-  ui.banner.hidden = false;
-  ui.banner.textContent = offline().no_token;
-} else {
-  ui.banner.hidden = false;
-  ui.banner.textContent = offline().connecting;
-  poll(render, (error) => {
+function boot() {
+  hydrateIcons(document.body);
+  requestAnimationFrame(warmMotion);
+  $("brand").replaceChildren(brandLockup("intro"));
+  $("empty-mark").replaceWith(brandMark("intro"));
+  $("splash-mark").replaceWith(brandMark(token ? "loop" : null));
+  panels.restore();
+  bind();
+  if (!token) {
+    $("splash").dataset.kind = "error";
+    $("splash-text").textContent = offline().no_token;
+    return;
+  }
+  $("splash-text").textContent = offline().connecting;
+  poll(receive, (error) => {
     if (!error) {
-      if (!showError.timer) ui.banner.hidden = true;
+      if (!showError.timer) showBanner("");
       return;
     }
-    ui.banner.hidden = false;
-    ui.banner.textContent = error.status === 401 ? offline().no_token
-      : state.view ? state.view.t.connection_lost : offline().connecting;
+    const text = error.status === 401 ? offline().no_token : state.view ? state.view.t.connection_lost : offline().connecting;
+    if (ui.splash) {
+      ui.splash.dataset.kind = error.status === 401 ? "error" : "";
+      $("splash-text").textContent = text;
+    } else showBanner(text, error.status === 401 ? "danger" : "");
   });
 }
+
+boot();

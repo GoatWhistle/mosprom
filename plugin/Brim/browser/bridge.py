@@ -22,6 +22,7 @@ ACTIONS = {
     "stop": ("stop", ()),
     "openFolder": ("openFolder", ()),
     "applySettings": ("applySettings", (str, str, str, str, str)),
+    "setInterface": ("setInterface", (str, str)),
     "addServer": ("addServer", (str, str, str)),
     "toggleServer": ("toggleServer", (str, bool)),
     "removeServer": ("removeServer", (str,)),

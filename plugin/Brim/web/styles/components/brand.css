@@ -1,0 +1,80 @@
+.brand-mark {
+  display: block;
+  flex: none;
+  inline-size: var(--mark-size, var(--icon-lg));
+  block-size: var(--mark-size, var(--icon-lg));
+  overflow: visible;
+}
+
+.brand-base {
+  fill: var(--text-primary);
+}
+
+.brand-accent {
+  fill: var(--action-primary);
+}
+
+.brand-part,
+.brand-ring {
+  transform-box: view-box;
+  transform-origin: center;
+}
+
+.brand-intro .brand-part {
+  animation: var(--motion-brim-part);
+}
+
+.brand-intro .brand-ring {
+  animation: var(--motion-brim-ring-in);
+  animation-delay: calc(var(--stagger-ring) * var(--ring-index));
+}
+
+.brand-loop .brand-ring {
+  animation: var(--motion-brim-ring-loop);
+  animation-delay: calc(var(--stagger-ring) * var(--ring-index));
+}
+
+.brand-word {
+  display: block;
+  inline-size: auto;
+  block-size: var(--word-size, var(--icon-md));
+  overflow: visible;
+}
+
+.brand-word-stroke {
+  fill: none;
+  stroke: var(--text-primary);
+  stroke-linejoin: round;
+}
+
+.brand-word-dot {
+  fill: var(--text-primary);
+}
+
+.brand-lockup {
+  --lockup-mark: var(--space-32);
+
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--lockup-mark) * 0.25);
+}
+
+.brand-lockup .brand-mark {
+  --mark-size: var(--lockup-mark);
+}
+
+.brand-lockup .brand-word {
+  --word-size: calc(var(--lockup-mark) * 0.62);
+}
+
+.spinner {
+  --mark-size: var(--icon-sm);
+
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+}
+
+.spinner-md {
+  --mark-size: var(--icon-md);
+}

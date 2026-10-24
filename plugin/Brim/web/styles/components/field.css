@@ -1,0 +1,70 @@
+.field {
+  display: grid;
+  gap: var(--space-4);
+  max-inline-size: var(--field-max-width);
+}
+
+.field-label {
+  color: var(--text-secondary);
+  font-size: var(--font-size-label);
+  line-height: var(--line-height-label);
+}
+
+.field-required {
+  margin-inline-start: var(--space-2);
+  color: var(--text-danger);
+  font-weight: var(--weight-medium);
+}
+
+.field-hint {
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+}
+
+.field-input {
+  inline-size: 100%;
+  block-size: var(--control-height-compact);
+  padding-block: 0 calc(var(--optical-lift) * 2);
+  padding-inline: var(--space-16);
+  border: var(--hairline) solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background-color: var(--surface-raised);
+  font-size: var(--font-size-body-sm);
+  line-height: var(--line-height-body-sm);
+  transition: var(--transition-surface);
+}
+
+.field-input::placeholder {
+  color: var(--text-muted);
+}
+
+.field-input:focus {
+  border-color: var(--action-primary);
+  outline: none;
+}
+
+.field-input:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: calc(var(--hairline) * -1);
+}
+
+.select {
+  min-block-size: var(--control-height-mini);
+  max-inline-size: var(--chip-max-width);
+  padding-inline: var(--space-12) var(--space-8);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background-color: var(--surface-sunken);
+  color: var(--text-secondary);
+  font-size: var(--font-size-label);
+  line-height: var(--line-height-label);
+  cursor: pointer;
+  transition: var(--transition-control);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .select:hover {
+    color: var(--text-primary);
+  }
+}

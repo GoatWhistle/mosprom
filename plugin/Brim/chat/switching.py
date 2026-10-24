@@ -2,7 +2,7 @@ from ..workspace.service import WorkspaceError
 
 
 class ProjectSwitching(object):
-    def __init__(self, state, workspace, submit, notice, strings, select, stop_turn):
+    def __init__(self, state, workspace, submit, notice, strings, select, stop_turn, when_idle):
         self._state = state
         self._workspace = workspace
         self._submit = submit
@@ -10,6 +10,7 @@ class ProjectSwitching(object):
         self._strings = strings
         self._select = select
         self._stop_turn = stop_turn
+        self._when_idle = when_idle
 
     def _changed(self):
         self._notice(self._state.notice)
@@ -27,8 +28,15 @@ class ProjectSwitching(object):
         request = {"target": target_id, "create": create_mode, "adopt": adopt}
         if state.running:
             state.switch_prompt = request
+            self._when_idle(lambda: self._resume(request))
             self._changed()
             return
+        self._begin(request)
+
+    def _resume(self, request):
+        if self._state.switch_prompt is not request:
+            return
+        self._state.switch_prompt = None
         self._begin(request)
 
     def cancel_prompt(self):

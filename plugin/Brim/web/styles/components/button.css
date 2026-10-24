@@ -1,0 +1,168 @@
+.button {
+  --button-surface: var(--action-primary);
+  --button-surface-hover: var(--action-primary-hover);
+  --button-surface-press: var(--action-primary-press);
+  --button-text: var(--action-primary-text);
+  --button-height: var(--control-height);
+  --button-padding: var(--space-20);
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  min-block-size: var(--button-height);
+  padding-block: 0 var(--optical-lift);
+  padding-inline: var(--button-padding);
+  border-radius: var(--radius-pill);
+  background-color: var(--button-surface);
+  color: var(--button-text);
+  font-size: var(--font-size-label);
+  font-weight: var(--weight-medium);
+  line-height: var(--line-height-label);
+  text-decoration: none;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: var(--transition-control);
+}
+
+.button::before {
+  content: "";
+  position: absolute;
+  inset-block: calc((var(--button-height) - var(--target-min)) / 2);
+  inset-inline: 0;
+}
+
+.button-secondary {
+  --button-surface: transparent;
+  --button-surface-hover: var(--action-ghost-hover);
+  --button-surface-press: var(--action-ghost-press);
+  --button-text: var(--text-primary);
+
+  box-shadow: var(--shadow-ring);
+}
+
+.button-ghost {
+  --button-surface: transparent;
+  --button-surface-hover: var(--action-ghost-hover);
+  --button-surface-press: var(--action-ghost-press);
+  --button-text: var(--text-primary);
+  --button-padding: var(--space-12);
+}
+
+.button-danger {
+  --button-surface: transparent;
+  --button-surface-hover: var(--surface-danger-wash);
+  --button-surface-press: var(--surface-danger-wash);
+  --button-text: var(--text-danger);
+
+  box-shadow: var(--shadow-ring);
+}
+
+.button-compact {
+  --button-height: var(--control-height-compact);
+  --button-padding: var(--space-16);
+}
+
+.button-ghost.button-compact {
+  --button-padding: var(--space-8);
+}
+
+.button-block {
+  inline-size: 100%;
+}
+
+.button-start {
+  justify-content: flex-start;
+}
+
+.button .icon {
+  margin-inline-start: calc(var(--space-4) * -1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .button:hover:not(:disabled, [aria-disabled="true"]) {
+    background-color: var(--button-surface-hover);
+  }
+}
+
+.button:active:not(:disabled, [aria-disabled="true"]) {
+  background-color: var(--button-surface-press);
+  scale: var(--press-scale);
+  transition: var(--transition-control-press);
+}
+
+.button:disabled {
+  --button-surface: var(--action-disabled);
+  --button-text: var(--text-disabled);
+
+  box-shadow: none;
+}
+
+.button-secondary:disabled,
+.button-ghost:disabled,
+.button-danger:disabled {
+  --button-surface: transparent;
+}
+
+.icon-button {
+  --button-size: var(--control-height-compact);
+
+  position: relative;
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  inline-size: var(--button-size);
+  block-size: var(--button-size);
+  border-radius: var(--radius-pill);
+  color: var(--text-secondary);
+  -webkit-tap-highlight-color: transparent;
+  transition: var(--transition-control);
+}
+
+.icon-button::before {
+  content: "";
+  position: absolute;
+  inset: calc((var(--button-size) - var(--target-min)) / 2);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .icon-button:hover:not(:disabled) {
+    background-color: var(--action-ghost-hover);
+    color: var(--text-primary);
+  }
+
+  .icon-button-primary:hover:not(:disabled) {
+    background-color: var(--action-primary-hover);
+    color: var(--action-primary-text);
+  }
+}
+
+.icon-button:active:not(:disabled) {
+  background-color: var(--action-ghost-press);
+  scale: var(--press-scale);
+  transition: var(--transition-control-press);
+}
+
+.icon-button-ring {
+  box-shadow: var(--shadow-ring);
+  color: var(--text-primary);
+}
+
+.icon-button-primary {
+  background-color: var(--action-primary);
+  color: var(--action-primary-text);
+}
+
+.icon-button-primary:active:not(:disabled) {
+  background-color: var(--action-primary-press);
+}
+
+.icon-button:disabled {
+  color: var(--text-disabled);
+}
+
+.icon-button-primary:disabled {
+  background-color: var(--action-disabled);
+}

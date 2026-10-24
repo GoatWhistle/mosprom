@@ -93,6 +93,7 @@ class ScriptedTurn(object):
             self.run(scenarios.after_answer())
             return self
         self.conversation.append({"role": "user", "content": text or "", "brim_attachments": attachments or []})
+        self.conversation.save()
         self.run(scenarios.build(scenarios.pick(text)))
         return self
 
@@ -122,6 +123,7 @@ class ScriptedTurn(object):
 
     def cancel(self):
         self.cancelled = True
+        self.conversation.save()
         QTimer.singleShot(0, lambda: self.emit("finished"))
         return True
 
