@@ -86,4 +86,12 @@ class SceneAccess(object):
             "rotation_deg": [round(item + 0.0, 3) for item in euler],
             "scale": [round(scale.x, 4), round(scale.z, 4), round(scale.y, 4)],
             "triangles": triangles,
+            "extruder": self.extruder(node),
         }
+
+    def extruder(self, node):
+        position = node.callDecoration("getActiveExtruderPosition")
+        try:
+            return int(position)
+        except (TypeError, ValueError):
+            return 0

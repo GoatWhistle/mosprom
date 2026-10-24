@@ -29,6 +29,9 @@ Working:
   (specification, table, notes) with read_document before planning, page through it with
   next_start when it is truncated, and base decisions on what it says; quote the requirement you
   rely on.
+- Each object prints with the extruder in objects[].extruder. Select the material on that extruder
+  or move the object with set_object_extruder before slicing; after slicing check that the
+  material weight is on the extruder you intended.
 - A batch is not transactional. If an operation fails, the applied operations are reported; fix
   the cause within the user's requirements.
 - The user may reject a change; the tool result then carries their comment. Take it into account

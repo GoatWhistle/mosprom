@@ -33,9 +33,10 @@
                     "duplicate",
                     "arrange",
                     "delete",
+                    "set_object_extruder",
                     "save_profile"
                   ],
-                  "description": "Operation kind. Required fields by kind: select_mode(mode); select_profile(profile_id); select_material(material_id, extruder); set_global_setting(key, value); set_extruder_setting(key, value, extruder); reset_overrides(keys); import_model(path); open_3mf(path, import_as); transform(object_id, frame, and at least one of position_mm, rotation_deg, scale; rotation_center when rotation_deg is set); duplicate(object_id, count); arrange(object_ids optional); delete(object_ids); save_profile(name)."
+                  "description": "Operation kind. Required fields by kind: select_mode(mode); select_profile(profile_id); select_material(material_id, extruder); set_global_setting(key, value); set_extruder_setting(key, value, extruder); reset_overrides(keys); import_model(path); open_3mf(path, import_as); transform(object_id, frame, and at least one of position_mm, rotation_deg, scale; rotation_center when rotation_deg is set); duplicate(object_id, count); arrange(object_ids optional); delete(object_ids); set_object_extruder(object_id, extruder): the extruder that prints the object, see objects[].extruder; save_profile(name)."
                 },
                 "mode": {
                   "type": "string",

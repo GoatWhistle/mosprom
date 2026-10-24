@@ -34,6 +34,7 @@ class SlicerPort(object):
             "duplicate": scene_ops.duplicate,
             "arrange": scene_ops.arrange,
             "delete": scene_ops.delete,
+            "set_object_extruder": scene_ops.set_object_extruder,
             "import_model": scene_ops.import_model,
             "open_3mf": scene_ops.open_3mf,
         }

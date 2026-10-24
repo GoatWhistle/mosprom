@@ -61,6 +61,20 @@ class SceneOperations(object):
 
         return self._main.call(run, guard=guard)
 
+    def set_object_extruder(self, op, guard=None):
+        def run():
+            node = self._access.require(op["object_id"])
+            extruders = self._h.global_stack().extruders
+            stack = extruders.get(str(op["extruder"]))
+            if stack is None:
+                raise OperationError(constants.ERR_OPERATION_FAILED, "extruder %s does not exist" % op["extruder"],
+                                     {"extruders": sorted(extruders.keys())})
+            node.callDecoration("setActiveExtruder", stack.getId())
+            self._h.scene().sceneChanged.emit(node)
+            return self._access.describe(node)
+
+        return self._main.call(run, guard=guard)
+
     def count(self):
         return self._main.call(lambda: len(list(self._access.objects())))
 
