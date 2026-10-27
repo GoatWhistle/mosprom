@@ -5,12 +5,6 @@ Thumbs.db
 .vscode/
 *.swp
 
-.claude/settings.local.json
-.claude/worktrees/
-.claude/scheduled_tasks.lock
-.claude/RESUME.md
-.impeccable/
-.playwright-mcp/
 
 .env
 .env.*

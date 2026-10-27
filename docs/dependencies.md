@@ -37,10 +37,9 @@ Backend требует Python ≥3.12. Dockerfile закрепляет `python:3
 с SHA-256 digest; точные digest находятся в [Dockerfile](../backend/Dockerfile).
 Сборка ставит зависимости с `uv sync --locked`, группа `llm` включается аргументом `LLM=true`.
 
-## Документация и презентация
+## Документация
 
-Презентация хранится как Markdown в `presentation/slides/slides.md`; npm-сборки и движка нет.
-Снимки для слайдов — в `presentation/slides/img/`, готовые PNG оформления README — в `docs/readme/`.
+Готовые PNG оформления README — в `docs/readme/`.
 Исходники бренда — в `docs/brand/`. Стили работающих оболочек находятся в
 `plugin/Brim/ui/qml/Theme.qml` и `plugin/Brim/web/styles/tokens/`.
 

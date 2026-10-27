@@ -1,12 +1,4 @@
 .git
-.claude
-.agents
-skills
-.impeccable
-.playwright-mcp
-context
-brief
-work
 **/node_modules
 **/dist
 **/coverage
