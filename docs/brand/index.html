@@ -11,16 +11,16 @@
 <style>
 /* Dark-first brandbook: telemetry header, corner-anchored hero, sections as full-width bands of plate tiles */
 :root {
-  --carbon: #12130f;
+  --carbon: #14181b;
   --carbon-850: #191a15;
   --carbon-950: #0b0c09;
   --vein: #3c3c38;
-  --bone: #e4dfda;
+  --bone: #e3e8eb;
   --ash: #9b968f;
-  --paper: #f6f5f2;
+  --paper: #f4f6f8;
   --paper-0: #ffffff;
-  --hot: #ff8a3d;
-  --hot-ink: #b83f0a;
+  --hot: #0277bd;
+  --hot-ink: #01579b;
   --bg: var(--carbon);
   --fg: var(--bone);
   --mute: var(--ash);
@@ -154,7 +154,7 @@ th { font-family: var(--f-mono); font-size: 12px; text-transform: uppercase; let
     <div class="grid">
       <div class="item"><div class="tile"><img src="symbol-dark.svg" alt="Знак на тёмном"></div><div class="caption tele"><span>Знак · тёмный</span></div></div>
       <div class="item"><div class="tile light"><img src="symbol-light.svg" alt="Знак на светлом"></div><div class="caption tele"><span>Знак · светлый</span></div></div>
-      <div class="item"><div class="tile hot"><img src="symbol-black.svg" alt="Чёрный знак на оранжевом"></div><div class="caption tele"><span>На цвете бренда</span></div></div>
+      <div class="item"><div class="tile hot"><img src="symbol-black.svg" alt="Чёрный знак на синем"></div><div class="caption tele"><span>На цвете бренда</span></div></div>
       <div class="item"><div class="tile photo"><img src="symbol-white.svg" alt="Белый знак на фото"></div><div class="caption tele"><span>На фото · одноцветный</span></div></div>
       <div class="item"><div class="tile pixel"><img src="symbol-small.svg" alt="Пиксельный знак 16 на 16"></div><div class="caption tele"><span>Фавикон 16×16</span><span class="mute">symbol-small.svg</span></div></div>
       <div class="item"><div class="tile row" style="gap:12px;grid-auto-flow:column;align-items:end"><img src="symbol-small.svg" alt="" style="width:16px;height:16px"><img src="symbol-small.svg" alt="" style="width:32px;height:32px;image-rendering:pixelated"><img src="symbol-dark.svg" alt="" style="width:48px;height:48px"><img src="symbol-dark.svg" alt="" style="width:96px;height:96px"></div><div class="caption tele"><span>16 · 32 · 48 · 96 px</span></div></div>
@@ -166,7 +166,7 @@ th { font-family: var(--f-mono); font-size: 12px; text-transform: uppercase; let
         <tr><td>Зазор знак — имя</td><td>0,25 высоты знака</td></tr>
         <tr><td>Охранное поле</td><td>Расстояние между кольцами знака с каждой стороны</td></tr>
         <tr><td>Минимум</td><td>Векторный знак 24 px, пиксельный 16 px, локап 96 px по ширине</td></tr>
-        <tr><td>Цвет</td><td>Только внешнее кольцо оранжевое; остальное — цвет текста фона</td></tr>
+        <tr><td>Цвет</td><td>Только внешнее кольцо синее; остальное — цвет текста фона</td></tr>
       </tbody>
     </table></div>
     <div class="grid">
@@ -207,7 +207,7 @@ th { font-family: var(--f-mono); font-size: 12px; text-transform: uppercase; let
     <div class="grid">
       <div class="item"><div class="tile"><div class="el-rings" style="width:100%;height:100%"><span></span><span></span><span></span></div></div><div class="caption tele"><span>Кольца каймы</span><span class="mute">выбор, уверенность</span></div></div>
       <div class="item"><div class="tile"><div class="el-tele"><span class="tele">ETA · PRINTER-03</span><b>01:12</b><span class="tele">NOZZLE 240°C</span></div></div><div class="caption tele"><span>Телеметрия и табло</span></div></div>
-      <div class="item"><div class="tile"><svg class="el-travel" viewBox="0 0 200 80" aria-hidden="true"><path d="M10 70 Q100 -20 190 70" fill="none" stroke="#ff8a3d" stroke-width="5"/></svg></div><div class="caption tele"><span>Холостой ход</span><span class="mute">переходы</span></div></div>
+      <div class="item"><div class="tile"><svg class="el-travel" viewBox="0 0 200 80" aria-hidden="true"><path d="M10 70 Q100 -20 190 70" fill="none" stroke="#0277bd" stroke-width="5"/></svg></div><div class="caption tele"><span>Холостой ход</span><span class="mute">переходы</span></div></div>
       <div class="item"><div class="tile"><div class="el-layers"><i></i><i></i><i></i><i></i><i></i><i></i></div></div><div class="caption tele"><span>Слои</span><span class="mute">прогресс</span></div></div>
       <div class="item"><div class="tile"><div class="el-code"><span>; Brim · PETG</span>G28<span>; слой 1/380 — держит</span>M600<span>; готово</span></div></div><div class="caption tele"><span>Комментарии G-кода</span></div></div>
       <div class="item"><div class="tile"><img src="symbol-animated.svg" alt=""></div><div class="caption tele"><span>Загрузка</span><span class="mute">кольца в цикле</span></div></div>
@@ -258,14 +258,14 @@ toggle.addEventListener('click', () => { root.dataset.theme = isLight() ? 'dark'
 syncTheme()
 
 const SWATCHES = [
-  ['#12130f', 'Carbon 900', 'Фон тёмной темы, текст светлой'],
+  ['#14181b', 'Carbon 900', 'Фон тёмной темы, текст светлой'],
   ['#191a15', 'Carbon 850', 'Панели в тёмной теме'],
   ['#3c3c38', 'Carbon 700', 'Линии и сетка стола'],
   ['#9b968f', 'Ash 400', 'Приглушённый текст на тёмном'],
-  ['#e4dfda', 'Bone 100', 'Основной текст тёмной темы'],
-  ['#f6f5f2', 'Paper 50', 'Фон светлой темы'],
-  ['#ff8a3d', 'Hot 400', 'Действие, процесс, внешнее кольцо'],
-  ['#b83f0a', 'Hot 700', 'Акцентный текст на светлом'],
+  ['#e3e8eb', 'Bone 100', 'Основной текст тёмной темы'],
+  ['#f4f6f8', 'Paper 50', 'Фон светлой темы'],
+  ['#0277bd', 'Hot 400', 'Действие, процесс, внешнее кольцо'],
+  ['#01579b', 'Hot 700', 'Акцентный текст на светлом'],
   ['#8fd6a8', 'Green 300', 'Печатает, готово'],
   ['#f0cf6a', 'Yellow 300', 'Нужен оператор'],
   ['#ff8a80', 'Red 300', 'Ошибка']
@@ -282,13 +282,13 @@ document.getElementById('sweep-run').addEventListener('click', async () => {
   sweeping = true
   const wrap = document.createElement('div')
   wrap.className = 'band-wrap'
-  const color = toLight ? '#f6f5f2' : '#12130f'
+  const color = toLight ? '#f4f6f8' : '#14181b'
   const bands = Array.from({ length: 8 }, (_, i) => {
     const b = document.createElement('div')
     const rev = i % 2 === 1
     b.className = rev ? 'band' : 'band rev'
     b.style.background = color
-    b.style.boxShadow = `${rev ? 3 : -3}px 0 0 0 #ff8a3d`
+    b.style.boxShadow = `${rev ? 3 : -3}px 0 0 0 #0277bd`
     wrap.append(b)
     return b
   })
@@ -332,10 +332,10 @@ fetch('symbol-dark.svg').then(r => r.text()).then(svg => {
   const b = subpaths(base.getAttribute('d'))
   const a = subpaths(accent.getAttribute('d'))
   const add = (d, fill, cls, i) => { const p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); p.setAttribute('fill', fill); p.setAttribute('fill-rule', 'evenodd'); p.setAttribute('class', cls); if (i) p.style.setProperty('--i', i); ringDemo.append(p) }
-  add(b[4], '#e4dfda', 'part')
-  add(b[2] + b[3], '#e4dfda', 'ring', 1)
-  add(b[0] + b[1], '#e4dfda', 'ring', 2)
-  add(a[0] + a[1], '#ff8a3d', 'ring', 3)
+  add(b[4], '#e3e8eb', 'part')
+  add(b[2] + b[3], '#e3e8eb', 'ring', 1)
+  add(b[0] + b[1], '#e3e8eb', 'ring', 2)
+  add(a[0] + a[1], '#0277bd', 'ring', 3)
   replay()
 }).catch(() => { ringDemo.outerHTML = '<img src="symbol-dark.svg" alt="" style="width:60%">' })
 function replay() { ringDemo.classList.remove('play'); void ringDemo.getBoundingClientRect(); ringDemo.classList.add('play') }

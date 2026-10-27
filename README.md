@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/banner.dark.png">
-    <img src="docs/readme/banner.light.png" alt="Brim: подготовка FDM 3D/5D-печати через чат в STE Slicer" width="880" height="200">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/banner.dark-9267dbed.png">
+    <img src="docs/readme/banner.light-7ae2487b.png" alt="Brim: подготовка FDM 3D/5D-печати через чат прямо в STE Slicer" width="880" height="200">
   </picture>
 </p>
 
@@ -9,46 +9,43 @@
 материал и настройки, применяет их в STE Slicer и сохраняет проект 3MF и G-code.
 
 <p align="center">
-<!-- readme:buttons -->
-  <a href="#запуск"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/cta-run.dark.png"><img src="docs/readme/cta-run.light.png" alt="Установить плагин" width="211" height="44"></picture></a>
-  <a href="docs/README.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/cta-docs.dark.png"><img src="docs/readme/cta-docs.light.png" alt="Документация" width="179" height="44"></picture></a>
+  <!-- readme:buttons -->
+  <a href="#запуск"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/cta-run.dark-52a53f06.png"><img src="docs/readme/cta-run.light-52a53f06.png" alt="Установить плагин" width="209" height="44"></picture></a>
+  <a href="docs/user-guide.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/cta-guide.dark-a16cec3b.png"><img src="docs/readme/cta-guide.light-c2042b10.png" alt="Руководство" width="163" height="44"></picture></a>
+  <a href="docs/README.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/cta-docs.dark-c0fb90db.png"><img src="docs/readme/cta-docs.light-5cedd1f7.png" alt="Документация" width="176" height="44"></picture></a>
   <!-- /readme:buttons -->
 </p>
 <p align="center">
-<!-- readme:status -->
-  <a href="plugin/Brim/plugin.json"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-status-1.dark.png"><img src="docs/readme/badge-status-1.light.png" alt="версия: 0.5.2" width="120" height="28"></picture></a>
-  <a href="docs/evidence.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-status-2.dark.png"><img src="docs/readme/badge-status-2.light.png" alt="стенд: 7 моделей с повторами" width="234" height="28"></picture></a>
-  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-status-3.dark.png"><img src="docs/readme/badge-status-3.light.png" alt="интерфейс: RU и EN" width="162" height="28"></picture>
-  <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-status-4.dark.png"><img src="docs/readme/badge-status-4.light.png" alt="лицензия: MIT" width="126" height="28"></picture></a>
+  <!-- readme:status -->
+  <a href="#результаты"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-status-1.dark-92b5242e.png"><img src="docs/readme/badge-status-1.light-5e807520.png" alt="модели организаторов: 7 из 7 нарезаны" width="291" height="28"></picture></a>
+  <a href="plugin/Brim/plugin.json"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-status-2.dark-3807d0e9.png"><img src="docs/readme/badge-status-2.light-d4411433.png" alt="версия: 0.5.2" width="121" height="28"></picture></a>
+  <br>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-status-3.dark-9467c025.png"><img src="docs/readme/badge-status-3.light-08ac7d65.png" alt="интерфейс: RU и EN" width="162" height="28"></picture>
+  <a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-status-4.dark-1ef054d7.png"><img src="docs/readme/badge-status-4.light-e09a4e4a.png" alt="лицензия: MIT" width="124" height="28"></picture></a>
   <!-- /readme:status -->
 </p>
 <p align="center">
-<!-- readme:stack -->
-  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-1.dark.png"><img src="docs/readme/badge-stack-1.light.png" alt="плагин: Python / PyQt5" width="181" height="28"></picture>
-  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-2.dark.png"><img src="docs/readme/badge-stack-2.light.png" alt="LLM: OpenAI API + tools" width="186" height="28"></picture>
+  <!-- readme:stack -->
+  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-1.dark-bd12d1cd.png"><img src="docs/readme/badge-stack-1.light-05542625.png" alt="плагин: Python и PyQt5" width="185" height="28"></picture>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-2.dark-5d03e190.png"><img src="docs/readme/badge-stack-2.light-b8db2bfa.png" alt="LLM: OpenAI API и tools" width="185" height="28"></picture>
   <br>
-  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-3.dark.png"><img src="docs/readme/badge-stack-3.light.png" alt="инструменты: MCP" width="156" height="28"></picture>
-  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-4.dark.png"><img src="docs/readme/badge-stack-4.light.png" alt="история: локальные файлы" width="213" height="28"></picture>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-3.dark-4f8ee4a0.png"><img src="docs/readme/badge-stack-3.light-1001c69e.png" alt="инструменты: MCP" width="153" height="28"></picture>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-stack-4.dark-5457ede0.png"><img src="docs/readme/badge-stack-4.light-307b3753.png" alt="прокси: FastAPI" width="134" height="28"></picture>
   <!-- /readme:stack -->
 </p>
 <p align="center">
-<!-- readme:nav -->
-  <a href="#зачем-это"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-nav-1.dark.png"><img src="docs/readme/badge-nav-1.light.png" alt="Зачем это" width="91" height="26"></picture></a>
-  <a href="#как-это-работает"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-nav-2.dark.png"><img src="docs/readme/badge-nav-2.light.png" alt="Как это работает" width="136" height="26"></picture></a>
-  <a href="#попробовать"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-nav-3.dark.png"><img src="docs/readme/badge-nav-3.light.png" alt="Попробовать" width="111" height="26"></picture></a>
+  <!-- readme:nav -->
+  <a href="#зачем-это"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-nav-1.dark-d7e5fdce.png"><img src="docs/readme/badge-nav-1.light-339b522d.png" alt="Зачем это" width="90" height="26"></picture></a>
+  <a href="#как-это-работает"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-nav-2.dark-2609810d.png"><img src="docs/readme/badge-nav-2.light-dc63b5ac.png" alt="Как это работает" width="134" height="26"></picture></a>
+  <a href="#попробовать"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-nav-3.dark-e3e568de.png"><img src="docs/readme/badge-nav-3.light-e65b80ad.png" alt="Попробовать" width="109" height="26"></picture></a>
   <br>
-  <a href="#результаты"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-nav-4.dark.png"><img src="docs/readme/badge-nav-4.light.png" alt="Результаты" width="100" height="26"></picture></a>
-  <a href="#запуск"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-nav-5.dark.png"><img src="docs/readme/badge-nav-5.light.png" alt="Запуск" width="71" height="26"></picture></a>
-  <a href="#устройство"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-nav-6.dark.png"><img src="docs/readme/badge-nav-6.light.png" alt="Устройство" width="100" height="26"></picture></a>
-  <a href="#ограничения"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-nav-7.dark.png"><img src="docs/readme/badge-nav-7.light.png" alt="Ограничения" width="112" height="26"></picture></a>
+  <a href="#результаты"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-nav-4.dark-76832f05.png"><img src="docs/readme/badge-nav-4.light-6ee6a8b1.png" alt="Результаты" width="98" height="26"></picture></a>
+  <a href="#запуск"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-nav-5.dark-4525057b.png"><img src="docs/readme/badge-nav-5.light-9b026985.png" alt="Запуск" width="70" height="26"></picture></a>
+  <a href="#устройство"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-nav-6.dark-d24e85e5.png"><img src="docs/readme/badge-nav-6.light-a02511ac.png" alt="Устройство" width="99" height="26"></picture></a>
+  <a href="#ограничения"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/badge-nav-7.dark-641a83f8.png"><img src="docs/readme/badge-nav-7.light-1871cd76.png" alt="Ограничения" width="109" height="26"></picture></a>
   <!-- /readme:nav -->
 </p>
 
-<p align="center">
-  <img src="docs/images/hero.png" alt="Brim в STE Slicer: расчёт изгиба зуба шестерни и предупреждение о недостаточном запасе" width="560">
-  <br>
-  <sub>Ручной прогон 24.10.2026, STE Slicer 7.10.12: шестерня из набора организаторов, расчёт до печати.</sub>
-</p>
 
 > **Отклонённое изменение не применяется.** Brim возвращает отказ и комментарий агенту,
 > чтобы тот мог пересмотреть предложение. Это поведение проверяется тестами подтверждений.
@@ -70,7 +67,7 @@ Brim — кайма вокруг детали на первом слое. Зна
 ## Как это работает
 
 ```mermaid
-%%{init: {"theme":"base","themeVariables":{"primaryColor":"#ffffff","primaryTextColor":"#12130f","primaryBorderColor":"#ff8a3d","secondaryColor":"#ecebe7","tertiaryColor":"#f6f5f2","lineColor":"#615c56","textColor":"#12130f","noteBkgColor":"#ecebe7","noteTextColor":"#4d4944","actorBkg":"#ffffff","actorBorder":"#ff8a3d","fontFamily":"Onest Variable"}}}%%
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#ffffff","primaryTextColor":"#1f2427","primaryBorderColor":"#0277bd","secondaryColor":"#e9edf0","tertiaryColor":"#f4f6f8","lineColor":"#5b666e","textColor":"#1f2427","noteBkgColor":"#e9edf0","noteTextColor":"#475158","actorBkg":"#ffffff","actorBorder":"#0277bd","fontFamily":"Onest"}}}%%
 flowchart LR
     I[Модель, фото и ТЗ] --> C[Чат и уточнения]
     C --> A[LLM и инструменты MCP]
@@ -189,8 +186,8 @@ python3 -m zipfile -t plugin/dist/Brim-0.5.2.zip
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/mark.dark.png">
-    <img src="docs/readme/mark.light.png" alt="Знак Brim" width="32" height="32">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/readme/mark.dark-45a2c8d6.png">
+    <img src="docs/readme/mark.light-2bbca741.png" alt="Знак Brim" width="32" height="32">
   </picture>
   <br>
   <sub>Команда GoatWhistle, хакатон «Открой Моспром», аддитивный трек, 2026. Лицензия <a href="LICENSE">MIT</a>.</sub>

@@ -5,7 +5,7 @@
 через предусмотренный в репозитории прокси. Базы данных, очереди и серверного хранилища чатов нет.
 
 ```mermaid
-%%{init: {"theme":"base","themeVariables":{"primaryColor":"#ffffff","primaryTextColor":"#12130f","primaryBorderColor":"#ff8a3d","secondaryColor":"#ecebe7","tertiaryColor":"#f6f5f2","lineColor":"#615c56","textColor":"#12130f","noteBkgColor":"#ecebe7","noteTextColor":"#4d4944","actorBkg":"#ffffff","actorBorder":"#ff8a3d","fontFamily":"Onest Variable"}}}%%
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#ffffff","primaryTextColor":"#1f2427","primaryBorderColor":"#0277bd","secondaryColor":"#e9edf0","tertiaryColor":"#f4f6f8","lineColor":"#5b666e","textColor":"#1f2427","noteBkgColor":"#e9edf0","noteTextColor":"#475158","actorBkg":"#ffffff","actorBorder":"#0277bd","fontFamily":"Onest"}}}%%
 flowchart LR
     Q[Панель QML] --> P[ChatPresenter]
     W[Браузерная SPA] --> H[Локальный HTTP и WebBridge]

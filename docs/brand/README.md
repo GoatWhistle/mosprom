@@ -8,14 +8,13 @@
 |---|---|---|
 | `symbol.svg` | Векторный исходник знака | Части с `class="mark-base"` и `class="mark-accent"`, цвета перекрашиваются токенами |
 | `symbol-small.svg` | Фавикон `favicon.svg` и `favicon.ico` | Пиксельная сетка 16×16, те же классы |
-| `symbol-dark.svg`, `symbol-light.svg` | Материалы на тёмном и светлом фоне | Внешнее кольцо `#ff8a3d` |
+| `symbol-dark.svg`, `symbol-light.svg` | Материалы на тёмном и светлом фоне | Внешнее кольцо `#0277bd` |
 | `symbol-white.svg`, `symbol-black.svg` | Печать в один цвет, фото, водяные знаки | Один цвет |
 | `symbol-animated.svg` | Заставки, видео, сайты без нашего фронтенда | Учитывает `prefers-reduced-motion` |
 | `wordmark-dark.svg`, `wordmark-light.svg` | Имя без знака | Геометрия, не шрифт; читается от 48 px по ширине |
 | `lockup-dark.svg`, `lockup-light.svg` | Шапки, обложки, подписи | Имя 0,62 высоты знака, зазор 0,25 |
 | `lockup-stacked-dark.svg`, `lockup-stacked-light.svg` | Квадратные площадки, аватары, стикеры | Знак сверху, имя снизу по центру |
 
-Исходники бренда сохранены независимо от удалённого веб-фронтенда.
-Палитра описана в визуальной системе; значения в коде — в `plugin/Brim/web/style.css`.
+Палитра описана в визуальной системе; значения в коде — в `plugin/Brim/web/styles/tokens/`.
 
 <sub>[Оглавление документации](../README.md) · [README проекта](../../README.md)</sub>
